@@ -118,10 +118,15 @@ public class Dashboard extends javax.swing.JFrame {
             item.addMouseListener(eventoOcultar);
         }
 
-        // 7. Configurar los clics (ActionListeners) para cada opción
+       // 7. Configurar los clics (ActionListeners) para cada opción
         itemCompanias.addActionListener(e -> {
             System.out.println("Hiciste clic en Catálogo de Compañías");
-            // Aquí puedes poner el código para cambiar de panel en tu Dashboard
+            
+            // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+            com.mycompany.benaedu.views.Companias vistaCompanias = new com.mycompany.benaedu.views.Companias();
+            
+            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
+            mostrarPanel(vistaCompanias);
         });
 
         itemCentrosCosto.addActionListener(e -> {
@@ -184,6 +189,14 @@ public class Dashboard extends javax.swing.JFrame {
         // 3. Limpiar, agregar en el CENTRO, y recargar la vista
         jpContainer.removeAll();
         jpContainer.add(pl, java.awt.BorderLayout.CENTER);
+        jpContainer.revalidate();
+        jpContainer.repaint();
+    }
+  
+  // Este método recibe cualquier JPanel y lo muestra en tu jpContainer
+    private void mostrarPanel(javax.swing.JPanel p) {
+        jpContainer.removeAll();
+        jpContainer.add(p, java.awt.BorderLayout.CENTER);
         jpContainer.revalidate();
         jpContainer.repaint();
     }
