@@ -102,6 +102,10 @@ public class Dashboard extends javax.swing.JFrame {
         lblDate = new javax.swing.JLabel();
         jpContainer = new javax.swing.JPanel();
 
+        org.jdesktop.swingx.VerticalLayout verticalLayout1 = new org.jdesktop.swingx.VerticalLayout();
+        verticalLayout1.setGap(14);
+        jXTaskPaneContainer1.setLayout(verticalLayout1);
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         background.setBackground(new java.awt.Color(255, 255, 255));
