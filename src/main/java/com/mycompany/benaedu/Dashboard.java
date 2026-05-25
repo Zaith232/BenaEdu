@@ -218,6 +218,7 @@ public class Dashboard extends javax.swing.JFrame {
         lblMessage = new javax.swing.JLabel();
         lblDate = new javax.swing.JLabel();
         lblTime = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
         jpContainer = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -276,6 +277,8 @@ public class Dashboard extends javax.swing.JFrame {
 
         lblTime.setText("Hora");
 
+        jLabel1.setText("Hola que hace");
+
         javax.swing.GroupLayout jpHeaderLayout = new javax.swing.GroupLayout(jpHeader);
         jpHeader.setLayout(jpHeaderLayout);
         jpHeaderLayout.setHorizontalGroup(
@@ -289,6 +292,10 @@ public class Dashboard extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(lblTime)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpHeaderLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel1)
+                .addGap(105, 105, 105))
         );
         jpHeaderLayout.setVerticalGroup(
             jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -296,7 +303,9 @@ public class Dashboard extends javax.swing.JFrame {
                 .addComponent(lblMessage)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblDate)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 90, Short.MAX_VALUE)
+                .addGap(34, 34, 34)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
                 .addComponent(lblTime)
                 .addContainerGap())
         );
@@ -363,6 +372,7 @@ public class Dashboard extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel background;
     private javax.swing.JButton btnInfoMaestra;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPanel jpContainer;
     private javax.swing.JPanel jpHeader;
