@@ -8,6 +8,7 @@ import com.formdev.flatlaf.FlatLightLaf;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterIJTheme;
 import com.mycompany.benaedu.views.Companias;
 import com.mycompany.benaedu.views.Principal;
+import com.mycompany.benaedu.views.Centros_costos;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.swing.JPanel;
@@ -26,6 +27,8 @@ public class Dashboard extends javax.swing.JFrame {
     
     // El menú flotante que mostrará los resultados de búsqueda
     private final javax.swing.JPopupMenu menuResultadosBusqueda = new javax.swing.JPopupMenu();
+    
+    private int indiceSeleccionadoBusqueda = -1;
 
     /**
      * Creates new form Dashboard
@@ -133,7 +136,6 @@ public class Dashboard extends javax.swing.JFrame {
 
        // 7. Configurar los clics (ActionListeners) para cada opción
         itemCompanias.addActionListener(e -> {
-            System.out.println("Hiciste clic en Catálogo de Compañías");
             
             // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
             com.mycompany.benaedu.views.Companias vistaCompanias = new com.mycompany.benaedu.views.Companias();
@@ -143,11 +145,52 @@ public class Dashboard extends javax.swing.JFrame {
         });
 
         itemCentrosCosto.addActionListener(e -> {
-            System.out.println("Hiciste clic en Catálogo de Centros de Costo");
+                 
+            // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+            com.mycompany.benaedu.views.Centros_costos vistaCentroCostos = new com.mycompany.benaedu.views.Centros_costos();
+            
+            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
+            mostrarPanel(vistaCentroCostos);
         });
 
         itemEjercicioFiscal.addActionListener(e -> {
-            System.out.println("Hiciste clic en Ejercicio Fiscal");
+               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+            com.mycompany.benaedu.views.Ejercicio_Fiscal vistaEjercicioFiscal = new com.mycompany.benaedu.views.Ejercicio_Fiscal();
+            
+            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
+            mostrarPanel(vistaEjercicioFiscal);
+        });
+        
+        itemEmpleados.addActionListener(e -> {
+               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+            com.mycompany.benaedu.views.Catalogo_Empleados vistaCatalagoEmpleados = new com.mycompany.benaedu.views.Catalogo_Empleados();
+            
+            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
+            mostrarPanel(vistaCatalagoEmpleados);
+        });
+        
+         itemDirecciones.addActionListener(e -> {
+               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+            com.mycompany.benaedu.views.Direcciones_Entrega vistaDireccionesEntrega = new com.mycompany.benaedu.views.Direcciones_Entrega();
+            
+            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
+            mostrarPanel(vistaDireccionesEntrega);
+        });
+         
+            itemClasificaciones.addActionListener(e -> {
+               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+            com.mycompany.benaedu.views.Clasificaciones vistaClasificaciones = new com.mycompany.benaedu.views.Clasificaciones();
+            
+            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
+            mostrarPanel(vistaClasificaciones);
+        });
+            
+             itemContactos.addActionListener(e -> {
+               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+            com.mycompany.benaedu.views.Catalogo_Contactos vistaContactos = new com.mycompany.benaedu.views.Catalogo_Contactos();
+            
+            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
+            mostrarPanel(vistaContactos);
         });
 
         // (Opcional) Puedes seguir agregando los ActionListeners de los demás ítems aquí abajo...
@@ -224,15 +267,32 @@ public class Dashboard extends javax.swing.JFrame {
     });
 
     opcionesSistema.put("Catálogo de Centros de Costo", () -> {
-        System.out.println("Falta crear vista de Centros de Costo");
-        // mostrarPanel(new com.mycompany.benaedu.views.CentrosCosto());
+       
+        mostrarPanel(new com.mycompany.benaedu.views.Centros_costos());
     });
 
     opcionesSistema.put("Ejercicio Fiscal", () -> {
-        System.out.println("Abriendo Ejercicio Fiscal");
+      mostrarPanel(new com.mycompany.benaedu.views.Ejercicio_Fiscal());
     });
+    
+    opcionesSistema.put("Catálogo de empleados", () -> {
+      mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Empleados());
+    });
+    
+     opcionesSistema.put("Direcciones de Entrega", () -> {
+      mostrarPanel(new com.mycompany.benaedu.views.Direcciones_Entrega());
+    });
+     
+      opcionesSistema.put("Tabla de Clasificaciones", () -> {
+      mostrarPanel(new com.mycompany.benaedu.views.Clasificaciones());
+    });
+      
+       opcionesSistema.put("Catálogo de Contactos", () -> {
+      mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos());
+    });
+       
+      
 
-    // Detecta cambios en el texto sin trabarse como con KeyListener
     txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
         @Override
         public void insertUpdate(javax.swing.event.DocumentEvent e) {
@@ -250,32 +310,73 @@ public class Dashboard extends javax.swing.JFrame {
         }
     });
 
-    // Enter abre la primera opción encontrada
-    txtSearch.addActionListener(e -> {
-        if (menuResultadosBusqueda.isVisible()
-                && menuResultadosBusqueda.getComponentCount() > 0) {
-
-            java.awt.Component comp = menuResultadosBusqueda.getComponent(0);
-
-            if (comp instanceof javax.swing.JMenuItem item) {
-                item.doClick();
-            }
-        }
-    });
-
-    // Escape cierra el menú
     txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
         @Override
         public void keyPressed(java.awt.event.KeyEvent evt) {
-            if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ESCAPE) {
+
+            int key = evt.getKeyCode();
+
+            if (key == java.awt.event.KeyEvent.VK_DOWN) {
+                evt.consume();
+
+                if (menuResultadosBusqueda.isVisible()
+                        && menuResultadosBusqueda.getComponentCount() > 0) {
+
+                    indiceSeleccionadoBusqueda++;
+
+                    if (indiceSeleccionadoBusqueda >= menuResultadosBusqueda.getComponentCount()) {
+                        indiceSeleccionadoBusqueda = 0;
+                    }
+
+                    seleccionarItemBusqueda(indiceSeleccionadoBusqueda);
+                }
+            }
+
+            if (key == java.awt.event.KeyEvent.VK_UP) {
+                evt.consume();
+
+                if (menuResultadosBusqueda.isVisible()
+                        && menuResultadosBusqueda.getComponentCount() > 0) {
+
+                    indiceSeleccionadoBusqueda--;
+
+                    if (indiceSeleccionadoBusqueda < 0) {
+                        indiceSeleccionadoBusqueda = menuResultadosBusqueda.getComponentCount() - 1;
+                    }
+
+                    seleccionarItemBusqueda(indiceSeleccionadoBusqueda);
+                }
+            }
+
+            if (key == java.awt.event.KeyEvent.VK_ENTER) {
+                evt.consume();
+
+                if (menuResultadosBusqueda.isVisible()
+                        && menuResultadosBusqueda.getComponentCount() > 0) {
+
+                    if (indiceSeleccionadoBusqueda < 0) {
+                        indiceSeleccionadoBusqueda = 0;
+                    }
+
+                    java.awt.Component comp = menuResultadosBusqueda.getComponent(indiceSeleccionadoBusqueda);
+
+                    if (comp instanceof javax.swing.JMenuItem item) {
+                        item.doClick();
+                    }
+                }
+            }
+
+            if (key == java.awt.event.KeyEvent.VK_ESCAPE) {
                 menuResultadosBusqueda.setVisible(false);
+                indiceSeleccionadoBusqueda = -1;
             }
         }
     });
 }
-  private void buscarOpciones(String texto) {
+ private void buscarOpciones(String texto) {
 
     menuResultadosBusqueda.removeAll();
+    indiceSeleccionadoBusqueda = -1;
 
     texto = texto.trim();
 
@@ -299,8 +400,10 @@ public class Dashboard extends javax.swing.JFrame {
 
             itemResultado.addActionListener(e -> {
                 opcion.getValue().run();
+
                 txtSearch.setText("");
                 menuResultadosBusqueda.setVisible(false);
+                indiceSeleccionadoBusqueda = -1;
 
                 javax.swing.SwingUtilities.invokeLater(() -> {
                     txtSearch.requestFocusInWindow();
@@ -327,6 +430,27 @@ public class Dashboard extends javax.swing.JFrame {
 
     } else {
         menuResultadosBusqueda.setVisible(false);
+    }
+}
+ 
+ private void seleccionarItemBusqueda(int indice) {
+
+    for (int i = 0; i < menuResultadosBusqueda.getComponentCount(); i++) {
+
+        java.awt.Component comp = menuResultadosBusqueda.getComponent(i);
+
+        if (comp instanceof javax.swing.JMenuItem item) {
+
+            if (i == indice) {
+                item.setArmed(true);
+                item.setBackground(new java.awt.Color(95, 143, 255));
+                item.setForeground(java.awt.Color.WHITE);
+            } else {
+                item.setArmed(false);
+                item.setBackground(java.awt.Color.WHITE);
+                item.setForeground(java.awt.Color.BLACK);
+            }
+        }
     }
 }
     /**

@@ -1,8 +1,14 @@
-com\mycompany\benaedu\Dashboard.class
 com\mycompany\benaedu\views\Principal.class
 com\mycompany\benaedu\Dashboard$4.class
+com\mycompany\benaedu\views\Direcciones_Entrega.class
+com\mycompany\benaedu\views\Clasificaciones.class
+com\mycompany\benaedu\views\Ejercicio_Fiscal.class
+com\mycompany\benaedu\Dashboard$1.class
+com\mycompany\benaedu\Dashboard.class
+com\mycompany\benaedu\views\Centros_costos.class
 com\mycompany\benaedu\views\Companias.class
+com\mycompany\benaedu\views\Catalogo_Contactos.class
 com\mycompany\benaedu\Dashboard$3.class
 com\mycompany\benaedu\BenaEdu.class
 com\mycompany\benaedu\Dashboard$2.class
-com\mycompany\benaedu\Dashboard$1.class
+com\mycompany\benaedu\views\Catalogo_Empleados.class
