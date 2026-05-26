@@ -21,6 +21,11 @@ import javax.swing.tree.DefaultTreeModel;
 public class Dashboard extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Dashboard.class.getName());
+    // Mapa que guardará el nombre de la opción y la acción que debe ejecutar
+ private final java.util.Map<String, Runnable> opcionesSistema = new java.util.LinkedHashMap<>();
+    
+    // El menú flotante que mostrará los resultados de búsqueda
+    private final javax.swing.JPopupMenu menuResultadosBusqueda = new javax.swing.JPopupMenu();
 
     /**
      * Creates new form Dashboard
@@ -31,6 +36,7 @@ public class Dashboard extends javax.swing.JFrame {
         configurarMenuDesplegable();
         configurarFechaYHora();
         initContent();
+        configurarBuscador();
     }
 
     private void InitStyles() {
@@ -52,13 +58,20 @@ public class Dashboard extends javax.swing.JFrame {
         // 2. Crear las opciones correctas basándonos en tu imagen
         // Asegúrate de tener un icono llamado "compania.png" en tu carpeta de imágenes
         javax.swing.JMenuItem itemCompanias = new javax.swing.JMenuItem("Catálogo de Compañías");
-        itemCompanias.setIcon(new javax.swing.ImageIcon(getClass().getResource("/companion.png")));
+        itemCompanias.setIcon(new javax.swing.ImageIcon(getClass().getResource("/compania.png")));
         javax.swing.JMenuItem itemCentrosCosto = new javax.swing.JMenuItem("Catálogo de Centros de Costo");
+        itemCentrosCosto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/costos.png")));
         javax.swing.JMenuItem itemEjercicioFiscal = new javax.swing.JMenuItem("Ejercicio Fiscal");
+                itemEjercicioFiscal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fiscal.png")));
         javax.swing.JMenuItem itemEmpleados = new javax.swing.JMenuItem("Catálogo de Empleados");
+                itemEmpleados.setIcon(new javax.swing.ImageIcon(getClass().getResource("/empleados.png")));
         javax.swing.JMenuItem itemDirecciones = new javax.swing.JMenuItem("Direcciones de Entrega");
+                itemDirecciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/entregas.png")));
         javax.swing.JMenuItem itemClasificaciones = new javax.swing.JMenuItem("Tabla de Clasificaciones");
+                itemClasificaciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/clasificaciones.png")));
         javax.swing.JMenuItem itemContactos = new javax.swing.JMenuItem("Catálogo de Contactos");
+                        itemContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/contactos.png")));
+
 
         // 3. Agregar todas las opciones al menú emergente
         menuInfoMaestra.add(itemCompanias);
@@ -200,6 +213,122 @@ public class Dashboard extends javax.swing.JFrame {
         jpContainer.revalidate();
         jpContainer.repaint();
     }
+    
+   private void configurarBuscador() {
+
+    // Para que el menú no robe el foco al escribir
+    menuResultadosBusqueda.setFocusable(false);
+
+    opcionesSistema.put("Catálogo de Compañías", () -> {
+        mostrarPanel(new com.mycompany.benaedu.views.Companias());
+    });
+
+    opcionesSistema.put("Catálogo de Centros de Costo", () -> {
+        System.out.println("Falta crear vista de Centros de Costo");
+        // mostrarPanel(new com.mycompany.benaedu.views.CentrosCosto());
+    });
+
+    opcionesSistema.put("Ejercicio Fiscal", () -> {
+        System.out.println("Abriendo Ejercicio Fiscal");
+    });
+
+    // Detecta cambios en el texto sin trabarse como con KeyListener
+    txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        @Override
+        public void insertUpdate(javax.swing.event.DocumentEvent e) {
+            buscarOpciones(txtSearch.getText());
+        }
+
+        @Override
+        public void removeUpdate(javax.swing.event.DocumentEvent e) {
+            buscarOpciones(txtSearch.getText());
+        }
+
+        @Override
+        public void changedUpdate(javax.swing.event.DocumentEvent e) {
+            buscarOpciones(txtSearch.getText());
+        }
+    });
+
+    // Enter abre la primera opción encontrada
+    txtSearch.addActionListener(e -> {
+        if (menuResultadosBusqueda.isVisible()
+                && menuResultadosBusqueda.getComponentCount() > 0) {
+
+            java.awt.Component comp = menuResultadosBusqueda.getComponent(0);
+
+            if (comp instanceof javax.swing.JMenuItem item) {
+                item.doClick();
+            }
+        }
+    });
+
+    // Escape cierra el menú
+    txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+        @Override
+        public void keyPressed(java.awt.event.KeyEvent evt) {
+            if (evt.getKeyCode() == java.awt.event.KeyEvent.VK_ESCAPE) {
+                menuResultadosBusqueda.setVisible(false);
+            }
+        }
+    });
+}
+  private void buscarOpciones(String texto) {
+
+    menuResultadosBusqueda.removeAll();
+
+    texto = texto.trim();
+
+    if (texto.isEmpty()) {
+        menuResultadosBusqueda.setVisible(false);
+        return;
+    }
+
+    String textoBusqueda = texto.toLowerCase();
+    int coincidencias = 0;
+
+    for (java.util.Map.Entry<String, Runnable> opcion : opcionesSistema.entrySet()) {
+
+        String nombreOpcion = opcion.getKey();
+
+        if (nombreOpcion.toLowerCase().contains(textoBusqueda)) {
+
+            javax.swing.JMenuItem itemResultado = new javax.swing.JMenuItem(nombreOpcion);
+
+            itemResultado.setFocusable(false);
+
+            itemResultado.addActionListener(e -> {
+                opcion.getValue().run();
+                txtSearch.setText("");
+                menuResultadosBusqueda.setVisible(false);
+
+                javax.swing.SwingUtilities.invokeLater(() -> {
+                    txtSearch.requestFocusInWindow();
+                });
+            });
+
+            menuResultadosBusqueda.add(itemResultado);
+            coincidencias++;
+        }
+    }
+
+    if (coincidencias > 0) {
+
+        if (!menuResultadosBusqueda.isVisible()) {
+            menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight());
+        }
+
+        menuResultadosBusqueda.revalidate();
+        menuResultadosBusqueda.repaint();
+
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            txtSearch.requestFocusInWindow();
+        });
+
+    } else {
+        menuResultadosBusqueda.setVisible(false);
+    }
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -218,7 +347,7 @@ public class Dashboard extends javax.swing.JFrame {
         lblMessage = new javax.swing.JLabel();
         lblDate = new javax.swing.JLabel();
         lblTime = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
+        txtSearch = new javax.swing.JTextField();
         jpContainer = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -277,8 +406,6 @@ public class Dashboard extends javax.swing.JFrame {
 
         lblTime.setText("Hora");
 
-        jLabel1.setText("Hola que hace");
-
         javax.swing.GroupLayout jpHeaderLayout = new javax.swing.GroupLayout(jpHeader);
         jpHeader.setLayout(jpHeaderLayout);
         jpHeaderLayout.setHorizontalGroup(
@@ -291,11 +418,9 @@ public class Dashboard extends javax.swing.JFrame {
             .addGroup(jpHeaderLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(lblTime)
+                .addGap(200, 200, 200)
+                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpHeaderLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jLabel1)
-                .addGap(105, 105, 105))
         );
         jpHeaderLayout.setVerticalGroup(
             jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -303,10 +428,10 @@ public class Dashboard extends javax.swing.JFrame {
                 .addComponent(lblMessage)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblDate)
-                .addGap(34, 34, 34)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 40, Short.MAX_VALUE)
-                .addComponent(lblTime)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 84, Short.MAX_VALUE)
+                .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblTime)
+                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -372,7 +497,6 @@ public class Dashboard extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel background;
     private javax.swing.JButton btnInfoMaestra;
-    private javax.swing.JLabel jLabel1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPanel jpContainer;
     private javax.swing.JPanel jpHeader;
@@ -381,5 +505,6 @@ public class Dashboard extends javax.swing.JFrame {
     private javax.swing.JLabel lblMessage;
     private javax.swing.JLabel lblTime;
     private javax.swing.JLabel lblTitle;
+    private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }
