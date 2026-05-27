@@ -46,6 +46,8 @@ public class Clasificaciones extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        tblClasificaciones.setGridColor(new java.awt.Color(0, 0, 0));
+        tblClasificaciones.setShowGrid(true);
         jScrollPane1.setViewportView(tblClasificaciones);
 
         btnAddClasificaciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N

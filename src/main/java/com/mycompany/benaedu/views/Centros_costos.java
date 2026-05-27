@@ -45,7 +45,17 @@ public class Centros_costos extends javax.swing.JPanel {
             new String [] {
                 "cia", "Clave", "Nombre", "Clas.", "Clas. 2", "Clas. 3", "Clas. 4", "Clas. 5", "Clas. 6", "Clas. 7", "Clas. 8", "Clas. 9", "Clas. 10", "Usuario", "Fecha Mod.", "Hora Mod."
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tblCentroCostos.setGridColor(new java.awt.Color(0, 0, 0));
+        tblCentroCostos.setShowGrid(true);
         tblCentro_Costos.setViewportView(tblCentroCostos);
 
         btnAddCentroCostos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N

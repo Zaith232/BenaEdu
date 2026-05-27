@@ -47,7 +47,17 @@ public class Companias extends javax.swing.JPanel {
             new String [] {
                 "Compañia", "Nombre", "R.F.C", "Moneda", "Usuario Mod.", "Fecha Mod.", "Hora Mod."
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tblCompania.setGridColor(new java.awt.Color(0, 0, 0));
+        tblCompania.setShowGrid(true);
         jScrollPane1.setViewportView(tblCompania);
 
         btnAddCompania.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
@@ -88,7 +98,7 @@ public class Companias extends javax.swing.JPanel {
                     .addComponent(btnAddCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnEditCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDeleteCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 16, Short.MAX_VALUE))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

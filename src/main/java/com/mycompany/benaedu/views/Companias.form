@@ -62,7 +62,7 @@
                       <Component id="btnEditCompania" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
                       <Component id="btnDeleteCompania" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="0" pref="16" max="32767" attributes="0"/>
+                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -79,13 +79,13 @@
               <Properties>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
                   <Table columnCount="7" rowCount="4">
-                    <Column editable="true" title="Compa&#xf1;ia" type="java.lang.Object"/>
-                    <Column editable="true" title="Nombre" type="java.lang.Object"/>
-                    <Column editable="true" title="R.F.C" type="java.lang.Object"/>
-                    <Column editable="true" title="Moneda" type="java.lang.Object"/>
-                    <Column editable="true" title="Usuario Mod." type="java.lang.Object"/>
-                    <Column editable="true" title="Fecha Mod." type="java.lang.Object"/>
-                    <Column editable="true" title="Hora Mod." type="java.lang.Object"/>
+                    <Column editable="false" title="Compa&#xf1;ia" type="java.lang.Object"/>
+                    <Column editable="false" title="Nombre" type="java.lang.Object"/>
+                    <Column editable="false" title="R.F.C" type="java.lang.Object"/>
+                    <Column editable="false" title="Moneda" type="java.lang.Object"/>
+                    <Column editable="false" title="Usuario Mod." type="java.lang.Object"/>
+                    <Column editable="false" title="Fecha Mod." type="java.lang.Object"/>
+                    <Column editable="false" title="Hora Mod." type="java.lang.Object"/>
                   </Table>
                 </Property>
                 <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
@@ -127,6 +127,10 @@
                     </Column>
                   </TableColumnModel>
                 </Property>
+                <Property name="gridColor" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="0" green="0" red="0" type="rgb"/>
+                </Property>
+                <Property name="showGrid" type="boolean" value="true"/>
                 <Property name="tableHeader" type="javax.swing.table.JTableHeader" editor="org.netbeans.modules.form.editors2.JTableHeaderEditor">
                   <TableHeader reorderingAllowed="true" resizingAllowed="true"/>
                 </Property>

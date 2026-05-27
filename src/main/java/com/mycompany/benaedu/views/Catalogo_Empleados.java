@@ -46,6 +46,8 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
                 "Numero", "Nombre", "Telefono", "Ciudad", "Estado", "Compañia", "Centro", "Usuario", "Fecha Mod.", "Hora Mod."
             }
         ));
+        tblEmpleados.setGridColor(new java.awt.Color(0, 0, 0));
+        tblEmpleados.setShowGrid(true);
         jScrollPane1.setViewportView(tblEmpleados);
 
         btnAddEmpleados.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N

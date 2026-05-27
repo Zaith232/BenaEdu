@@ -46,6 +46,7 @@ public class Catalogo_Contactos extends javax.swing.JPanel {
                 "Tipo", "Num. Cte/Prov", "Contacto", "Nombre", "Puesto", "Telefono", "Usuario Mod.", "Fecha Mod.", "Hora Mod."
             }
         ));
+        tblContactos.setShowGrid(false);
         jScrollPane1.setViewportView(tblContactos);
 
         btnAddContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N

@@ -46,6 +46,8 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
                 "Tablas", "Descripcion", "Usuario", "Fec. Ult. Act", "Hora. Ult. Act"
             }
         ));
+        tblEjercicioFiscal.setGridColor(new java.awt.Color(0, 0, 0));
+        tblEjercicioFiscal.setShowGrid(true);
         jScrollPane1.setViewportView(tblEjercicioFiscal);
 
         btnAddFiscal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N

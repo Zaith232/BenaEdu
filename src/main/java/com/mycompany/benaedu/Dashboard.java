@@ -472,6 +472,7 @@ public class Dashboard extends javax.swing.JFrame {
         lblDate = new javax.swing.JLabel();
         lblTime = new javax.swing.JLabel();
         txtSearch = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
         jpContainer = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -479,16 +480,16 @@ public class Dashboard extends javax.swing.JFrame {
 
         background.setBackground(new java.awt.Color(255, 255, 255));
 
-        jpMenu.setBackground(new java.awt.Color(95, 143, 255));
+        jpMenu.setBackground(new java.awt.Color(91, 173, 197));
         jpMenu.setPreferredSize(new java.awt.Dimension(270, 640));
 
         lblTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblTitle.setText("BENAEDU");
 
-        btnInfoMaestra.setBackground(new java.awt.Color(51, 51, 255));
+        btnInfoMaestra.setBackground(new java.awt.Color(203, 238, 244));
         btnInfoMaestra.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnInfoMaestra.setForeground(new java.awt.Color(255, 255, 255));
-        btnInfoMaestra.setIcon(new javax.swing.ImageIcon(getClass().getResource("/home.png"))); // NOI18N
+        btnInfoMaestra.setForeground(new java.awt.Color(91, 173, 197));
+        btnInfoMaestra.setIcon(new javax.swing.ImageIcon(getClass().getResource("/home2.png"))); // NOI18N
         btnInfoMaestra.setText("Informacion Maestra");
         btnInfoMaestra.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
         btnInfoMaestra.setBorderPainted(false);
@@ -520,8 +521,8 @@ public class Dashboard extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jpHeader.setBackground(new java.awt.Color(95, 143, 255));
-        jpHeader.setPreferredSize(new java.awt.Dimension(744, 150));
+        jpHeader.setBackground(new java.awt.Color(91, 173, 197));
+        jpHeader.setPreferredSize(new java.awt.Dimension(650, 150));
 
         lblMessage.setForeground(new java.awt.Color(255, 255, 255));
         lblMessage.setText("Buenas Tardes, Usuario");
@@ -530,32 +531,46 @@ public class Dashboard extends javax.swing.JFrame {
 
         lblTime.setText("Hora");
 
+        txtSearch.setBackground(new java.awt.Color(203, 238, 244));
+        txtSearch.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/search.png"))); // NOI18N
+
         javax.swing.GroupLayout jpHeaderLayout = new javax.swing.GroupLayout(jpHeader);
         jpHeader.setLayout(jpHeaderLayout);
         jpHeaderLayout.setHorizontalGroup(
             jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jpHeaderLayout.createSequentialGroup()
                 .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lblMessage)
-                    .addComponent(lblDate))
-                .addGap(0, 533, Short.MAX_VALUE))
+                    .addGroup(jpHeaderLayout.createSequentialGroup()
+                        .addComponent(lblMessage)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lblDate))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpHeaderLayout.createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lblTime)))
+                .addContainerGap())
             .addGroup(jpHeaderLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(lblTime)
-                .addGap(200, 200, 200)
-                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel1)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jpHeaderLayout.setVerticalGroup(
             jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jpHeaderLayout.createSequentialGroup()
-                .addComponent(lblMessage)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpHeaderLayout.createSequentialGroup()
+                .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(lblMessage)
+                    .addGroup(jpHeaderLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(lblDate)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lblDate)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 84, Short.MAX_VALUE)
-                .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblTime)
-                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addComponent(lblTime)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 74, Short.MAX_VALUE)
+                .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
                 .addContainerGap())
         );
 
@@ -565,7 +580,7 @@ public class Dashboard extends javax.swing.JFrame {
         jpContainer.setLayout(jpContainerLayout);
         jpContainerLayout.setHorizontalGroup(
             jpContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addGap(0, 920, Short.MAX_VALUE)
         );
         jpContainerLayout.setVerticalGroup(
             jpContainerLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -580,7 +595,7 @@ public class Dashboard extends javax.swing.JFrame {
                 .addComponent(jpMenu, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
                 .addGroup(backgroundLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jpHeader, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+                    .addComponent(jpHeader, javax.swing.GroupLayout.DEFAULT_SIZE, 920, Short.MAX_VALUE)
                     .addComponent(jpContainer, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         backgroundLayout.setVerticalGroup(
@@ -621,6 +636,7 @@ public class Dashboard extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel background;
     private javax.swing.JButton btnInfoMaestra;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPanel jpContainer;
     private javax.swing.JPanel jpHeader;

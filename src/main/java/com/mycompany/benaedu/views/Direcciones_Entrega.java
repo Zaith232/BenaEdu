@@ -46,6 +46,8 @@ public class Direcciones_Entrega extends javax.swing.JPanel {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        tblDireccionesEntrega.setGridColor(new java.awt.Color(0, 0, 0));
+        tblDireccionesEntrega.setShowGrid(true);
         jScrollPane1.setViewportView(tblDireccionesEntrega);
 
         btnAddEntrega.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
