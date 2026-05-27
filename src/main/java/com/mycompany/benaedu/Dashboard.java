@@ -43,14 +43,16 @@ public class Dashboard extends javax.swing.JFrame {
     }
 
     private void InitStyles() {
-        lblMessage.putClientProperty("FlatLaf.style", "font: 30");
+        lblMessage.putClientProperty("FlatLaf.style", "font: bold 30");
         lblMessage.setForeground(Color.white);
-        lblTitle.putClientProperty("FlatLaf.style", "font: 30 ");
+        lblTitle.putClientProperty("FlatLaf.style", "font: bold 30 ");
         lblTitle.setForeground(Color.white);
-        lblDate.putClientProperty("FlatLaf.style", "font: 30 ");
+        lblDate.putClientProperty("FlatLaf.style", "font: bold 30 ");
         lblDate.setForeground(Color.white);
-        lblTime.putClientProperty("FlatLaf.style", "font: 30 ");
+        lblTime.putClientProperty("FlatLaf.style", "font: bold 30 ");
         lblTime.setForeground(Color.white);
+        lblTitleInfo.putClientProperty("FlatLaf.style", "font: bold 24");
+        lblTitleInfo.setForeground(Color.white);
 
     }
 
@@ -141,7 +143,9 @@ public class Dashboard extends javax.swing.JFrame {
             com.mycompany.benaedu.views.Companias vistaCompanias = new com.mycompany.benaedu.views.Companias();
             
             // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            mostrarPanel(vistaCompanias);
+   
+            
+            mostrarPanel(vistaCompanias, "Catálogo de Compañías");
         });
 
         itemCentrosCosto.addActionListener(e -> {
@@ -150,7 +154,8 @@ public class Dashboard extends javax.swing.JFrame {
             com.mycompany.benaedu.views.Centros_costos vistaCentroCostos = new com.mycompany.benaedu.views.Centros_costos();
             
             // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            mostrarPanel(vistaCentroCostos);
+         
+            mostrarPanel(vistaCentroCostos, "Catálogo de Centros de Costo");
         });
 
         itemEjercicioFiscal.addActionListener(e -> {
@@ -158,7 +163,8 @@ public class Dashboard extends javax.swing.JFrame {
             com.mycompany.benaedu.views.Ejercicio_Fiscal vistaEjercicioFiscal = new com.mycompany.benaedu.views.Ejercicio_Fiscal();
             
             // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            mostrarPanel(vistaEjercicioFiscal);
+         
+            mostrarPanel(vistaEjercicioFiscal, "Ejercicio Fiscal");
         });
         
         itemEmpleados.addActionListener(e -> {
@@ -166,7 +172,8 @@ public class Dashboard extends javax.swing.JFrame {
             com.mycompany.benaedu.views.Catalogo_Empleados vistaCatalagoEmpleados = new com.mycompany.benaedu.views.Catalogo_Empleados();
             
             // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            mostrarPanel(vistaCatalagoEmpleados);
+          
+            mostrarPanel(vistaCatalagoEmpleados, "Catalogo de empleados");
         });
         
          itemDirecciones.addActionListener(e -> {
@@ -174,7 +181,9 @@ public class Dashboard extends javax.swing.JFrame {
             com.mycompany.benaedu.views.Direcciones_Entrega vistaDireccionesEntrega = new com.mycompany.benaedu.views.Direcciones_Entrega();
             
             // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            mostrarPanel(vistaDireccionesEntrega);
+            
+            mostrarPanel(vistaDireccionesEntrega, "Direcciones de Entrega");
+
         });
          
             itemClasificaciones.addActionListener(e -> {
@@ -182,7 +191,9 @@ public class Dashboard extends javax.swing.JFrame {
             com.mycompany.benaedu.views.Clasificaciones vistaClasificaciones = new com.mycompany.benaedu.views.Clasificaciones();
             
             // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            mostrarPanel(vistaClasificaciones);
+           
+            mostrarPanel(vistaClasificaciones, "Clasificaciones");
+
         });
             
              itemContactos.addActionListener(e -> {
@@ -190,7 +201,9 @@ public class Dashboard extends javax.swing.JFrame {
             com.mycompany.benaedu.views.Catalogo_Contactos vistaContactos = new com.mycompany.benaedu.views.Catalogo_Contactos();
             
             // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            mostrarPanel(vistaContactos);
+            
+            mostrarPanel(vistaContactos, "Contactos");
+
         });
 
         // (Opcional) Puedes seguir agregando los ActionListeners de los demás ítems aquí abajo...
@@ -247,14 +260,18 @@ public class Dashboard extends javax.swing.JFrame {
         jpContainer.add(pl, java.awt.BorderLayout.CENTER);
         jpContainer.revalidate();
         jpContainer.repaint();
+        
+        mostrarPanel(pl, "Principal");
     }
   
   // Este método recibe cualquier JPanel y lo muestra en tu jpContainer
-    private void mostrarPanel(javax.swing.JPanel p) {
+    private void mostrarPanel(javax.swing.JPanel p, String titulo) {
         jpContainer.removeAll();
         jpContainer.add(p, java.awt.BorderLayout.CENTER);
         jpContainer.revalidate();
         jpContainer.repaint();
+        
+        lblTitleInfo.setText(titulo);
     }
     
    private void configurarBuscador() {
@@ -263,32 +280,33 @@ public class Dashboard extends javax.swing.JFrame {
     menuResultadosBusqueda.setFocusable(false);
 
     opcionesSistema.put("Catálogo de Compañías", () -> {
-        mostrarPanel(new com.mycompany.benaedu.views.Companias());
+       mostrarPanel(new com.mycompany.benaedu.views.Companias(), "Catálogo de Compañías");
+        
     });
 
     opcionesSistema.put("Catálogo de Centros de Costo", () -> {
        
-        mostrarPanel(new com.mycompany.benaedu.views.Centros_costos());
+        mostrarPanel(new com.mycompany.benaedu.views.Centros_costos(), "Catálogo de Centros de Costo");
     });
 
     opcionesSistema.put("Ejercicio Fiscal", () -> {
-      mostrarPanel(new com.mycompany.benaedu.views.Ejercicio_Fiscal());
+      mostrarPanel(new com.mycompany.benaedu.views.Ejercicio_Fiscal(),"Ejercicio Fiscal");
     });
     
     opcionesSistema.put("Catálogo de empleados", () -> {
-      mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Empleados());
+      mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Empleados(),"Catálogo de empleados");
     });
     
      opcionesSistema.put("Direcciones de Entrega", () -> {
-      mostrarPanel(new com.mycompany.benaedu.views.Direcciones_Entrega());
+      mostrarPanel(new com.mycompany.benaedu.views.Direcciones_Entrega(),"Direcciones de Entrega");
     });
      
       opcionesSistema.put("Tabla de Clasificaciones", () -> {
-      mostrarPanel(new com.mycompany.benaedu.views.Clasificaciones());
+      mostrarPanel(new com.mycompany.benaedu.views.Clasificaciones(),"Tabla de Clasificaciones");
     });
       
        opcionesSistema.put("Catálogo de Contactos", () -> {
-      mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos());
+      mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos(),"Catálogo de Contactos");
     });
        
       
@@ -467,15 +485,25 @@ public class Dashboard extends javax.swing.JFrame {
         lblTitle = new javax.swing.JLabel();
         jSeparator1 = new javax.swing.JSeparator();
         btnInfoMaestra = new javax.swing.JButton();
+        btnTransacciones = new javax.swing.JButton();
+        btnContabilidad = new javax.swing.JButton();
+        btnCuentasPorPagar = new javax.swing.JButton();
+        btnCuentasPorCobrar = new javax.swing.JButton();
+        btnInventarios = new javax.swing.JButton();
+        btnCompras = new javax.swing.JButton();
+        btnEscolar = new javax.swing.JButton();
+        btnAcademico = new javax.swing.JButton();
         jpHeader = new javax.swing.JPanel();
         lblMessage = new javax.swing.JLabel();
         lblDate = new javax.swing.JLabel();
         lblTime = new javax.swing.JLabel();
         txtSearch = new javax.swing.JTextField();
-        jLabel1 = new javax.swing.JLabel();
+        imgSearch = new javax.swing.JLabel();
+        lblTitleInfo = new javax.swing.JLabel();
         jpContainer = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(255, 255, 255));
         setMinimumSize(new java.awt.Dimension(1020, 664));
 
         background.setBackground(new java.awt.Color(255, 255, 255));
@@ -497,6 +525,94 @@ public class Dashboard extends javax.swing.JFrame {
         btnInfoMaestra.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         btnInfoMaestra.setIconTextGap(10);
 
+        btnTransacciones.setBackground(new java.awt.Color(203, 238, 244));
+        btnTransacciones.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnTransacciones.setForeground(new java.awt.Color(91, 173, 197));
+        btnTransacciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/transacciones.png"))); // NOI18N
+        btnTransacciones.setText("Transacciones");
+        btnTransacciones.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnTransacciones.setBorderPainted(false);
+        btnTransacciones.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnTransacciones.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnTransacciones.setIconTextGap(10);
+
+        btnContabilidad.setBackground(new java.awt.Color(203, 238, 244));
+        btnContabilidad.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnContabilidad.setForeground(new java.awt.Color(91, 173, 197));
+        btnContabilidad.setIcon(new javax.swing.ImageIcon(getClass().getResource("/contabilidad.png"))); // NOI18N
+        btnContabilidad.setText("Contabilidad");
+        btnContabilidad.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnContabilidad.setBorderPainted(false);
+        btnContabilidad.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnContabilidad.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnContabilidad.setIconTextGap(10);
+
+        btnCuentasPorPagar.setBackground(new java.awt.Color(203, 238, 244));
+        btnCuentasPorPagar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnCuentasPorPagar.setForeground(new java.awt.Color(91, 173, 197));
+        btnCuentasPorPagar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pagar.png"))); // NOI18N
+        btnCuentasPorPagar.setText("Cuentas por Pagar");
+        btnCuentasPorPagar.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnCuentasPorPagar.setBorderPainted(false);
+        btnCuentasPorPagar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnCuentasPorPagar.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnCuentasPorPagar.setIconTextGap(10);
+
+        btnCuentasPorCobrar.setBackground(new java.awt.Color(203, 238, 244));
+        btnCuentasPorCobrar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnCuentasPorCobrar.setForeground(new java.awt.Color(91, 173, 197));
+        btnCuentasPorCobrar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cobrar.png"))); // NOI18N
+        btnCuentasPorCobrar.setText("Cuentas por Cobrar");
+        btnCuentasPorCobrar.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnCuentasPorCobrar.setBorderPainted(false);
+        btnCuentasPorCobrar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnCuentasPorCobrar.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnCuentasPorCobrar.setIconTextGap(10);
+
+        btnInventarios.setBackground(new java.awt.Color(203, 238, 244));
+        btnInventarios.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnInventarios.setForeground(new java.awt.Color(91, 173, 197));
+        btnInventarios.setIcon(new javax.swing.ImageIcon(getClass().getResource("/inventarios.png"))); // NOI18N
+        btnInventarios.setText("Inventarios");
+        btnInventarios.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnInventarios.setBorderPainted(false);
+        btnInventarios.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnInventarios.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnInventarios.setIconTextGap(10);
+
+        btnCompras.setBackground(new java.awt.Color(203, 238, 244));
+        btnCompras.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnCompras.setForeground(new java.awt.Color(91, 173, 197));
+        btnCompras.setIcon(new javax.swing.ImageIcon(getClass().getResource("/compras.png"))); // NOI18N
+        btnCompras.setText("Compras");
+        btnCompras.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnCompras.setBorderPainted(false);
+        btnCompras.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnCompras.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnCompras.setIconTextGap(10);
+
+        btnEscolar.setBackground(new java.awt.Color(203, 238, 244));
+        btnEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEscolar.setForeground(new java.awt.Color(91, 173, 197));
+        btnEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/escolar.png"))); // NOI18N
+        btnEscolar.setText("Escolar");
+        btnEscolar.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnEscolar.setBorderPainted(false);
+        btnEscolar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnEscolar.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnEscolar.setIconTextGap(10);
+
+        btnAcademico.setBackground(new java.awt.Color(203, 238, 244));
+        btnAcademico.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAcademico.setForeground(new java.awt.Color(91, 173, 197));
+        btnAcademico.setIcon(new javax.swing.ImageIcon(getClass().getResource("/academico.png"))); // NOI18N
+        btnAcademico.setText("Academico");
+        btnAcademico.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
+        btnAcademico.setBorderPainted(false);
+        btnAcademico.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnAcademico.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        btnAcademico.setIconTextGap(10);
+
         javax.swing.GroupLayout jpMenuLayout = new javax.swing.GroupLayout(jpMenu);
         jpMenu.setLayout(jpMenuLayout);
         jpMenuLayout.setHorizontalGroup(
@@ -508,6 +624,14 @@ public class Dashboard extends javax.swing.JFrame {
                     .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 78, Short.MAX_VALUE))
             .addComponent(btnInfoMaestra, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnTransacciones, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnContabilidad, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnCuentasPorPagar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnCuentasPorCobrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnInventarios, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnCompras, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnEscolar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(btnAcademico, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jpMenuLayout.setVerticalGroup(
             jpMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -518,6 +642,22 @@ public class Dashboard extends javax.swing.JFrame {
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(27, 27, 27)
                 .addComponent(btnInfoMaestra, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnTransacciones, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnContabilidad, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCuentasPorPagar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCuentasPorCobrar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnInventarios, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCompras, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnAcademico, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
@@ -533,8 +673,11 @@ public class Dashboard extends javax.swing.JFrame {
 
         txtSearch.setBackground(new java.awt.Color(203, 238, 244));
         txtSearch.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        txtSearch.setToolTipText("");
 
-        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/search.png"))); // NOI18N
+        imgSearch.setIcon(new javax.swing.ImageIcon(getClass().getResource("/search.png"))); // NOI18N
+
+        lblTitleInfo.setText("Titulo");
 
         javax.swing.GroupLayout jpHeaderLayout = new javax.swing.GroupLayout(jpHeader);
         jpHeader.setLayout(jpHeaderLayout);
@@ -544,34 +687,41 @@ public class Dashboard extends javax.swing.JFrame {
                 .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jpHeaderLayout.createSequentialGroup()
                         .addComponent(lblMessage)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 575, Short.MAX_VALUE)
                         .addComponent(lblDate))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpHeaderLayout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jpHeaderLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(lblTitleInfo)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(lblTime)))
                 .addContainerGap())
             .addGroup(jpHeaderLayout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 300, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel1)
+                .addComponent(imgSearch)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jpHeaderLayout.setVerticalGroup(
             jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jpHeaderLayout.createSequentialGroup()
+            .addGroup(jpHeaderLayout.createSequentialGroup()
                 .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblMessage)
                     .addGroup(jpHeaderLayout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(lblDate)))
+                .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jpHeaderLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lblTime))
+                    .addGroup(jpHeaderLayout.createSequentialGroup()
+                        .addGap(15, 15, 15)
+                        .addComponent(lblTitleInfo)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(lblTime)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 74, Short.MAX_VALUE)
                 .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addContainerGap())
+                    .addComponent(imgSearch))
+                .addContainerGap(65, Short.MAX_VALUE))
         );
 
         jpContainer.setBackground(new java.awt.Color(255, 255, 255));
@@ -635,8 +785,16 @@ public class Dashboard extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel background;
+    private javax.swing.JButton btnAcademico;
+    private javax.swing.JButton btnCompras;
+    private javax.swing.JButton btnContabilidad;
+    private javax.swing.JButton btnCuentasPorCobrar;
+    private javax.swing.JButton btnCuentasPorPagar;
+    private javax.swing.JButton btnEscolar;
     private javax.swing.JButton btnInfoMaestra;
-    private javax.swing.JLabel jLabel1;
+    private javax.swing.JButton btnInventarios;
+    private javax.swing.JButton btnTransacciones;
+    private javax.swing.JLabel imgSearch;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JPanel jpContainer;
     private javax.swing.JPanel jpHeader;
@@ -645,6 +803,7 @@ public class Dashboard extends javax.swing.JFrame {
     private javax.swing.JLabel lblMessage;
     private javax.swing.JLabel lblTime;
     private javax.swing.JLabel lblTitle;
+    private javax.swing.JLabel lblTitleInfo;
     private javax.swing.JTextField txtSearch;
     // End of variables declaration//GEN-END:variables
 }

@@ -49,20 +49,23 @@ public class Catalogo_Contactos extends javax.swing.JPanel {
         tblContactos.setShowGrid(false);
         jScrollPane1.setViewportView(tblContactos);
 
+        btnAddContactos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddContactos.setForeground(new java.awt.Color(27, 94, 110));
         btnAddContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddContactos.setText("Añadir");
-        btnAddContactos.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnAddContactos.addActionListener(this::btnAddContactosActionPerformed);
 
+        btnEditContactos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditContactos.setForeground(new java.awt.Color(27, 94, 110));
         btnEditContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditContactos.setText("Editar");
-        btnEditContactos.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnEditContactos.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditContactos.setMinimumSize(new java.awt.Dimension(93, 31));
 
+        btnDeleteContactos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteContactos.setForeground(new java.awt.Color(27, 94, 110));
         btnDeleteContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteContactos.setText("Eliminar");
-        btnDeleteContactos.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnDeleteContactos.addActionListener(this::btnDeleteContactosActionPerformed);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
@@ -72,11 +75,11 @@ public class Catalogo_Contactos extends javax.swing.JPanel {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(pnlBgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnAddContactos, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnAddContactos)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditContactos, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditContactos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteContactos, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnDeleteContactos)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(
@@ -88,7 +91,7 @@ public class Catalogo_Contactos extends javax.swing.JPanel {
                     .addComponent(btnAddContactos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnEditContactos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDeleteContactos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(44, Short.MAX_VALUE))
+                .addGap(45, 45, 45))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
