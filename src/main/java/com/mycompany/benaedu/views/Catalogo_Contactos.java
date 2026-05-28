@@ -50,20 +50,20 @@ public class Catalogo_Contactos extends javax.swing.JPanel {
         jScrollPane1.setViewportView(tblContactos);
 
         btnAddContactos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnAddContactos.setForeground(new java.awt.Color(27, 94, 110));
+        btnAddContactos.setForeground(new java.awt.Color(26, 61, 99));
         btnAddContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddContactos.setText("Añadir");
         btnAddContactos.addActionListener(this::btnAddContactosActionPerformed);
 
         btnEditContactos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnEditContactos.setForeground(new java.awt.Color(27, 94, 110));
+        btnEditContactos.setForeground(new java.awt.Color(26, 61, 99));
         btnEditContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditContactos.setText("Editar");
         btnEditContactos.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditContactos.setMinimumSize(new java.awt.Dimension(93, 31));
 
         btnDeleteContactos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnDeleteContactos.setForeground(new java.awt.Color(27, 94, 110));
+        btnDeleteContactos.setForeground(new java.awt.Color(26, 61, 99));
         btnDeleteContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteContactos.setText("Eliminar");
         btnDeleteContactos.addActionListener(this::btnDeleteContactosActionPerformed);

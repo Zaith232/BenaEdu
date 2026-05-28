@@ -21,14 +21,14 @@ public class Principal extends javax.swing.JPanel {
     }
     
      private void InitStyles() {
-        lblText.putClientProperty("FlatLaf.style", "font: 30");
-        lblText.setForeground(Color.black);
-         lblText2.putClientProperty("FlatLaf.style", "font: 30");
-        lblText2.setForeground(Color.black);
-         lblText3.putClientProperty("FlatLaf.style", "font: 30");
-        lblText3.setForeground(Color.black);
-         lblText4.putClientProperty("FlatLaf.style", "font: 30");
-        lblText4.setForeground(Color.black);
+        lblText.putClientProperty("FlatLaf.style", "font: bold 30");
+        lblText.setForeground(new Color(179,207,229));
+         lblText2.putClientProperty("FlatLaf.style", "font: bold 30");
+        lblText2.setForeground(new Color(179,207,229));
+         lblText3.putClientProperty("FlatLaf.style", "font: bold 30");
+        lblText3.setForeground(new Color(179,207,229));
+         lblText4.putClientProperty("FlatLaf.style", "font: bold 30");
+        lblText4.setForeground(new Color(179,207,229));
       
 
     }

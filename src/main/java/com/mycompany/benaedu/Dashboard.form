@@ -77,7 +77,7 @@
         <Container class="javax.swing.JPanel" name="jpMenu">
           <Properties>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="4f" green="2e" red="6" type="rgb"/>
+              <Color blue="63" green="3d" red="1a" type="rgb"/>
             </Property>
             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[270, 640]"/>
@@ -110,7 +110,7 @@
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <EmptySpace min="-2" max="-2" attributes="0"/>
-                              <Component id="jLabel2" min="-2" pref="258" max="-2" attributes="0"/>
+                              <Component id="lblLogo" min="-2" pref="258" max="-2" attributes="0"/>
                           </Group>
                       </Group>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -121,7 +121,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" max="-2" attributes="0"/>
-                      <Component id="jLabel2" min="-2" pref="142" max="-2" attributes="0"/>
+                      <Component id="lblLogo" min="-2" pref="142" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
                       <Component id="btnInfoMaestra" min="-2" pref="50" max="-2" attributes="0"/>
                       <EmptySpace min="-2" max="-2" attributes="0"/>
@@ -149,16 +149,16 @@
             <Component class="javax.swing.JButton" name="btnInfoMaestra">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/home2.png"/>
+                  <Image iconType="3" name="/hom3.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Informacion Maestra"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -180,16 +180,16 @@
             <Component class="javax.swing.JButton" name="btnTransacciones">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/transacciones.png"/>
+                  <Image iconType="3" name="/transaccion.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Transacciones"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -208,16 +208,16 @@
             <Component class="javax.swing.JButton" name="btnContabilidad">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/contabilidad.png"/>
+                  <Image iconType="3" name="/contabilidad2.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Contabilidad"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -236,16 +236,16 @@
             <Component class="javax.swing.JButton" name="btnCuentasPorPagar">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/pagar.png"/>
+                  <Image iconType="3" name="/pagar2.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Cuentas por Pagar"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -264,16 +264,16 @@
             <Component class="javax.swing.JButton" name="btnCuentasPorCobrar">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/cobrar.png"/>
+                  <Image iconType="3" name="/cobrar2.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Cuentas por Cobrar"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -292,16 +292,16 @@
             <Component class="javax.swing.JButton" name="btnInventarios">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/inventarios.png"/>
+                  <Image iconType="3" name="/inventario.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Inventarios"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -320,16 +320,16 @@
             <Component class="javax.swing.JButton" name="btnCompras">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/compras.png"/>
+                  <Image iconType="3" name="/compras2.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Compras"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -348,16 +348,16 @@
             <Component class="javax.swing.JButton" name="btnEscolar">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/escolar.png"/>
+                  <Image iconType="3" name="/escolar2.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Escolar"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -376,16 +376,16 @@
             <Component class="javax.swing.JButton" name="btnAcademico">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="1"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="c5" green="ad" red="5b" type="rgb"/>
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/academico.png"/>
+                  <Image iconType="3" name="/academico2.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Academico"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
@@ -401,7 +401,7 @@
                 <Property name="iconTextGap" type="int" value="10"/>
               </Properties>
             </Component>
-            <Component class="javax.swing.JLabel" name="jLabel2">
+            <Component class="javax.swing.JLabel" name="lblLogo">
               <Properties>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/benaedu (5).png"/>
@@ -413,7 +413,7 @@
         <Container class="javax.swing.JPanel" name="jpHeader">
           <Properties>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="4f" green="2e" red="6" type="rgb"/>
+              <Color blue="63" green="3d" red="1a" type="rgb"/>
             </Property>
             <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="ff" green="ff" red="ff" type="rgb"/>
@@ -437,13 +437,8 @@
                           </Group>
                           <Component id="lblTitleInfo" alignment="0" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace max="32767" attributes="0"/>
+                      <EmptySpace pref="289" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="lblTitle" min="-2" pref="72" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="jSeparator1" min="-2" pref="130" max="-2" attributes="0"/>
-                          </Group>
                           <Component id="lblDate" min="-2" max="-2" attributes="0"/>
                           <Component id="lblTime" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -467,14 +462,8 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" attributes="0">
                               <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
-                              <Group type="103" groupAlignment="1" attributes="0">
-                                  <Group type="102" attributes="0">
-                                      <Component id="lblTime" min="-2" max="-2" attributes="0"/>
-                                      <EmptySpace min="-2" pref="20" max="-2" attributes="0"/>
-                                      <Component id="lblTitle" min="-2" pref="30" max="-2" attributes="0"/>
-                                  </Group>
-                                  <Component id="jSeparator1" min="-2" pref="10" max="-2" attributes="0"/>
-                              </Group>
+                              <Component id="lblTime" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <EmptySpace max="-2" attributes="0"/>
@@ -484,9 +473,9 @@
                                   <Component id="txtSearch" min="-2" max="-2" attributes="0"/>
                                   <Component id="imgSearch" min="-2" max="-2" attributes="0"/>
                               </Group>
+                              <EmptySpace pref="58" max="32767" attributes="0"/>
                           </Group>
                       </Group>
-                      <EmptySpace pref="32" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -509,9 +498,10 @@
                   <Color blue="99" green="99" red="0" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/Calendario.png"/>
+                  <Image iconType="3" name="/calendario.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Hoy es {dayname} de {month} del {year}  "/>
+                <Property name="iconTextGap" type="int" value="10"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="lblTime">
@@ -519,16 +509,23 @@
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
                   <Color blue="99" green="99" red="0" type="rgb"/>
                 </Property>
+                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
+                  <Image iconType="3" name="/clock.png"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Hora"/>
+                <Property name="iconTextGap" type="int" value="10"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JTextField" name="txtSearch">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f4" green="ee" red="cb" type="rgb"/>
+                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
                 </Property>
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="0"/>
+                </Property>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="63" green="3d" red="1a" type="rgb"/>
                 </Property>
                 <Property name="toolTipText" type="java.lang.String" value=""/>
               </Properties>
@@ -539,7 +536,7 @@
                   <Color blue="c5" green="ad" red="5b" type="rgb"/>
                 </Property>
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/search.png"/>
+                  <Image iconType="3" name="/buscar.png"/>
                 </Property>
               </Properties>
             </Component>
@@ -550,20 +547,6 @@
                 </Property>
                 <Property name="text" type="java.lang.String" value="Titulo"/>
               </Properties>
-            </Component>
-            <Component class="javax.swing.JSeparator" name="jSeparator1">
-            </Component>
-            <Component class="javax.swing.JLabel" name="lblTitle">
-              <Properties>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                </Property>
-                <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="text" type="java.lang.String" value="BENAEDU"/>
-              </Properties>
-              <AccessibilityProperties>
-                <Property name="AccessibleContext.accessibleDescription" type="java.lang.String" value=""/>
-              </AccessibilityProperties>
             </Component>
           </SubComponents>
         </Container>

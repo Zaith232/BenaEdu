@@ -50,20 +50,23 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         tblEmpleados.setShowGrid(true);
         jScrollPane1.setViewportView(tblEmpleados);
 
+        btnAddEmpleados.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddEmpleados.setForeground(new java.awt.Color(26, 61, 99));
         btnAddEmpleados.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddEmpleados.setText("Añadir");
-        btnAddEmpleados.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnAddEmpleados.addActionListener(this::btnAddEmpleadosActionPerformed);
 
+        btnEditEmpleados.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditEmpleados.setForeground(new java.awt.Color(26, 61, 99));
         btnEditEmpleados.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditEmpleados.setText("Editar");
-        btnEditEmpleados.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnEditEmpleados.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditEmpleados.setMinimumSize(new java.awt.Dimension(93, 31));
 
+        btnDeleteEmpleados.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteEmpleados.setForeground(new java.awt.Color(26, 61, 99));
         btnDeleteEmpleados.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteEmpleados.setText("Eliminar");
-        btnDeleteEmpleados.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnDeleteEmpleados.addActionListener(this::btnDeleteEmpleadosActionPerformed);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
@@ -73,11 +76,11 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(pnlBgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnAddEmpleados, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnAddEmpleados)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditEmpleados, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteEmpleados, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditEmpleados, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
+                .addComponent(btnDeleteEmpleados)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(

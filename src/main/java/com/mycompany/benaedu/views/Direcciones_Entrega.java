@@ -50,20 +50,23 @@ public class Direcciones_Entrega extends javax.swing.JPanel {
         tblDireccionesEntrega.setShowGrid(true);
         jScrollPane1.setViewportView(tblDireccionesEntrega);
 
+        btnAddEntrega.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddEntrega.setForeground(new java.awt.Color(26, 61, 99));
         btnAddEntrega.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddEntrega.setText("Añadir");
-        btnAddEntrega.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnAddEntrega.addActionListener(this::btnAddEntregaActionPerformed);
 
+        btnEditEntrega.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditEntrega.setForeground(new java.awt.Color(26, 61, 99));
         btnEditEntrega.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditEntrega.setText("Editar");
-        btnEditEntrega.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnEditEntrega.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditEntrega.setMinimumSize(new java.awt.Dimension(93, 31));
 
+        btnDeleteEntrega.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteEntrega.setForeground(new java.awt.Color(26, 61, 99));
         btnDeleteEntrega.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteEntrega.setText("Eliminar");
-        btnDeleteEntrega.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnDeleteEntrega.addActionListener(this::btnDeleteEntregaActionPerformed);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
@@ -73,11 +76,11 @@ public class Direcciones_Entrega extends javax.swing.JPanel {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(pnlBgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnAddEntrega, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnAddEntrega)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditEntrega, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditEntrega, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteEntrega, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnDeleteEntrega)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(

@@ -60,45 +60,49 @@ public class Companias extends javax.swing.JPanel {
         tblCompania.setShowGrid(true);
         jScrollPane1.setViewportView(tblCompania);
 
+        btnAddCompania.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCompania.setForeground(new java.awt.Color(26, 61, 99));
         btnAddCompania.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddCompania.setText("Añadir");
-        btnAddCompania.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnAddCompania.addActionListener(this::btnAddCompaniaActionPerformed);
 
+        btnEditCompania.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCompania.setForeground(new java.awt.Color(26, 61, 99));
         btnEditCompania.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditCompania.setText("Editar");
-        btnEditCompania.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnEditCompania.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditCompania.setMinimumSize(new java.awt.Dimension(93, 31));
 
+        btnDeleteCompania.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCompania.setForeground(new java.awt.Color(26, 61, 99));
         btnDeleteCompania.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteCompania.setText("Eliminar");
-        btnDeleteCompania.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnDeleteCompania.addActionListener(this::btnDeleteCompaniaActionPerformed);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
         pnlBg.setLayout(pnlBgLayout);
         pnlBgLayout.setHorizontalGroup(
             pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 837, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(pnlBgLayout.createSequentialGroup()
-                .addComponent(btnAddCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap()
+                .addComponent(btnAddCompania)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditCompania, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
+                .addComponent(btnDeleteCompania)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(
             pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlBgLayout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 407, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnAddCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnEditCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnDeleteCompania, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 14, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

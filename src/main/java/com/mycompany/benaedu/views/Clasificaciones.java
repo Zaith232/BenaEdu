@@ -50,20 +50,23 @@ public class Clasificaciones extends javax.swing.JPanel {
         tblClasificaciones.setShowGrid(true);
         jScrollPane1.setViewportView(tblClasificaciones);
 
+        btnAddClasificaciones.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddClasificaciones.setForeground(new java.awt.Color(26, 61, 99));
         btnAddClasificaciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddClasificaciones.setText("Añadir");
-        btnAddClasificaciones.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnAddClasificaciones.addActionListener(this::btnAddClasificacionesActionPerformed);
 
+        btnEditClasificaciones.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditClasificaciones.setForeground(new java.awt.Color(26, 61, 99));
         btnEditClasificaciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditClasificaciones.setText("Editar");
-        btnEditClasificaciones.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnEditClasificaciones.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditClasificaciones.setMinimumSize(new java.awt.Dimension(93, 31));
 
+        btnDeleteClasificaciones.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteClasificaciones.setForeground(new java.awt.Color(26, 61, 99));
         btnDeleteClasificaciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteClasificaciones.setText("Eliminar");
-        btnDeleteClasificaciones.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnDeleteClasificaciones.addActionListener(this::btnDeleteClasificacionesActionPerformed);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
@@ -73,11 +76,11 @@ public class Clasificaciones extends javax.swing.JPanel {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(pnlBgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnAddClasificaciones, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnAddClasificaciones)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditClasificaciones, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteClasificaciones, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditClasificaciones, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
+                .addComponent(btnDeleteClasificaciones)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(

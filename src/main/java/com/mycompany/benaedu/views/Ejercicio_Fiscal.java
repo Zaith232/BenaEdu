@@ -50,20 +50,23 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
         tblEjercicioFiscal.setShowGrid(true);
         jScrollPane1.setViewportView(tblEjercicioFiscal);
 
+        btnAddFiscal.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddFiscal.setForeground(new java.awt.Color(26, 61, 99));
         btnAddFiscal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddFiscal.setText("Añadir");
-        btnAddFiscal.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnAddFiscal.addActionListener(this::btnAddFiscalActionPerformed);
 
+        btnEditFiscal.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditFiscal.setForeground(new java.awt.Color(26, 61, 99));
         btnEditFiscal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditFiscal.setText("Editar");
-        btnEditFiscal.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnEditFiscal.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditFiscal.setMinimumSize(new java.awt.Dimension(93, 31));
 
+        btnDeleteFiscal.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteFiscal.setForeground(new java.awt.Color(26, 61, 99));
         btnDeleteFiscal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteFiscal.setText("Eliminar");
-        btnDeleteFiscal.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnDeleteFiscal.addActionListener(this::btnDeleteFiscalActionPerformed);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
@@ -73,11 +76,11 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(pnlBgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnAddFiscal, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnAddFiscal)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditFiscal, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteFiscal, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditFiscal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
+                .addComponent(btnDeleteFiscal)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(

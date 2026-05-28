@@ -58,20 +58,23 @@ public class Centros_costos extends javax.swing.JPanel {
         tblCentroCostos.setShowGrid(true);
         tblCentro_Costos.setViewportView(tblCentroCostos);
 
+        btnAddCentroCostos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCentroCostos.setForeground(new java.awt.Color(26, 61, 99));
         btnAddCentroCostos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
         btnAddCentroCostos.setText("Añadir");
-        btnAddCentroCostos.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnAddCentroCostos.addActionListener(this::btnAddCentroCostosActionPerformed);
 
+        btnEditCentroCostos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCentroCostos.setForeground(new java.awt.Color(26, 61, 99));
         btnEditCentroCostos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditCentroCostos.setText("Editar");
-        btnEditCentroCostos.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnEditCentroCostos.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditCentroCostos.setMinimumSize(new java.awt.Dimension(93, 31));
 
+        btnDeleteCentroCostos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCentroCostos.setForeground(new java.awt.Color(26, 61, 99));
         btnDeleteCentroCostos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteCentroCostos.setText("Eliminar");
-        btnDeleteCentroCostos.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         btnDeleteCentroCostos.addActionListener(this::btnDeleteCentroCostosActionPerformed);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
@@ -81,11 +84,11 @@ public class Centros_costos extends javax.swing.JPanel {
             .addComponent(tblCentro_Costos, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(pnlBgLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnAddCentroCostos, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnAddCentroCostos)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditCentroCostos, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteCentroCostos, javax.swing.GroupLayout.PREFERRED_SIZE, 93, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditCentroCostos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(2, 2, 2)
+                .addComponent(btnDeleteCentroCostos)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(
