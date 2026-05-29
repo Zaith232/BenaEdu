@@ -17,11 +17,13 @@ com\mycompany\benaedu\views\Condiciones_Pago.class
 com\mycompany\benaedu\views\Catalogo_Tipo_Gastos.class
 com\mycompany\benaedu\views\Informacion_Cuentas.class
 com\mycompany\benaedu\views\Ejercicio_Fiscal.class
+com\mycompany\benaedu\views\Tipos_Impuestos.class
 com\mycompany\benaedu\Dashboard$1.class
 com\mycompany\benaedu\views\Centros_costos.class
 com\mycompany\benaedu\views\Companias.class
 com\mycompany\benaedu\BenaEdu.class
 com\mycompany\benaedu\views\Solicitud_Pago_Acreedores.class
 com\mycompany\benaedu\Dashboard$2.class
+com\mycompany\benaedu\views\Factores_Convercion_Unidad.class
 com\mycompany\benaedu\views\Companias$1.class
 com\mycompany\benaedu\views\Catalogo_Empleados.class

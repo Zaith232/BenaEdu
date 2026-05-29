@@ -26,19 +26,100 @@ public class Solicitud_Pago_Acreedores extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        pnlBg = new javax.swing.JPanel();
+        btnAddSPAcreedores = new javax.swing.JButton();
+        btnEditSPAcreedores = new javax.swing.JButton();
+        btnDeleteSPAcreedores = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        pnlSPAcreedores = new javax.swing.JTable();
+
+        pnlBg.setBackground(new java.awt.Color(255, 255, 255));
+
+        btnAddSPAcreedores.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddSPAcreedores.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddSPAcreedores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddSPAcreedores.setText("Añadir");
+        btnAddSPAcreedores.addActionListener(this::btnAddSPAcreedoresActionPerformed);
+
+        btnEditSPAcreedores.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditSPAcreedores.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditSPAcreedores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditSPAcreedores.setText("Editar");
+        btnEditSPAcreedores.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditSPAcreedores.setMinimumSize(new java.awt.Dimension(93, 31));
+
+        btnDeleteSPAcreedores.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteSPAcreedores.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteSPAcreedores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteSPAcreedores.setText("Eliminar");
+        btnDeleteSPAcreedores.addActionListener(this::btnDeleteSPAcreedoresActionPerformed);
+
+        pnlSPAcreedores.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Compañia", "No. Solicitud", "Fec. Sol.", "Estatus", "Acreedor", "Nombre", "Descripcion", "Importe", "IVA", "Total"
+            }
+        ));
+        jScrollPane1.setViewportView(pnlSPAcreedores);
+
+        javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
+        pnlBg.setLayout(pnlBgLayout);
+        pnlBgLayout.setHorizontalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlBgLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddSPAcreedores)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditSPAcreedores, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteSPAcreedores)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+        );
+        pnlBgLayout.setVerticalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddSPAcreedores, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditSPAcreedores, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteSPAcreedores, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(pnlBg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddSPAcreedoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddSPAcreedoresActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddSPAcreedoresActionPerformed
+
+    private void btnDeleteSPAcreedoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteSPAcreedoresActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteSPAcreedoresActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddSPAcreedores;
+    private javax.swing.JButton btnDeleteSPAcreedores;
+    private javax.swing.JButton btnEditSPAcreedores;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel pnlBg;
+    private javax.swing.JTable pnlSPAcreedores;
     // End of variables declaration//GEN-END:variables
 }

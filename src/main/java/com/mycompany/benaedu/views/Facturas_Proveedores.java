@@ -26,19 +26,100 @@ public class Facturas_Proveedores extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        pnlBg = new javax.swing.JPanel();
+        btnDeleteFProveedores = new javax.swing.JButton();
+        btnEditFProveedores = new javax.swing.JButton();
+        btnAddFProveedores = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblFProveedores = new javax.swing.JTable();
+
+        pnlBg.setBackground(new java.awt.Color(255, 255, 255));
+
+        btnDeleteFProveedores.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteFProveedores.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteFProveedores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteFProveedores.setText("Eliminar");
+        btnDeleteFProveedores.addActionListener(this::btnDeleteFProveedoresActionPerformed);
+
+        btnEditFProveedores.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditFProveedores.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditFProveedores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditFProveedores.setText("Editar");
+        btnEditFProveedores.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditFProveedores.setMinimumSize(new java.awt.Dimension(93, 31));
+
+        btnAddFProveedores.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddFProveedores.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddFProveedores.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddFProveedores.setText("Añadir");
+        btnAddFProveedores.addActionListener(this::btnAddFProveedoresActionPerformed);
+
+        tblFProveedores.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Compañia", "Ctro. Costo", "Proveedor", "Factura", "Descripción", "Moneda", "Monto", "Pagado", "Estado", "Fecha Fac.", "Fecha Ven.", "Usuario", "Fecha Mod.", "Hora Mod.", "C Factura"
+            }
+        ));
+        jScrollPane1.setViewportView(tblFProveedores);
+
+        javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
+        pnlBg.setLayout(pnlBgLayout);
+        pnlBgLayout.setHorizontalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(pnlBgLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddFProveedores)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditFProveedores, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteFProveedores)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        pnlBgLayout.setVerticalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlBgLayout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddFProveedores, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditFProveedores, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteFProveedores, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddFProveedoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFProveedoresActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddFProveedoresActionPerformed
+
+    private void btnDeleteFProveedoresActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteFProveedoresActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteFProveedoresActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddFProveedores;
+    private javax.swing.JButton btnDeleteFProveedores;
+    private javax.swing.JButton btnEditFProveedores;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel pnlBg;
+    private javax.swing.JTable tblFProveedores;
     // End of variables declaration//GEN-END:variables
 }

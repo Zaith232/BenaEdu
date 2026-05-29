@@ -21,7 +21,7 @@
     </DimensionLayout>
     <DimensionLayout dim="1">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="pnlBg" alignment="0" max="32767" attributes="0"/>
+          <Component id="pnlBg" min="-2" max="-2" attributes="0"/>
       </Group>
     </DimensionLayout>
   </Layout>
@@ -36,35 +36,35 @@
       <Layout>
         <DimensionLayout dim="0">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Component id="jScrollPane1" alignment="0" pref="750" max="32767" attributes="0"/>
-              <Group type="102" alignment="0" attributes="0">
+              <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="btnAddCCBancarias" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnAddTImpuestos" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="btnEditCCBancarias" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnEditTImpuestos" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Component id="btnDeleteCCBancarias" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnDeleteTImpuestos" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
               </Group>
+              <Component id="jScrollPane1" alignment="0" pref="750" max="32767" attributes="0"/>
           </Group>
         </DimensionLayout>
         <DimensionLayout dim="1">
           <Group type="103" groupAlignment="0" attributes="0">
-              <Group type="102" alignment="0" attributes="0">
+              <Group type="102" alignment="1" attributes="0">
                   <Component id="jScrollPane1" min="-2" pref="350" max="-2" attributes="0"/>
                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="btnAddCCBancarias" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
-                      <Component id="btnEditCCBancarias" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
-                      <Component id="btnDeleteCCBancarias" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
+                      <Component id="btnAddTImpuestos" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
+                      <Component id="btnEditTImpuestos" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
+                      <Component id="btnDeleteTImpuestos" alignment="3" min="-2" pref="44" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="0" pref="24" max="32767" attributes="0"/>
+                  <EmptySpace pref="24" max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
       </Layout>
       <SubComponents>
-        <Component class="javax.swing.JButton" name="btnDeleteCCBancarias">
+        <Component class="javax.swing.JButton" name="btnAddTImpuestos">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="14" style="1"/>
@@ -73,15 +73,15 @@
               <Color blue="63" green="3d" red="1a" type="rgb"/>
             </Property>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/delete.png"/>
+              <Image iconType="3" name="/add.png"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="Eliminar"/>
+            <Property name="text" type="java.lang.String" value="A&#xf1;adir"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDeleteCCBancariasActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddTImpuestosActionPerformed"/>
           </Events>
         </Component>
-        <Component class="javax.swing.JButton" name="btnEditCCBancarias">
+        <Component class="javax.swing.JButton" name="btnEditTImpuestos">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="14" style="1"/>
@@ -101,7 +101,7 @@
             </Property>
           </Properties>
         </Component>
-        <Component class="javax.swing.JButton" name="btnAddCCBancarias">
+        <Component class="javax.swing.JButton" name="btnDeleteTImpuestos">
           <Properties>
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Segoe UI" size="14" style="1"/>
@@ -110,12 +110,12 @@
               <Color blue="63" green="3d" red="1a" type="rgb"/>
             </Property>
             <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-              <Image iconType="3" name="/add.png"/>
+              <Image iconType="3" name="/delete.png"/>
             </Property>
-            <Property name="text" type="java.lang.String" value="A&#xf1;adir"/>
+            <Property name="text" type="java.lang.String" value="Eliminar"/>
           </Properties>
           <Events>
-            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddCCBancariasActionPerformed"/>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDeleteTImpuestosActionPerformed"/>
           </Events>
         </Component>
         <Container class="javax.swing.JScrollPane" name="jScrollPane1">
@@ -125,24 +125,30 @@
 
           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
           <SubComponents>
-            <Component class="javax.swing.JTable" name="tblCCBancarias">
+            <Component class="javax.swing.JTable" name="tblTImpuestos">
               <Properties>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
-                  <Table columnCount="10" rowCount="4">
-                    <Column editable="true" title="Compa&#xf1;ia" type="java.lang.Object"/>
-                    <Column editable="true" title="Cuenta Contable" type="java.lang.Object"/>
-                    <Column editable="true" title="Descripcion" type="java.lang.Object"/>
-                    <Column editable="true" title="Banco" type="java.lang.Object"/>
-                    <Column editable="true" title="Cuenta Bancaria" type="java.lang.Object"/>
-                    <Column editable="true" title="Cheque Sig." type="java.lang.Object"/>
-                    <Column editable="true" title="Moneda" type="java.lang.Object"/>
-                    <Column editable="true" title="Usuario Mod." type="java.lang.Object"/>
+                  <Table columnCount="11" rowCount="4">
+                    <Column editable="true" title="Clave" type="java.lang.Object"/>
+                    <Column editable="true" title="Descripci&#xf3;n" type="java.lang.Object"/>
+                    <Column editable="true" title="% IVA" type="java.lang.Object"/>
+                    <Column editable="true" title="Cts. IVA" type="java.lang.Object"/>
+                    <Column editable="true" title="% ISR Ret." type="java.lang.Object"/>
+                    <Column editable="true" title="Cta. p/ISR Ret." type="java.lang.Object"/>
+                    <Column editable="true" title="% IVA Ret." type="java.lang.Object"/>
+                    <Column editable="true" title="Cta. p/IVA Ret." type="java.lang.Object"/>
+                    <Column editable="true" title="Usuario" type="java.lang.Object"/>
                     <Column editable="true" title="Fecha Mod." type="java.lang.Object"/>
                     <Column editable="true" title="Hora Mod." type="java.lang.Object"/>
                   </Table>
                 </Property>
                 <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">
                   <TableColumnModel selectionModel="0">
+                    <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
+                      <Title/>
+                      <Editor/>
+                      <Renderer/>
+                    </Column>
                     <Column maxWidth="-1" minWidth="-1" prefWidth="-1" resizable="true">
                       <Title/>
                       <Editor/>

@@ -26,19 +26,104 @@ public class Informacion_Cuentas extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        pnlBg = new javax.swing.JPanel();
+        btnAddInfoCuentas = new javax.swing.JButton();
+        btnEditInfoCuentas = new javax.swing.JButton();
+        btnDeleteInfoCuentas = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblInfoCuentas = new javax.swing.JTable();
+
+        setPreferredSize(new java.awt.Dimension(750, 430));
+
+        pnlBg.setBackground(new java.awt.Color(255, 255, 255));
+
+        btnAddInfoCuentas.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddInfoCuentas.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddInfoCuentas.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddInfoCuentas.setText("Añadir");
+        btnAddInfoCuentas.addActionListener(this::btnAddInfoCuentasActionPerformed);
+
+        btnEditInfoCuentas.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditInfoCuentas.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditInfoCuentas.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditInfoCuentas.setText("Editar");
+        btnEditInfoCuentas.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditInfoCuentas.setMinimumSize(new java.awt.Dimension(93, 31));
+
+        btnDeleteInfoCuentas.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteInfoCuentas.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteInfoCuentas.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteInfoCuentas.setText("Eliminar");
+        btnDeleteInfoCuentas.addActionListener(this::btnDeleteInfoCuentasActionPerformed);
+
+        tblInfoCuentas.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Compañia", "Cuenta", "Descripción", "Nivel", "Tipo", "SubTipo", "May/Det", "Centro de", "Cuenta-Subcuenta", "Usuario", "Fecha Mod.", "Hora Mod."
+            }
+        ));
+        jScrollPane1.setViewportView(tblInfoCuentas);
+
+        javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
+        pnlBg.setLayout(pnlBgLayout);
+        pnlBgLayout.setHorizontalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlBgLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddInfoCuentas)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditInfoCuentas, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteInfoCuentas)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+        );
+        pnlBgLayout.setVerticalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddInfoCuentas, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditInfoCuentas, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteInfoCuentas, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(pnlBg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddInfoCuentasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddInfoCuentasActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddInfoCuentasActionPerformed
+
+    private void btnDeleteInfoCuentasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteInfoCuentasActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteInfoCuentasActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddInfoCuentas;
+    private javax.swing.JButton btnDeleteInfoCuentas;
+    private javax.swing.JButton btnEditInfoCuentas;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel pnlBg;
+    private javax.swing.JTable tblInfoCuentas;
     // End of variables declaration//GEN-END:variables
 }

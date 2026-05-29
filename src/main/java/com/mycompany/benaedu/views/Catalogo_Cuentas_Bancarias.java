@@ -26,19 +26,100 @@ public class Catalogo_Cuentas_Bancarias extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        pnlBg = new javax.swing.JPanel();
+        btnDeleteCCBancarias = new javax.swing.JButton();
+        btnEditCCBancarias = new javax.swing.JButton();
+        btnAddCCBancarias = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCCBancarias = new javax.swing.JTable();
+
+        pnlBg.setBackground(new java.awt.Color(255, 255, 255));
+
+        btnDeleteCCBancarias.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCCBancarias.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCCBancarias.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCCBancarias.setText("Eliminar");
+        btnDeleteCCBancarias.addActionListener(this::btnDeleteCCBancariasActionPerformed);
+
+        btnEditCCBancarias.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCCBancarias.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCCBancarias.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCCBancarias.setText("Editar");
+        btnEditCCBancarias.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCCBancarias.setMinimumSize(new java.awt.Dimension(93, 31));
+
+        btnAddCCBancarias.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCCBancarias.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCCBancarias.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCCBancarias.setText("Añadir");
+        btnAddCCBancarias.addActionListener(this::btnAddCCBancariasActionPerformed);
+
+        tblCCBancarias.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Compañia", "Cuenta Contable", "Descripcion", "Banco", "Cuenta Bancaria", "Cheque Sig.", "Moneda", "Usuario Mod.", "Fecha Mod.", "Hora Mod."
+            }
+        ));
+        jScrollPane1.setViewportView(tblCCBancarias);
+
+        javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
+        pnlBg.setLayout(pnlBgLayout);
+        pnlBgLayout.setHorizontalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(pnlBgLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCCBancarias)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCCBancarias, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCCBancarias)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        pnlBgLayout.setVerticalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pnlBgLayout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCCBancarias, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCCBancarias, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCCBancarias, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCCBancariasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCCBancariasActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddCCBancariasActionPerformed
+
+    private void btnDeleteCCBancariasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCCBancariasActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteCCBancariasActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCCBancarias;
+    private javax.swing.JButton btnDeleteCCBancarias;
+    private javax.swing.JButton btnEditCCBancarias;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel pnlBg;
+    private javax.swing.JTable tblCCBancarias;
     // End of variables declaration//GEN-END:variables
 }

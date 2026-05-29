@@ -26,19 +26,100 @@ public class Ciclos_Escolares extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCEscolar = new javax.swing.JTable();
+        btnAddCEscolar = new javax.swing.JButton();
+        btnEditCEscolar = new javax.swing.JButton();
+        btnDeleteCEscolar = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblCEscolar.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
+            },
+            new String [] {
+                "Compañia", "Centro_Costos", "Ciclo_Escolar", "Descripción", "Fech. Inicial", "Fech. Final", "Usuario", "Fech. Ult. Act", "Hora. Ult. Act"
+            }
+        ));
+        jScrollPane1.setViewportView(tblCEscolar);
+
+        btnAddCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCEscolar.setText("Añadir");
+        btnAddCEscolar.addActionListener(this::btnAddCEscolarActionPerformed);
+
+        btnEditCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCEscolar.setText("Editar");
+        btnEditCEscolar.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCEscolar.setMinimumSize(new java.awt.Dimension(93, 31));
+
+        btnDeleteCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCEscolar.setText("Eliminar");
+        btnDeleteCEscolar.addActionListener(this::btnDeleteCEscolarActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCEscolar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCEscolar)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCEscolarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnAddCEscolarActionPerformed
+
+    private void btnDeleteCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCEscolarActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnDeleteCEscolarActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCEscolar;
+    private javax.swing.JButton btnDeleteCEscolar;
+    private javax.swing.JButton btnEditCEscolar;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblCEscolar;
     // End of variables declaration//GEN-END:variables
 }
