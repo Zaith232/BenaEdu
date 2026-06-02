@@ -1,16 +1,24 @@
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package com.mycompany.benaedu;
-
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterIJTheme;
 import java.awt.Color;
+import com.mycompany.benaedu.db.ConDB;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.JOptionPane;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  *
  * @author b17za
  */
-public class Login extends javax.swing.JPanel {
+public class Login extends javax.swing.JFrame {
+    
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Login.class.getName());
 
     /**
      * Creates new form Login
@@ -18,15 +26,100 @@ public class Login extends javax.swing.JPanel {
     public Login() {
         initComponents();
         initStyles();
+        // Agregar el evento al botón de Login
+        btnLogin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLoginActionPerformed(evt);
+            }
+        });
     }
     
     private void initStyles(){
-        lblUser.putClientProperty("FlatLaf.style", "font: bold 30");
-        lblUser.setForeground(new Color(179,207,229));
-        lblPassword.putClientProperty("FlatLaf.style", "font: bold 30");
-        lblPassword.setForeground(new Color(179,207,229));
+     lblUsuario.putClientProperty("FlatLaf.style", "font: bold 20");
+     lblUsuario.setForeground(new Color(179,207,229));
+     lblContraseña.putClientProperty("FlatLaf.style", "font: bold 20");
+     lblContraseña.setForeground(new Color(179,207,229));
+     lblTitulo.putClientProperty("FlatLaf.style", "font: bold 20");
+     lblTitulo.setForeground(new Color(179,207,229));
     }
+    
+  private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {
+        String usuario = txtUser.getText().trim();
+        // Asumo que cambiaste txtPassword a JPasswordField como te sugerí
+        String clave = new String(txtPassword.getPassword()).trim(); 
 
+        if (usuario.isEmpty() || clave.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor completa todos los campos.");
+            return;
+        }
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
+                return;
+            }
+
+            // 1. Buscamos ÚNICAMENTE por nombre de usuario. Pedimos traer la contraseña (el hash).
+            PreparedStatement ps = con.prepareStatement("SELECT contrasena, rol, temporal FROM users WHERE nombre_usuario=?");
+            ps.setString(1, usuario);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String hashBD = rs.getString("contrasena"); // Este es el hash guardado
+                String rol = rs.getString("rol");
+                boolean esTemporal = rs.getBoolean("temporal");
+
+                // 2. Comparamos la clave ingresada con el hash de la base de datos usando BCrypt
+                if (BCrypt.checkpw(clave, hashBD)) {
+                    
+                    // Las credenciales son correctas
+                   if (esTemporal) {
+                        JOptionPane.showMessageDialog(this, "Por seguridad, debes restablecer tu contraseña.");
+                        this.dispose(); // Cierra la ventana de Login
+                        
+                        // ---> CÓDIGO NUEVO PARA ABRIR RESTABLECER CONTRASEÑA <---
+                        // Nota: Le pasamos la variable 'usuario' dentro del paréntesis
+                        RestablecerContraseña ventanaRestablecer = new RestablecerContraseña(usuario);
+                        ventanaRestablecer.setLocationRelativeTo(null); 
+                        ventanaRestablecer.setVisible(true); 
+                        // --------------------------------------------------------
+                        return;
+                    }
+
+                    JOptionPane.showMessageDialog(this, "¡Bienvenido " + usuario + " (" + rol + ")!");
+                    
+                    // ---> CÓDIGO NUEVO PARA ABRIR EL DASHBOARD <---
+                    this.dispose(); // Cierra la ventana de Login
+                    
+                    Dashboard ventanaDashboard = new Dashboard();
+                    ventanaDashboard.setLocationRelativeTo(null); // Centra el Dashboard en la pantalla
+                    ventanaDashboard.setVisible(true); // Muestra el Dashboard
+                    // ------------------------------------------------
+                    
+                } else {
+                    // La contraseña no coincide
+                    JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.");
+                }
+            } else {
+                // El usuario no existe
+                JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.");
+            }
+
+            rs.close();
+            ps.close();
+            db.Cerrar();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error en el sistema: " + e.getMessage());
+        }
+    }
+    
+ 
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -37,48 +130,108 @@ public class Login extends javax.swing.JPanel {
     private void initComponents() {
 
         pnlBg = new javax.swing.JPanel();
-        lblUser = new javax.swing.JLabel();
-        lblPassword = new javax.swing.JLabel();
+        lblTitulo = new javax.swing.JLabel();
+        lblUsuario = new javax.swing.JLabel();
+        lblContraseña = new javax.swing.JLabel();
         txtUser = new javax.swing.JTextField();
-        txtPassword = new javax.swing.JTextField();
+        btnLogin = new javax.swing.JButton();
+        btnCreateUser = new javax.swing.JButton();
+        btnForgotPassword = new javax.swing.JButton();
+        lblimg = new javax.swing.JLabel();
+        txtPassword = new javax.swing.JPasswordField();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         pnlBg.setBackground(new java.awt.Color(255, 255, 255));
 
-        lblUser.setText("Usuario");
+        lblTitulo.setText("Inicio de Sesión");
 
-        lblPassword.setText("Contraseña");
+        lblUsuario.setText("Usuario:");
+
+        lblContraseña.setText("Contraseña:");
+
+        btnLogin.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnLogin.setText("INGRESAR");
+
+        btnCreateUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnCreateUser.setText("CREAR USUARIO");
+        btnCreateUser.addActionListener(this::btnCreateUserActionPerformed);
+
+        btnForgotPassword.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnForgotPassword.setText("Olvidaste tu contraseña?");
+        btnForgotPassword.addActionListener(this::btnForgotPasswordActionPerformed);
+
+        lblimg.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imgescudo.png"))); // NOI18N
+        lblimg.setFocusable(false);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
         pnlBg.setLayout(pnlBgLayout);
         pnlBgLayout.setHorizontalGroup(
             pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnForgotPassword)
+                .addGap(96, 96, 96))
             .addGroup(pnlBgLayout.createSequentialGroup()
-                .addGap(179, 179, 179)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(lblPassword)
-                    .addComponent(lblUser))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(txtUser)
-                    .addComponent(txtPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 200, Short.MAX_VALUE))
-                .addContainerGap(299, Short.MAX_VALUE))
+                .addContainerGap()
+                .addComponent(lblimg)
+                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 193, Short.MAX_VALUE)
+                        .addComponent(lblTitulo)
+                        .addGap(387, 387, 387))
+                    .addGroup(pnlBgLayout.createSequentialGroup()
+                        .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnlBgLayout.createSequentialGroup()
+                                .addGap(161, 161, 161)
+                                .addComponent(btnLogin))
+                            .addGroup(pnlBgLayout.createSequentialGroup()
+                                .addGap(47, 47, 47)
+                                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(pnlBgLayout.createSequentialGroup()
+                                        .addComponent(lblUsuario)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(txtUser, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(pnlBgLayout.createSequentialGroup()
+                                        .addComponent(lblContraseña)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+            .addGroup(pnlBgLayout.createSequentialGroup()
+                .addGap(374, 374, 374)
+                .addComponent(btnCreateUser)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         pnlBgLayout.setVerticalGroup(
             pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pnlBgLayout.createSequentialGroup()
-                .addGap(153, 153, 153)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblUser)
-                    .addComponent(txtUser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblPassword)
-                    .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(215, Short.MAX_VALUE))
+                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(pnlBgLayout.createSequentialGroup()
+                        .addGap(82, 82, 82)
+                        .addComponent(lblTitulo)
+                        .addGap(74, 74, 74)
+                        .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblUsuario)
+                            .addComponent(txtUser, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(35, 35, 35)
+                        .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(lblContraseña)
+                            .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 89, Short.MAX_VALUE)
+                        .addComponent(btnLogin)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnCreateUser)
+                        .addGap(31, 31, 31))
+                    .addGroup(pnlBgLayout.createSequentialGroup()
+                        .addGap(90, 90, 90)
+                        .addComponent(lblimg, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addComponent(btnForgotPassword)
+                .addContainerGap(64, Short.MAX_VALUE))
         );
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -87,14 +240,107 @@ public class Login extends javax.swing.JPanel {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
+
+        pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnCreateUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCreateUserActionPerformed
+          // Pedir contraseña
+        javax.swing.JPasswordField pwdField = new javax.swing.JPasswordField();
+        int opcion = JOptionPane.showConfirmDialog(
+            this,
+            pwdField,
+            "Ingrese la contraseña de un Administrador",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (opcion == JOptionPane.OK_OPTION) {
+            String claveIngresada = new String(pwdField.getPassword()).trim();
+
+            if (claveIngresada.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La contraseña no puede estar vacía.");
+                return;
+            }
+
+            try {
+                // Usamos tu clase ConDB para mantener la conexión limpia
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                
+                if (con == null) {
+                    JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
+                    return;
+                }
+
+                // Consultamos las contraseñas (hashes) de TODOS los administradores de la tabla clients
+                PreparedStatement ps = con.prepareStatement("SELECT contrasena FROM users WHERE rol = 'Administrador'");
+                ResultSet rs = ps.executeQuery();
+
+                boolean adminValido = false;
+
+                // Recorremos los resultados y comparamos la clave con los hashes usando BCrypt
+                while (rs.next()) {
+                    String hashAdmin = rs.getString("contrasena");
+                    
+                    if (BCrypt.checkpw(claveIngresada, hashAdmin)) {
+                        adminValido = true;
+                        break; // Si hay coincidencia, dejamos de buscar
+                    }
+                }
+
+                if (adminValido) {
+                    // Contraseña válida, abrir formulario
+                    this.dispose(); // cerrar login
+                    FlatMTMaterialLighterIJTheme.setup();
+                    CrearUsuarios crear = new CrearUsuarios();
+                    crear.setSize(893, 540); // Descomenta si necesitas un tamaño fijo
+                    crear.setLocationRelativeTo(null);
+                    crear.setVisible(true);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Contraseña incorrecta o no pertenece a un administrador.");
+                }
+
+                rs.close();
+                ps.close();
+                db.Cerrar();
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error en la base de datos: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnCreateUserActionPerformed
+
+    private void btnForgotPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnForgotPasswordActionPerformed
+        this.dispose(); // Cierra la ventana actual
+    FlatMTMaterialLighterIJTheme.setup();
+    RecuperarContraseña recuperarContraseña = new RecuperarContraseña();
+    recuperarContraseña.setSize(893, 540);
+    recuperarContraseña.setLocationRelativeTo(null);
+    recuperarContraseña.setVisible(true);
+    }//GEN-LAST:event_btnForgotPasswordActionPerformed
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        FlatMTMaterialLighterIJTheme.setup();
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(() -> new Login().setVisible(true));
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel lblPassword;
-    private javax.swing.JLabel lblUser;
+    private javax.swing.JButton btnCreateUser;
+    private javax.swing.JButton btnForgotPassword;
+    private javax.swing.JButton btnLogin;
+    private javax.swing.JLabel lblContraseña;
+    private javax.swing.JLabel lblTitulo;
+    private javax.swing.JLabel lblUsuario;
+    private javax.swing.JLabel lblimg;
     private javax.swing.JPanel pnlBg;
-    private javax.swing.JTextField txtPassword;
+    private javax.swing.JPasswordField txtPassword;
     private javax.swing.JTextField txtUser;
     // End of variables declaration//GEN-END:variables
 }

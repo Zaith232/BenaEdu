@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
+
 /**
  *
  * @author b17za
@@ -242,6 +243,10 @@ public class Dashboard extends javax.swing.JFrame {
         // Iniciamos el reloj
         timerReloj.start();
     }
+    
+ 
+
+
 
   private void initContent() {
         Principal pl = new Principal();
