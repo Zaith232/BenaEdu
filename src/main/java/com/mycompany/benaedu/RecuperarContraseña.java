@@ -11,6 +11,14 @@ import java.sql.ResultSet;
 import java.util.UUID;
 import javax.swing.JOptionPane;
 import org.mindrot.jbcrypt.BCrypt;
+import java.util.Properties;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.PasswordAuthentication;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 /**
  *
  * @author b17za
@@ -156,17 +164,19 @@ public class RecuperarContraseña extends javax.swing.JFrame {
                 
                 int actualizado = psActualizar.executeUpdate();
 
-                if (actualizado > 0) {
-                    // 5. Simular el envío por correo (En un sistema real aquí usarías JavaMail API)
-                    JOptionPane.showMessageDialog(this, 
-                        "¡Correo enviado con éxito!\n\n" +
-                        "(Simulación) Dile al usuario " + nombreUsuario + " que su clave temporal es:\n" + 
-                        claveTemporal, 
-                        "Recuperación Exitosa", 
-                        JOptionPane.INFORMATION_MESSAGE);
+             if (actualizado > 0) {
+                    // INTENTAMOS ENVIAR EL CORREO REAL AQUÍ
+                    try {
+                        // Llamamos al método que envía el correo
+                        enviarCorreoReal(correo, claveTemporal);
                         
-                    // Limpiar el campo o regresar al login
-                    txtEmail.setText("");
+                        JOptionPane.showMessageDialog(this, "¡Correo enviado con éxito a " + correo + "!");
+                        txtEmail.setText(""); // Limpiar el campo
+                        
+                    } catch (MessagingException ex) {
+                        // Si falla el envío del correo (ej. sin internet o clave mal puesta)
+                        JOptionPane.showMessageDialog(this, "La base de datos se actualizó, pero hubo un error enviando el correo: " + ex.getMessage());
+                    }
                 } else {
                     JOptionPane.showMessageDialog(this, "Ocurrió un error al intentar actualizar la contraseña.");
                 }
@@ -186,6 +196,45 @@ public class RecuperarContraseña extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnSendActionPerformed
 
+    private void enviarCorreoReal(String correoDestino, String claveTemporal) throws MessagingException {
+        // Tu correo de Gmail y la contraseña de aplicación de 16 dígitos que generaste
+        String miCorreo = "b17zaithlc@gmail.com"; 
+        String miContraseñaApp = "iauq cclw xinn otsh"; // Reemplaza con tu clave de aplicación
+
+        // Configuración del servidor SMTP de Google
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587"); // Puerto seguro TLS
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        // Autenticación de la sesión
+        Session session = Session.getInstance(props, new javax.mail.Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(miCorreo, miContraseñaApp);
+            }
+        });
+
+        // Creación del mensaje
+        Message message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(miCorreo));
+        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(correoDestino));
+        message.setSubject("Recuperación de Contraseña - Sistema BenaEdu");
+        
+        // Cuerpo del correo
+        String mensajeCuerpo = "Hola,\n\n"
+                + "Se ha solicitado el restablecimiento de tu contraseña.\n\n"
+                + "Tu contraseña temporal es: " + claveTemporal + "\n\n"
+                + "Por favor, inicia sesión con esta contraseña. El sistema te pedirá que la cambies inmediatamente por motivos de seguridad.\n\n"
+                + "Saludos,\nAdministración BenaEdu.";
+        
+        message.setText(mensajeCuerpo);
+
+        // Enviar el correo
+        Transport.send(message);
+    }
+    
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
      this.dispose(); 
         FlatMTMaterialLighterIJTheme.setup();

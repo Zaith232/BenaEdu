@@ -41,6 +41,8 @@ public class Dashboard extends javax.swing.JFrame {
         configurarFechaYHora();
         initContent();
         configurarBuscador();
+        configurarMenuTransacciones();
+        configurarMenuEscolar();
     }
 
     private void InitStyles() {
@@ -55,27 +57,25 @@ public class Dashboard extends javax.swing.JFrame {
 
     }
 
-    private void configurarMenuDesplegable() {
+   private void configurarMenuDesplegable() {
         // 1. Crear el contenedor del menú emergente
         javax.swing.JPopupMenu menuInfoMaestra = new javax.swing.JPopupMenu();
 
-        // 2. Crear las opciones correctas basándonos en tu imagen
-        // Asegúrate de tener un icono llamado "compania.png" en tu carpeta de imágenes
+        // 2. Crear las opciones correctas
         javax.swing.JMenuItem itemCompanias = new javax.swing.JMenuItem("Catálogo de Compañías");
         itemCompanias.setIcon(new javax.swing.ImageIcon(getClass().getResource("/compania.png")));
         javax.swing.JMenuItem itemCentrosCosto = new javax.swing.JMenuItem("Catálogo de Centros de Costo");
         itemCentrosCosto.setIcon(new javax.swing.ImageIcon(getClass().getResource("/costos.png")));
         javax.swing.JMenuItem itemEjercicioFiscal = new javax.swing.JMenuItem("Ejercicio Fiscal");
-                itemEjercicioFiscal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fiscal.png")));
+        itemEjercicioFiscal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fiscal.png")));
         javax.swing.JMenuItem itemEmpleados = new javax.swing.JMenuItem("Catálogo de Empleados");
-                itemEmpleados.setIcon(new javax.swing.ImageIcon(getClass().getResource("/empleados.png")));
+        itemEmpleados.setIcon(new javax.swing.ImageIcon(getClass().getResource("/empleados.png")));
         javax.swing.JMenuItem itemDirecciones = new javax.swing.JMenuItem("Direcciones de Entrega");
-                itemDirecciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/entregas.png")));
+        itemDirecciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/entregas.png")));
         javax.swing.JMenuItem itemClasificaciones = new javax.swing.JMenuItem("Tabla de Clasificaciones");
-                itemClasificaciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/clasificaciones.png")));
+        itemClasificaciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/clasificaciones.png")));
         javax.swing.JMenuItem itemContactos = new javax.swing.JMenuItem("Catálogo de Contactos");
-                        itemContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/contactos.png")));
-
+        itemContactos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/contactos.png")));
 
         // 3. Agregar todas las opciones al menú emergente
         menuInfoMaestra.add(itemCompanias);
@@ -86,126 +86,210 @@ public class Dashboard extends javax.swing.JFrame {
         menuInfoMaestra.add(itemClasificaciones);
         menuInfoMaestra.add(itemContactos);
 
-        // 4. Configurar el evento "Hover" (pasar el cursor) en tu botón azul
+        // 4. Configurar el evento "Hover" (pasar el cursor)
         btnInfoMaestra.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                // Mostrar el menú justo debajo del botón
                 menuInfoMaestra.show(btnInfoMaestra, 0, btnInfoMaestra.getHeight());
             }
         });
 
-        // 5. Crear el evento que detecta cuando el mouse sale para ocultar el menú
-        java.awt.event.MouseAdapter eventoOcultar = new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                javax.swing.Timer timer = new javax.swing.Timer(200, e -> {
-                    java.awt.Point cursorLoc = java.awt.MouseInfo.getPointerInfo().getLocation();
+        // 5. EVENTO INTELIGENTE DE OCULTAR
+        java.awt.event.MouseAdapter eventoOcultar = crearEventoOcultar();
 
-                    // ¿El cursor sigue sobre el botón btnInfoMaestra?
-                    if (btnInfoMaestra.isShowing()) {
-                        java.awt.Rectangle limitesBoton = new java.awt.Rectangle(btnInfoMaestra.getLocationOnScreen(), btnInfoMaestra.getSize());
-                        if (limitesBoton.contains(cursorLoc)) {
-                            return; // Está en el botón, NO cerrar
-                        }
-                    }
-
-                    // ¿El cursor está sobre el menú desplegable?
-                    if (menuInfoMaestra.isShowing()) {
-                        java.awt.Rectangle limitesMenu = new java.awt.Rectangle(menuInfoMaestra.getLocationOnScreen(), menuInfoMaestra.getSize());
-                        if (limitesMenu.contains(cursorLoc)) {
-                            return; // Está en el menú, NO cerrar
-                        }
-                    }
-
-                    // Si ya no está en el botón ni en el menú, lo cerramos
-                    javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
-                });
-                timer.setRepeats(false);
-                timer.start();
-            }
-        };
-
-        // 6. Asignar el evento de ocultar al botón y al menú
+        // 6. Asignar el evento de ocultar al botón, al menú y sus opciones
         btnInfoMaestra.addMouseListener(eventoOcultar);
         menuInfoMaestra.addMouseListener(eventoOcultar);
 
-        // Asignar el evento de ocultar a todas las opciones de forma rápida con un bucle
         for (java.awt.Component item : menuInfoMaestra.getComponents()) {
             item.addMouseListener(eventoOcultar);
         }
 
-       // 7. Configurar los clics (ActionListeners) para cada opción
+        // 7. Configurar los clics (ActionListeners)
         itemCompanias.addActionListener(e -> {
-            
-            // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
             com.mycompany.benaedu.views.Companias vistaCompanias = new com.mycompany.benaedu.views.Companias();
-            
-            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-   
-            
             mostrarPanel(vistaCompanias, "Catálogo de Compañías");
         });
-
         itemCentrosCosto.addActionListener(e -> {
-                 
-            // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
             com.mycompany.benaedu.views.Centros_costos vistaCentroCostos = new com.mycompany.benaedu.views.Centros_costos();
-            
-            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-         
             mostrarPanel(vistaCentroCostos, "Catálogo de Centros de Costo");
         });
-
         itemEjercicioFiscal.addActionListener(e -> {
-               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
             com.mycompany.benaedu.views.Ejercicio_Fiscal vistaEjercicioFiscal = new com.mycompany.benaedu.views.Ejercicio_Fiscal();
-            
-            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-         
             mostrarPanel(vistaEjercicioFiscal, "Ejercicio Fiscal");
         });
-        
         itemEmpleados.addActionListener(e -> {
-               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
             com.mycompany.benaedu.views.Catalogo_Empleados vistaCatalagoEmpleados = new com.mycompany.benaedu.views.Catalogo_Empleados();
-            
-            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-          
             mostrarPanel(vistaCatalagoEmpleados, "Catalogo de empleados");
         });
-        
-         itemDirecciones.addActionListener(e -> {
-               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+        itemDirecciones.addActionListener(e -> {
             com.mycompany.benaedu.views.Direcciones_Entrega vistaDireccionesEntrega = new com.mycompany.benaedu.views.Direcciones_Entrega();
-            
-            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            
             mostrarPanel(vistaDireccionesEntrega, "Direcciones de Entrega");
-
         });
-         
-            itemClasificaciones.addActionListener(e -> {
-               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+        itemClasificaciones.addActionListener(e -> {
             com.mycompany.benaedu.views.Clasificaciones vistaClasificaciones = new com.mycompany.benaedu.views.Clasificaciones();
-            
-            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-           
             mostrarPanel(vistaClasificaciones, "Clasificaciones");
-
         });
-            
-             itemContactos.addActionListener(e -> {
-               // 1. Creamos la vista (asegúrate de que el import esté arriba en tu archivo)
+        itemContactos.addActionListener(e -> {
             com.mycompany.benaedu.views.Catalogo_Contactos vistaContactos = new com.mycompany.benaedu.views.Catalogo_Contactos();
-            
-            // 2. Usamos nuestro nuevo método para mostrarla en el contenedor
-            
             mostrarPanel(vistaContactos, "Contactos");
+        });
+    }
+    
+    private void configurarMenuTransacciones() {
+        // 1. Crear el contenedor del menú emergente
+        javax.swing.JPopupMenu menuTransacciones = new javax.swing.JPopupMenu();
 
+        // 2. Crear las opciones
+        javax.swing.JMenuItem itemCambioDiario = new javax.swing.JMenuItem("Tipos de Cambio Diario");
+        javax.swing.JMenuItem itemCondicionesPago = new javax.swing.JMenuItem("Condiciones de Pago");
+        javax.swing.JMenuItem itemClaveImpuestos = new javax.swing.JMenuItem("Clave de Impuestos");
+        javax.swing.JMenuItem itemCambioMensual = new javax.swing.JMenuItem("Tipo de Cambio Mensual");
+        javax.swing.JMenuItem itemConvertirUnidad = new javax.swing.JMenuItem("Convertir Unidad de Medida");
+
+        // 3. Agregar opciones al menú emergente
+        menuTransacciones.add(itemCambioDiario);
+        menuTransacciones.add(itemCondicionesPago);
+        menuTransacciones.add(itemClaveImpuestos);
+        menuTransacciones.add(itemCambioMensual);
+        menuTransacciones.add(itemConvertirUnidad);
+
+        // 4. Configurar el evento "Hover"
+        btnTransacciones.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                menuTransacciones.show(btnTransacciones, 0, btnTransacciones.getHeight());
+            }
         });
 
-        // (Opcional) Puedes seguir agregando los ActionListeners de los demás ítems aquí abajo...
+        // 5. EVENTO INTELIGENTE DE OCULTAR
+        java.awt.event.MouseAdapter eventoOcultar = crearEventoOcultar();
+
+        // 6. Asignar el evento de ocultar al botón, menú y opciones
+        btnTransacciones.addMouseListener(eventoOcultar);
+        menuTransacciones.addMouseListener(eventoOcultar);
+
+        for (java.awt.Component item : menuTransacciones.getComponents()) {
+            item.addMouseListener(eventoOcultar);
+        }
+
+        // 7. Configurar los clics (ActionListeners)
+        itemCambioDiario.addActionListener(e -> {
+            com.mycompany.benaedu.views.Tipos_Cambio_Diario vistaDiario = new com.mycompany.benaedu.views.Tipos_Cambio_Diario();
+            mostrarPanel(vistaDiario, "Tipos de Cambio Diario");
+        });
+        itemCondicionesPago.addActionListener(e -> {
+            com.mycompany.benaedu.views.Condiciones_Pago vistaPago = new com.mycompany.benaedu.views.Condiciones_Pago();
+            mostrarPanel(vistaPago, "Condiciones de Pago");
+        });
+        itemClaveImpuestos.addActionListener(e -> {
+            com.mycompany.benaedu.views.Tipos_Impuestos vistaImpuestos = new com.mycompany.benaedu.views.Tipos_Impuestos();
+            mostrarPanel(vistaImpuestos, "Clave de Impuestos");
+        });
+        itemCambioMensual.addActionListener(e -> {
+            com.mycompany.benaedu.views.Tipo_Cambio_Mensual vistaMensual = new com.mycompany.benaedu.views.Tipo_Cambio_Mensual();
+            mostrarPanel(vistaMensual, "Tipo de Cambio Mensual");
+        });
+        itemConvertirUnidad.addActionListener(e -> {
+            com.mycompany.benaedu.views.Factores_Convercion_Unidad vistaUnidad = new com.mycompany.benaedu.views.Factores_Convercion_Unidad();
+            mostrarPanel(vistaUnidad, "Convertir Unidad de Medida");
+        });
+    }
+    
+  private void configurarMenuEscolar() {
+        // 1. Crear el contenedor principal
+        javax.swing.JPopupMenu menuEscolar = new javax.swing.JPopupMenu();
+
+        // 2. Crear las CATEGORÍAS principales
+        javax.swing.JMenu menuConfiguracion = new javax.swing.JMenu("10 Configuración");
+        javax.swing.JMenu menuInfoMaestra = new javax.swing.JMenu("20 Información Maestra");
+        javax.swing.JMenu menuTransacciones = new javax.swing.JMenu("30 Transacciones");
+
+        // 3. Opciones "10 CONFIGURACIÓN"
+        javax.swing.JMenuItem itemCiclos = new javax.swing.JMenuItem("Ciclos Escolares");
+        javax.swing.JMenuItem itemGrados = new javax.swing.JMenuItem("Grados Escolares");
+        javax.swing.JMenuItem itemBecas = new javax.swing.JMenuItem("Registro de Becas y Convenios");
+        javax.swing.JMenuItem itemConceptos = new javax.swing.JMenuItem("Conceptos Escolares");
+        javax.swing.JMenuItem itemPlanes = new javax.swing.JMenuItem("Planes de Pago");
+
+        menuConfiguracion.add(itemCiclos);
+        menuConfiguracion.add(itemGrados);
+        menuConfiguracion.add(itemBecas);
+        menuConfiguracion.add(itemConceptos);
+        menuConfiguracion.add(itemPlanes);
+
+        // 4. Opciones "20 INFORMACIÓN MAESTRA"
+        javax.swing.JMenuItem itemCuentasBancarias = new javax.swing.JMenuItem("Cuentas Bancarias");
+        javax.swing.JMenuItem itemTiposAlumno = new javax.swing.JMenuItem("Catalogo Tipos de Alumno");
+        javax.swing.JMenuItem itemCajeros = new javax.swing.JMenuItem("Catalogo de Cajeros");
+        javax.swing.JMenuItem itemAlumnos = new javax.swing.JMenuItem("Catalogo de Alumnos");
+
+        menuInfoMaestra.add(itemCuentasBancarias);
+        menuInfoMaestra.add(itemTiposAlumno);
+        menuInfoMaestra.add(itemCajeros);
+        menuInfoMaestra.add(itemAlumnos);
+
+        // 5. Opciones "30 TRANSACCIONES"
+        javax.swing.JMenuItem itemCobranza = new javax.swing.JMenuItem("Cobranza Escolar");
+        javax.swing.JMenuItem itemCorteCaja = new javax.swing.JMenuItem("Corte de Caja");
+        javax.swing.JMenuItem itemFacturas = new javax.swing.JMenuItem("Impresión de Facturas");
+        javax.swing.JMenuItem itemDepositos = new javax.swing.JMenuItem("Registro de Depositos");
+        javax.swing.JMenuItem itemCancelaConceptos = new javax.swing.JMenuItem("Cancelación de Conceptos");
+        javax.swing.JMenuItem itemCancelaRecibos = new javax.swing.JMenuItem("Cancelación de Recibos");
+        javax.swing.JMenuItem itemCancelaContabCorte = new javax.swing.JMenuItem("Cancela Contabilizacion de Corte de Caja");
+        javax.swing.JMenuItem itemCancelaContabDep = new javax.swing.JMenuItem("Cancela Contabilizacion de Reg Deposito");
+
+        menuTransacciones.add(itemCobranza);
+        menuTransacciones.add(itemCorteCaja);
+        menuTransacciones.add(itemFacturas);
+        menuTransacciones.add(itemDepositos);
+        menuTransacciones.add(itemCancelaConceptos);
+        menuTransacciones.add(itemCancelaRecibos);
+        menuTransacciones.add(itemCancelaContabCorte);
+        menuTransacciones.add(itemCancelaContabDep);
+
+        // 6. Agregar categorías al menú emergente
+        menuEscolar.add(menuConfiguracion);
+        menuEscolar.add(menuInfoMaestra);
+        menuEscolar.add(menuTransacciones);
+
+        // 7. EVENTO DE HOVER (MOSTRAR)
+        btnEscolar.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                menuEscolar.show(btnEscolar, 0, btnEscolar.getHeight());
+            }
+        });
+
+        // 8. EVENTO INTELIGENTE DE OCULTAR
+        java.awt.event.MouseAdapter eventoOcultar = crearEventoOcultar();
+
+        btnEscolar.addMouseListener(eventoOcultar);
+        menuEscolar.addMouseListener(eventoOcultar);
+        menuConfiguracion.addMouseListener(eventoOcultar);
+        menuInfoMaestra.addMouseListener(eventoOcultar);
+        menuTransacciones.addMouseListener(eventoOcultar);
+
+        // 9. ACTION LISTENERS
+        itemCiclos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Ciclos_Escolares(), "Ciclos Escolares"));
+        itemGrados.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Grados_Escolares(), "Grados Escolares"));
+        itemBecas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Becas(), "Registro de Becas y Convenios"));
+        itemConceptos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
+        itemPlanes.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(), "Planes de Pago"));
+
+        itemCuentasBancarias.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cuentas_Bancarias(), "Cuentas Bancarias"));
+        itemTiposAlumno.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Alumno(), "Catalogo Tipos de Alumno"));
+        itemCajeros.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cajeros(), "Catalogo de Cajeros"));
+        itemAlumnos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(), "Catalogo de Alumnos"));
+
+        itemCobranza.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cobranza_Escolar(), "Cobranza Escolar"));
+        itemCorteCaja.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Corte_Caja(), "Corte de Caja"));
+        itemFacturas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Impresion_Facturas(), "Impresión de Facturas"));
+        itemDepositos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Depositos(), "Registro de Depositos"));
+        itemCancelaConceptos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Conceptos(), "Cancelación de Conceptos"));
+        itemCancelaRecibos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Recibos(), "Cancelación de Recibos"));
+        itemCancelaContabCorte.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Corte(), "Cancela Contabilizacion de Corte de Caja"));
+        itemCancelaContabDep.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Deposito(), "Cancela Contabilizacion de Reg Deposito"));
     }
 
     private void configurarFechaYHora() {
@@ -312,7 +396,27 @@ public class Dashboard extends javax.swing.JFrame {
       mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos(),"Catálogo de Contactos");
     });
        
-      
+      // --- NUEVAS OPCIONES DE TRANSACCIONES ---
+
+    opcionesSistema.put("Tipos de Cambio Diario", () -> {
+        mostrarPanel(new com.mycompany.benaedu.views.Tipos_Cambio_Diario(), "Tipos de Cambio Diario");
+    });
+
+    opcionesSistema.put("Condiciones de Pago", () -> {
+        mostrarPanel(new com.mycompany.benaedu.views.Condiciones_Pago(), "Condiciones de Pago");
+    });
+
+    opcionesSistema.put("Clave de Impuestos", () -> {
+        mostrarPanel(new com.mycompany.benaedu.views.Tipos_Impuestos(), "Clave de Impuestos");
+    });
+
+    opcionesSistema.put("Tipo de Cambio Mensual", () -> {
+        mostrarPanel(new com.mycompany.benaedu.views.Tipo_Cambio_Mensual(), "Tipo de Cambio Mensual");
+    });
+
+    opcionesSistema.put("Convertir Unidad de Medida", () -> {
+        mostrarPanel(new com.mycompany.benaedu.views.Factores_Convercion_Unidad(), "Convertir Unidad de Medida");
+    });
 
     txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
         @Override
@@ -487,11 +591,6 @@ public class Dashboard extends javax.swing.JFrame {
         jpMenu = new javax.swing.JPanel();
         btnInfoMaestra = new javax.swing.JButton();
         btnTransacciones = new javax.swing.JButton();
-        btnContabilidad = new javax.swing.JButton();
-        btnCuentasPorPagar = new javax.swing.JButton();
-        btnCuentasPorCobrar = new javax.swing.JButton();
-        btnInventarios = new javax.swing.JButton();
-        btnCompras = new javax.swing.JButton();
         btnEscolar = new javax.swing.JButton();
         btnAcademico = new javax.swing.JButton();
         lblLogo = new javax.swing.JLabel();
@@ -536,61 +635,6 @@ public class Dashboard extends javax.swing.JFrame {
         btnTransacciones.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         btnTransacciones.setIconTextGap(10);
 
-        btnContabilidad.setBackground(new java.awt.Color(179, 207, 229));
-        btnContabilidad.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnContabilidad.setForeground(new java.awt.Color(26, 61, 99));
-        btnContabilidad.setIcon(new javax.swing.ImageIcon(getClass().getResource("/contabilidad2.png"))); // NOI18N
-        btnContabilidad.setText("Contabilidad");
-        btnContabilidad.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
-        btnContabilidad.setBorderPainted(false);
-        btnContabilidad.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnContabilidad.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        btnContabilidad.setIconTextGap(10);
-
-        btnCuentasPorPagar.setBackground(new java.awt.Color(179, 207, 229));
-        btnCuentasPorPagar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnCuentasPorPagar.setForeground(new java.awt.Color(26, 61, 99));
-        btnCuentasPorPagar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/pagar2.png"))); // NOI18N
-        btnCuentasPorPagar.setText("Cuentas por Pagar");
-        btnCuentasPorPagar.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
-        btnCuentasPorPagar.setBorderPainted(false);
-        btnCuentasPorPagar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnCuentasPorPagar.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        btnCuentasPorPagar.setIconTextGap(10);
-
-        btnCuentasPorCobrar.setBackground(new java.awt.Color(179, 207, 229));
-        btnCuentasPorCobrar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnCuentasPorCobrar.setForeground(new java.awt.Color(26, 61, 99));
-        btnCuentasPorCobrar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cobrar2.png"))); // NOI18N
-        btnCuentasPorCobrar.setText("Cuentas por Cobrar");
-        btnCuentasPorCobrar.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
-        btnCuentasPorCobrar.setBorderPainted(false);
-        btnCuentasPorCobrar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnCuentasPorCobrar.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        btnCuentasPorCobrar.setIconTextGap(10);
-
-        btnInventarios.setBackground(new java.awt.Color(179, 207, 229));
-        btnInventarios.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnInventarios.setForeground(new java.awt.Color(26, 61, 99));
-        btnInventarios.setIcon(new javax.swing.ImageIcon(getClass().getResource("/inventario.png"))); // NOI18N
-        btnInventarios.setText("Inventarios");
-        btnInventarios.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
-        btnInventarios.setBorderPainted(false);
-        btnInventarios.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnInventarios.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        btnInventarios.setIconTextGap(10);
-
-        btnCompras.setBackground(new java.awt.Color(179, 207, 229));
-        btnCompras.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnCompras.setForeground(new java.awt.Color(26, 61, 99));
-        btnCompras.setIcon(new javax.swing.ImageIcon(getClass().getResource("/compras2.png"))); // NOI18N
-        btnCompras.setText("Compras");
-        btnCompras.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 10, 1, 1));
-        btnCompras.setBorderPainted(false);
-        btnCompras.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        btnCompras.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        btnCompras.setIconTextGap(10);
-
         btnEscolar.setBackground(new java.awt.Color(179, 207, 229));
         btnEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnEscolar.setForeground(new java.awt.Color(26, 61, 99));
@@ -620,25 +664,13 @@ public class Dashboard extends javax.swing.JFrame {
         jpMenuLayout.setHorizontalGroup(
             jpMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jpMenuLayout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(jpMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jpMenuLayout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addGroup(jpMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnCompras, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnEscolar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnAcademico, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(jpMenuLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(jpMenuLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(btnTransacciones, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnInfoMaestra, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnContabilidad, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnCuentasPorPagar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnCuentasPorCobrar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnInventarios, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                    .addGroup(jpMenuLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(btnTransacciones, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnInfoMaestra, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEscolar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnAcademico, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jpMenuLayout.setVerticalGroup(
@@ -648,21 +680,11 @@ public class Dashboard extends javax.swing.JFrame {
                 .addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnInfoMaestra, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(btnTransacciones, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnContabilidad, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnCuentasPorPagar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnCuentasPorCobrar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnInventarios, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnCompras, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(btnEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(btnAcademico, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -728,16 +750,15 @@ public class Dashboard extends javax.swing.JFrame {
                 .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jpHeaderLayout.createSequentialGroup()
                         .addGap(14, 14, 14)
-                        .addComponent(lblTime)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(lblTime))
                     .addGroup(jpHeaderLayout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lblTitleInfo)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jpHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtSearch, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(imgSearch))
-                        .addContainerGap(58, Short.MAX_VALUE))))
+                            .addComponent(imgSearch))))
+                .addContainerGap(58, Short.MAX_VALUE))
         );
 
         jpContainer.setBackground(new java.awt.Color(255, 255, 255));
@@ -794,6 +815,53 @@ public class Dashboard extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_btnInfoMaestraActionPerformed
 
+    // Método 1: Verifica de forma global dónde está el cursor
+    private boolean isMouseOverAnyMenuOrButton() {
+        java.awt.Point cursorLoc = java.awt.MouseInfo.getPointerInfo().getLocation();
+
+        // 1. Revisar si el mouse está sobre alguno de los botones principales
+        javax.swing.JButton[] botones = {btnInfoMaestra, btnTransacciones, btnEscolar, btnAcademico};
+        for (javax.swing.JButton btn : botones) {
+            if (btn != null && btn.isShowing()) {
+                java.awt.Rectangle bounds = new java.awt.Rectangle(btn.getLocationOnScreen(), btn.getSize());
+                if (bounds.contains(cursorLoc)) {
+                    return true; // Está sobre un botón principal, no cerrar
+                }
+            }
+        }
+
+        // 2. Revisar si el mouse está sobre CUALQUIER menú o submenú abierto actualmente
+        javax.swing.MenuElement[] path = javax.swing.MenuSelectionManager.defaultManager().getSelectedPath();
+        for (javax.swing.MenuElement element : path) {
+            java.awt.Component comp = element.getComponent();
+            if (comp != null && comp.isShowing()) {
+                java.awt.Rectangle bounds = new java.awt.Rectangle(comp.getLocationOnScreen(), comp.getSize());
+                if (bounds.contains(cursorLoc)) {
+                    return true; // Está adentro de un menú o submenú, no cerrar
+                }
+            }
+        }
+
+        return false; // El mouse está afuera de todo
+    }
+
+    // Método 2: Crea el temporizador inteligente
+    private java.awt.event.MouseAdapter crearEventoOcultar() {
+        return new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                // Le damos 250ms (un cuarto de segundo) para que el movimiento se sienta fluido
+                javax.swing.Timer timer = new javax.swing.Timer(250, e -> {
+                    // Si el mouse NO está en ningún botón ni submenú válido, limpiamos la pantalla
+                    if (!isMouseOverAnyMenuOrButton()) {
+                        javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
+                    }
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+        };
+    }
     /**
      * @param args the command line arguments
      */
@@ -808,13 +876,8 @@ public class Dashboard extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel background;
     private javax.swing.JButton btnAcademico;
-    private javax.swing.JButton btnCompras;
-    private javax.swing.JButton btnContabilidad;
-    private javax.swing.JButton btnCuentasPorCobrar;
-    private javax.swing.JButton btnCuentasPorPagar;
     private javax.swing.JButton btnEscolar;
     private javax.swing.JButton btnInfoMaestra;
-    private javax.swing.JButton btnInventarios;
     private javax.swing.JButton btnTransacciones;
     private javax.swing.JLabel imgSearch;
     private javax.swing.JPanel jpContainer;

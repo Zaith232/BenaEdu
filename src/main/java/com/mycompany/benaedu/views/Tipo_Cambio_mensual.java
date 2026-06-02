@@ -8,12 +8,12 @@ package com.mycompany.benaedu.views;
  *
  * @author b17za
  */
-public class Tipo_Cambio_mensual extends javax.swing.JPanel {
+public class Tipo_Cambio_Mensual extends javax.swing.JPanel {
 
     /**
      * Creates new form Tipo_Cambio_mensual
      */
-    public Tipo_Cambio_mensual() {
+    public Tipo_Cambio_Mensual() {
         initComponents();
     }
 
