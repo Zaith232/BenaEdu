@@ -28,8 +28,22 @@ public class Dashboard extends javax.swing.JFrame {
     
     // El menú flotante que mostrará los resultados de búsqueda
     private final javax.swing.JPopupMenu menuResultadosBusqueda = new javax.swing.JPopupMenu();
+    private String usuarioActual = "Usuario";
     
     private int indiceSeleccionadoBusqueda = -1;
+    
+    public Dashboard(String nombreUsuario) {
+        this.usuarioActual = nombreUsuario; // Guardamos el nombre
+        initComponents();
+        InitStyles();
+        configurarMenuDesplegable();
+        configurarFechaYHora();
+        configurarMensajeBienvenida(); // Llamamos al nuevo método
+        initContent();
+        configurarBuscador();
+        configurarMenuTransacciones();
+        configurarMenuEscolar();
+    }
 
     /**
      * Creates new form Dashboard
@@ -39,6 +53,7 @@ public class Dashboard extends javax.swing.JFrame {
         InitStyles();
         configurarMenuDesplegable();
         configurarFechaYHora();
+        configurarMensajeBienvenida();
         initContent();
         configurarBuscador();
         configurarMenuTransacciones();
@@ -326,6 +341,24 @@ public class Dashboard extends javax.swing.JFrame {
 
         // Iniciamos el reloj
         timerReloj.start();
+    }
+    private void configurarMensajeBienvenida() {
+        // Obtenemos la hora actual de la computadora
+        java.time.LocalTime horaActual = java.time.LocalTime.now();
+        int hora = horaActual.getHour(); // Formato 24 hrs (0 a 23)
+        String saludo;
+
+        // Calculamos el saludo
+        if (hora >= 5 && hora < 12) {
+            saludo = "Buenos días";
+        } else if (hora >= 12 && hora < 19) {
+            saludo = "Buenas tardes";
+        } else {
+            saludo = "Buenas noches";
+        }
+
+        // Actualizamos la etiqueta (lblMessage)
+        lblMessage.setText(saludo + ", " + usuarioActual);
     }
     
  

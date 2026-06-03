@@ -39,15 +39,17 @@ public class GestionarUsuario extends javax.swing.JFrame {
 
             if (con != null) {
                 // Consultamos los datos que nos interesan
-                PreparedStatement ps = con.prepareStatement("SELECT nombre_usuario, correo, rol FROM users");
+                PreparedStatement ps = con.prepareStatement("SELECT nombre_usuario,nombre,apellidos, correo, rol FROM users");
                 ResultSet rs = ps.executeQuery();
 
                 // Recorremos los resultados y los agregamos fila por fila
                 while (rs.next()) {
-                    Object[] fila = new Object[3];
+                    Object[] fila = new Object[5];
                     fila[0] = rs.getString("nombre_usuario");
-                    fila[1] = rs.getString("correo");
-                    fila[2] = rs.getString("rol");
+                    fila[1] = rs.getString("nombre");
+                    fila[2] = rs.getString("apellidos");
+                    fila[3] = rs.getString("correo");
+                    fila[4] = rs.getString("rol");
                     modelo.addRow(fila);
                 }
 
@@ -94,13 +96,13 @@ public class GestionarUsuario extends javax.swing.JFrame {
 
         tblUsers.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null},
-                {null, null, null},
-                {null, null, null},
-                {null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Usuario", "Correo", "Rol"
+                "Usuario", "Nombre", "Apellidos", "Correo", "Rol"
             }
         ));
         jScrollPane1.setViewportView(tblUsers);
@@ -258,8 +260,8 @@ public class GestionarUsuario extends javax.swing.JFrame {
 
         // Obtener los datos de la fila seleccionada
         String usuario = tblUsers.getValueAt(filaSeleccionada, 0).toString();
-        String correo = tblUsers.getValueAt(filaSeleccionada, 1).toString();
-        String rol = tblUsers.getValueAt(filaSeleccionada, 2).toString();
+        String correo = tblUsers.getValueAt(filaSeleccionada, 3).toString();
+        String rol = tblUsers.getValueAt(filaSeleccionada, 4).toString();
 
         // Cerrar ventana actual y abrir EditarUsuario pasándole los datos
         this.dispose();

@@ -1,6 +1,5 @@
 com\mycompany\benaedu\views\Catalogo_Cajeros.class
 com\mycompany\benaedu\views\Principal.class
-com\mycompany\benaedu\Login$1.class
 com\mycompany\benaedu\views\Direcciones_Entrega.class
 com\mycompany\benaedu\views\Facturas_Proveedores.class
 com\mycompany\benaedu\Dashboard$6.class
@@ -15,7 +14,6 @@ com\mycompany\benaedu\add\AñadirCatalogoCompañias.class
 com\mycompany\benaedu\views\Grados_Escolares.class
 com\mycompany\benaedu\Dashboard$4.class
 com\mycompany\benaedu\views\Centros_costos$1.class
-com\mycompany\benaedu\CrearUsuarios$1.class
 com\mycompany\benaedu\views\Condiciones_Pago.class
 com\mycompany\benaedu\views\Catalogo_Tipo_Gastos.class
 com\mycompany\benaedu\views\Informacion_Cuentas.class

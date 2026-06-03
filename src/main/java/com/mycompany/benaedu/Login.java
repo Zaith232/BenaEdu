@@ -26,12 +26,7 @@ public class Login extends javax.swing.JFrame {
     public Login() {
         initComponents();
         initStyles();
-        // Agregar el evento al botón de Login
-        btnLogin.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnLoginActionPerformed(evt);
-            }
-        });
+     
     }
     
     private void initStyles(){
@@ -43,81 +38,7 @@ public class Login extends javax.swing.JFrame {
      lblTitulo.setForeground(new Color(179,207,229));
     }
     
-  private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {
-        String usuario = txtUser.getText().trim();
-        // Asumo que cambiaste txtPassword a JPasswordField como te sugerí
-        String clave = new String(txtPassword.getPassword()).trim(); 
 
-        if (usuario.isEmpty() || clave.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor completa todos los campos.");
-            return;
-        }
-
-        try {
-            ConDB db = new ConDB();
-            Connection con = db.Conectar();
-            
-            if (con == null) {
-                JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
-                return;
-            }
-
-            // 1. Buscamos ÚNICAMENTE por nombre de usuario. Pedimos traer la contraseña (el hash).
-            PreparedStatement ps = con.prepareStatement("SELECT contrasena, rol, temporal FROM users WHERE nombre_usuario=?");
-            ps.setString(1, usuario);
-
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                String hashBD = rs.getString("contrasena"); // Este es el hash guardado
-                String rol = rs.getString("rol");
-                boolean esTemporal = rs.getBoolean("temporal");
-
-                // 2. Comparamos la clave ingresada con el hash de la base de datos usando BCrypt
-                if (BCrypt.checkpw(clave, hashBD)) {
-                    
-                    // Las credenciales son correctas
-                   if (esTemporal) {
-                        JOptionPane.showMessageDialog(this, "Por seguridad, debes restablecer tu contraseña.");
-                        this.dispose(); // Cierra la ventana de Login
-                        
-                        // ---> CÓDIGO NUEVO PARA ABRIR RESTABLECER CONTRASEÑA <---
-                        // Nota: Le pasamos la variable 'usuario' dentro del paréntesis
-                        RestablecerContraseña ventanaRestablecer = new RestablecerContraseña(usuario);
-                        ventanaRestablecer.setLocationRelativeTo(null); 
-                        ventanaRestablecer.setVisible(true); 
-                        // --------------------------------------------------------
-                        return;
-                    }
-
-                    JOptionPane.showMessageDialog(this, "¡Bienvenido " + usuario + " (" + rol + ")!");
-                    
-                    // ---> CÓDIGO NUEVO PARA ABRIR EL DASHBOARD <---
-                    this.dispose(); // Cierra la ventana de Login
-                    
-                    Dashboard ventanaDashboard = new Dashboard();
-                    ventanaDashboard.setLocationRelativeTo(null); // Centra el Dashboard en la pantalla
-                    ventanaDashboard.setVisible(true); // Muestra el Dashboard
-                    // ------------------------------------------------
-                    
-                } else {
-                    // La contraseña no coincide
-                    JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.");
-                }
-            } else {
-                // El usuario no existe
-                JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.");
-            }
-
-            rs.close();
-            ps.close();
-            db.Cerrar();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error en el sistema: " + e.getMessage());
-        }
-    }
-    
  
     
     /**
@@ -152,6 +73,7 @@ public class Login extends javax.swing.JFrame {
 
         btnLogin.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnLogin.setText("INGRESAR");
+        btnLogin.addActionListener(this::btnLoginActionPerformed);
 
         btnCreateUser.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnCreateUser.setText("CREAR USUARIO");
@@ -319,6 +241,85 @@ public class Login extends javax.swing.JFrame {
     recuperarContraseña.setLocationRelativeTo(null);
     recuperarContraseña.setVisible(true);
     }//GEN-LAST:event_btnForgotPasswordActionPerformed
+
+    private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
+        String usuario = txtUser.getText().trim();
+        String clave = new String(txtPassword.getPassword()).trim(); 
+
+        if (usuario.isEmpty() || clave.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor completa todos los campos.");
+            return;
+        }
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
+                return;
+            }
+
+            // 1. MODIFICACIÓN: Agregamos 'nombre' y 'apellidos' a la consulta
+            PreparedStatement ps = con.prepareStatement("SELECT contrasena, rol, temporal, nombre, apellidos FROM users WHERE nombre_usuario=?");
+            ps.setString(1, usuario);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String hashBD = rs.getString("contrasena"); 
+                String rol = rs.getString("rol");
+                boolean esTemporal = rs.getBoolean("temporal");
+                
+                // 2. MODIFICACIÓN: Obtenemos el nombre y apellido, previniendo que vengan vacíos (nulos)
+                String nombreReal = rs.getString("nombre") != null ? rs.getString("nombre") : "";
+                String apellidosReal = rs.getString("apellidos") != null ? rs.getString("apellidos") : "";
+                
+                // Juntamos el nombre y apellido en una sola variable
+                String nombreCompleto = (nombreReal + " " + apellidosReal).trim();
+                
+                // Si por alguna razón el usuario no tiene nombre registrado, usamos su nombre de usuario como respaldo
+                if (nombreCompleto.isEmpty()) {
+                    nombreCompleto = usuario;
+                }
+
+                if (BCrypt.checkpw(clave, hashBD)) {
+                    
+                    if (esTemporal) {
+                        JOptionPane.showMessageDialog(this, "Por seguridad, debes restablecer tu contraseña.");
+                        this.dispose(); 
+                        
+                        RestablecerContraseña ventanaRestablecer = new RestablecerContraseña(usuario);
+                        ventanaRestablecer.setLocationRelativeTo(null); 
+                        ventanaRestablecer.setVisible(true); 
+                        return;
+                    }
+
+                    // 3. MODIFICACIÓN: Cambiamos el mensaje de bienvenida y le pasamos el nombreCompleto al Dashboard
+                    JOptionPane.showMessageDialog(this, "¡Bienvenido " + nombreCompleto + " (" + rol + ")!");
+                    
+                    this.dispose(); // Cierra la ventana de Login
+                    
+                    // Aquí le pasamos el nombre completo (Juan Pérez) en lugar de (juanp123)
+                    Dashboard ventanaDashboard = new Dashboard(nombreCompleto);
+                    ventanaDashboard.setLocationRelativeTo(null); 
+                    ventanaDashboard.setVisible(true); 
+                    
+                } else {
+                    JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.");
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.");
+            }
+
+            rs.close();
+            ps.close();
+            db.Cerrar();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error en el sistema: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnLoginActionPerformed
 
     /**
      * @param args the command line arguments
