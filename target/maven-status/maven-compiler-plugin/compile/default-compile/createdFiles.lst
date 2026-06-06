@@ -8,9 +8,9 @@ com\mycompany\benaedu\views\Catalogo_Proveedores.class
 com\mycompany\benaedu\views\Impresion_Facturas.class
 com\mycompany\benaedu\Dashboard$3.class
 com\mycompany\benaedu\views\Cancela_Contabilizacion_Deposito.class
+com\mycompany\benaedu\add\DialogoCompania$1.class
 com\mycompany\benaedu\views\Catalogo_Cuentas_Bancarias.class
 com\mycompany\benaedu\db\ConDB.class
-com\mycompany\benaedu\add\AñadirCatalogoCompañias.class
 com\mycompany\benaedu\views\Grados_Escolares.class
 com\mycompany\benaedu\Dashboard$4.class
 com\mycompany\benaedu\views\Centros_costos$1.class
@@ -26,9 +26,11 @@ com\mycompany\benaedu\views\Corte_Caja.class
 com\mycompany\benaedu\EditarUsuario.class
 com\mycompany\benaedu\views\Centros_costos.class
 com\mycompany\benaedu\BenaEdu.class
+com\mycompany\models\tmcias.class
 com\mycompany\benaedu\views\Solicitud_Pago_Acreedores.class
 com\mycompany\benaedu\views\Cancelacion_Conceptos.class
 com\mycompany\benaedu\views\Companias$1.class
+com\mycompany\benaedu\add\DialogoCompania$1$1.class
 com\mycompany\benaedu\views\Cancela_Contabilizacion_Corte.class
 com\mycompany\benaedu\Dashboard$5.class
 com\mycompany\benaedu\views\Catalogo_Empleados.class
@@ -42,6 +44,7 @@ com\mycompany\benaedu\views\Tipos_Alumno.class
 com\mycompany\benaedu\views\Catalogo_Contactos.class
 com\mycompany\benaedu\views\Conceptos_Escolares.class
 com\mycompany\benaedu\views\Tipo_Proveedor.class
+com\mycompany\benaedu\add\DialogoCompania.class
 com\mycompany\benaedu\views\Catalogo_Alumnos.class
 com\mycompany\benaedu\Login.class
 com\mycompany\benaedu\GestionarUsuario.class

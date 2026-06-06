@@ -3,7 +3,19 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 /**
  *
  * @author b17za
@@ -15,6 +27,7 @@ public class Companias extends javax.swing.JPanel {
      */
     public Companias() {
         initComponents();
+        cargarTablaCompanias();
     }
 
     /**
@@ -72,6 +85,7 @@ public class Companias extends javax.swing.JPanel {
         btnEditCompania.setText("Editar");
         btnEditCompania.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditCompania.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCompania.addActionListener(this::btnEditCompaniaActionPerformed);
 
         btnDeleteCompania.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnDeleteCompania.setForeground(new java.awt.Color(26, 61, 99));
@@ -118,13 +132,328 @@ public class Companias extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCompaniaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCompaniaActionPerformed
-        // TODO add your handling code here:
+        // False = Modo Añadir
+        mostrarDialogoCompania(false);
     }//GEN-LAST:event_btnAddCompaniaActionPerformed
 
     private void btnDeleteCompaniaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCompaniaActionPerformed
-        // TODO add your handling code here:
+     // 1. Verificar si hay una fila seleccionada
+        int filaSeleccionada = tblCompania.getSelectedRow();
+
+        if (filaSeleccionada == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Por favor, selecciona una compañía de la tabla para eliminar.");
+            return;
+        }
+
+        // 2. Obtener el ID (CIA) y el Nombre de la compañía seleccionada (Columnas 0 y 1)
+        String idCompania = tblCompania.getValueAt(filaSeleccionada, 0).toString();
+        String nombreCompania = tblCompania.getValueAt(filaSeleccionada, 1).toString();
+
+        // 3. Pedir confirmación al usuario antes de borrar
+        int confirmacion = javax.swing.JOptionPane.showConfirmDialog(
+            this,
+            "¿Estás seguro de que deseas eliminar la compañía:\n[" + idCompania + "] - " + nombreCompania + "?\n\nEsta acción no se puede deshacer.",
+            "Confirmar Eliminación",
+            javax.swing.JOptionPane.YES_NO_OPTION,
+            javax.swing.JOptionPane.WARNING_MESSAGE
+        );
+
+        // 4. Si el usuario hace clic en "Sí" (YES_OPTION)
+        if (confirmacion == javax.swing.JOptionPane.YES_OPTION) {
+            try {
+                // Conectar a la base de datos
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+
+                if (con != null) {
+                    // Preparamos la consulta para eliminar en la tabla tmcias
+                    String sql = "DELETE FROM tmcias WHERE CIA = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, idCompania);
+
+                    // Ejecutamos la eliminación
+                    int eliminado = ps.executeUpdate();
+
+                    if (eliminado > 0) {
+                        javax.swing.JOptionPane.showMessageDialog(this, "Compañía eliminada correctamente.");
+                        
+                        // 5. Refrescar la tabla para que la compañía desaparezca de la vista
+                        cargarTablaCompanias();
+                    } else {
+                        javax.swing.JOptionPane.showMessageDialog(this, "No se pudo encontrar o eliminar la compañía.");
+                    }
+
+                    ps.close();
+                    db.Cerrar();
+                }
+            } catch (Exception e) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Error en la base de datos: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteCompaniaActionPerformed
 
+    private void btnEditCompaniaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCompaniaActionPerformed
+   // Verificamos si seleccionaron una fila primero
+        int filaSeleccionada = tblCompania.getSelectedRow();
+        
+        if (filaSeleccionada == -1) {
+            JOptionPane.showMessageDialog(this, "Por favor selecciona una compañía de la tabla para editar.");
+            return;
+        }
+        
+        // True = Modo Editar
+        mostrarDialogoCompania(true);
+    }//GEN-LAST:event_btnEditCompaniaActionPerformed
+
+    
+    private void mostrarDialogoCompania(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Compañía" : "Agregar Compañía";
+
+        // 1. CREAMOS EL JDIALOG PRINCIPAL
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(550, 480);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 2. CAMPOS SUPERIORES ---
+        JLabel lblCia = new JLabel("Compañía:");
+        lblCia.setBounds(20, 10, 80, 20);
+        JTextField txtCia = new JTextField();
+        txtCia.setBounds(20, 30, 80, 25);
+        if (modoEdicion) txtCia.setEditable(false); // No dejamos que cambien el ID si están editando
+
+        JLabel lblNom = new JLabel("Nombre:");
+        lblNom.setBounds(120, 10, 80, 20);
+        JTextField txtNom = new JTextField();
+        txtNom.setBounds(120, 30, 390, 25);
+
+        dialogo.add(lblCia);
+        dialogo.add(txtCia);
+        dialogo.add(lblNom);
+        dialogo.add(txtNom);
+
+        // --- 3. PESTAÑAS (TABS) ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(20, 70, 490, 280);
+
+        // >> Pestaña 1: Datos Generales
+        JPanel pnlGenerales = new JPanel(null);
+
+        JLabel lblCalle = new JLabel("Calle:");
+        lblCalle.setBounds(20, 20, 60, 25);
+        JTextField txtCalle = new JTextField();
+        txtCalle.setBounds(90, 20, 370, 25);
+
+        JLabel lblColonia = new JLabel("Colonia:");
+        lblColonia.setBounds(20, 60, 60, 25);
+        JTextField txtColonia = new JTextField();
+        txtColonia.setBounds(90, 60, 370, 25);
+
+        JLabel lblPob = new JLabel("Población:");
+        lblPob.setBounds(20, 100, 70, 25);
+        JTextField txtPob = new JTextField();
+        txtPob.setBounds(90, 100, 150, 25);
+
+        JLabel lblEdo = new JLabel("Estado:");
+        lblEdo.setBounds(20, 140, 70, 25);
+        JTextField txtEdo = new JTextField();
+        txtEdo.setBounds(90, 140, 150, 25);
+
+        JLabel lblPais = new JLabel("País:");
+        lblPais.setBounds(20, 180, 70, 25);
+        JTextField txtPais = new JTextField();
+        txtPais.setBounds(90, 180, 150, 25);
+
+        JLabel lblRfc = new JLabel("R.F.C:");
+        lblRfc.setBounds(20, 220, 60, 25);
+        JTextField txtRfc = new JTextField();
+        txtRfc.setBounds(90, 220, 150, 25);
+
+        JLabel lblCp = new JLabel("C.P:");
+        lblCp.setBounds(270, 220, 80, 25);
+        JTextField txtCp = new JTextField();
+        txtCp.setBounds(350, 220, 110, 25);
+
+        pnlGenerales.add(lblCalle); pnlGenerales.add(txtCalle);
+        pnlGenerales.add(lblColonia); pnlGenerales.add(txtColonia);
+        pnlGenerales.add(lblPob); pnlGenerales.add(txtPob);
+        pnlGenerales.add(lblEdo); pnlGenerales.add(txtEdo);
+        pnlGenerales.add(lblPais); pnlGenerales.add(txtPais);
+        pnlGenerales.add(lblRfc); pnlGenerales.add(txtRfc);
+        pnlGenerales.add(lblCp); pnlGenerales.add(txtCp);
+
+        // >> Pestaña 2: Moneda y Otros Datos
+        JPanel pnlMoneda = new JPanel(null);
+
+        JLabel lblRegFis = new JLabel("Reg. Fiscal (REGFIS):");
+        lblRegFis.setBounds(20, 20, 150, 25);
+        JTextField txtRegFis = new JTextField();
+        txtRegFis.setBounds(180, 20, 150, 25);
+
+        JLabel lblMoneda = new JLabel("Moneda (CMON):");
+        lblMoneda.setBounds(20, 60, 150, 25);
+        JTextField txtMoneda = new JTextField();
+        txtMoneda.setBounds(180, 60, 150, 25);
+
+        pnlMoneda.add(lblRegFis); pnlMoneda.add(txtRegFis);
+        pnlMoneda.add(lblMoneda); pnlMoneda.add(txtMoneda);
+
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        pestanas.addTab("Moneda y Otros Datos", pnlMoneda);
+        dialogo.add(pestanas);
+
+        // --- 4. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(150, 380, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(280, 380, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 5. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS DE LA BASE DE DATOS ---
+        if (modoEdicion) {
+            int fila = tblCompania.getSelectedRow();
+            String idSeleccionado = tblCompania.getValueAt(fila, 0).toString(); // Extraemos la CIA de la tabla
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                PreparedStatement ps = con.prepareStatement("SELECT * FROM tmcias WHERE CIA = ?");
+                ps.setString(1, idSeleccionado);
+                ResultSet rs = ps.executeQuery();
+
+                if (rs.next()) {
+                    txtCia.setText(rs.getString("CIA"));
+                    txtNom.setText(rs.getString("NCIA"));
+                    txtCalle.setText(rs.getString("CALL"));
+                    txtColonia.setText(rs.getString("COL"));
+                    txtPob.setText(rs.getString("POB"));
+                    txtEdo.setText(rs.getString("EDO"));
+                    txtPais.setText(rs.getString("PAIS"));
+                    txtRfc.setText(rs.getString("RFC"));
+                    txtCp.setText(rs.getString("CP"));
+                    txtRegFis.setText(rs.getString("REGFIS"));
+                    txtMoneda.setText(rs.getString("CMON"));
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(dialogo, "Error al cargar datos: " + e.getMessage());
+            }
+        }
+
+        // --- 6. EVENTOS DE LOS BOTONES ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String cia = txtCia.getText().trim();
+            String nom = txtNom.getText().trim();
+
+            if (cia.isEmpty() || nom.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "Los campos Compañía y Nombre son obligatorios.");
+                return;
+            }
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                PreparedStatement ps;
+
+                if (modoEdicion) {
+                    // UPDATE - Usamos comillas invertidas (`) en CALL por si MySQL lo confunde con una palabra reservada
+                    String sql = "UPDATE tmcias SET NCIA=?, `CALL`=?, COL=?, POB=?, EDO=?, PAIS=?, RFC=?, CP=?, REGFIS=?, CMON=? WHERE CIA=?";
+                    ps = con.prepareStatement(sql);
+                    ps.setString(1, nom);
+                    ps.setString(2, txtCalle.getText().trim());
+                    ps.setString(3, txtColonia.getText().trim());
+                    ps.setString(4, txtPob.getText().trim());
+                    ps.setString(5, txtEdo.getText().trim());
+                    ps.setString(6, txtPais.getText().trim());
+                    ps.setString(7, txtRfc.getText().trim());
+                    ps.setString(8, txtCp.getText().trim());
+                    ps.setString(9, txtRegFis.getText().trim());
+                    ps.setString(10, txtMoneda.getText().trim());
+                    ps.setString(11, cia);
+                } else {
+                    // INSERT
+                    String sql = "INSERT INTO tmcias (CIA, NCIA, `CALL`, COL, POB, EDO, PAIS, RFC, CP, REGFIS, CMON) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+                    ps = con.prepareStatement(sql);
+                    ps.setString(1, cia);
+                    ps.setString(2, nom);
+                    ps.setString(3, txtCalle.getText().trim());
+                    ps.setString(4, txtColonia.getText().trim());
+                    ps.setString(5, txtPob.getText().trim());
+                    ps.setString(6, txtEdo.getText().trim());
+                    ps.setString(7, txtPais.getText().trim());
+                    ps.setString(8, txtRfc.getText().trim());
+                    ps.setString(9, txtCp.getText().trim());
+                    ps.setString(10, txtRegFis.getText().trim());
+                    ps.setString(11, txtMoneda.getText().trim());
+                }
+
+                int res = ps.executeUpdate();
+                if (res > 0) {
+                    JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito.");
+                    dialogo.dispose(); // Cerramos la ventana
+                    
+                  // LLAMAMOS AL MÉTODO PARA REFRESCAR LA TABLA VISUAL
+                    cargarTablaCompanias(); 
+                }
+                ps.close(); db.Cerrar();
+
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error al guardar: " + ex.getMessage());
+            }
+        });
+
+        // --- 7. MOSTRAMOS LA VENTANA ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
+    
+    private void cargarTablaCompanias() {
+        // 1. Obtenemos el modelo de tu tabla
+        javax.swing.table.DefaultTableModel modelo = (javax.swing.table.DefaultTableModel) tblCompania.getModel();
+        
+        // 2. Limpiamos la tabla por si ya tenía datos viejos
+        modelo.setRowCount(0); 
+
+        try {
+            // 3. Conectamos a la base de datos
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // 4. Preparamos la consulta SQL trayendo solo las columnas que importan para la tabla visual
+                String sql = "SELECT CIA, NCIA, RFC, CMON, USER, FEAC, HOAC FROM tmcias";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                // 5. Recorremos los resultados y armamos las filas
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; // 7 porque tu tabla tiene 7 columnas
+                    fila[0] = rs.getString("CIA");        // Compañía
+                    fila[1] = rs.getString("NCIA");       // Nombre
+                    fila[2] = rs.getString("RFC");        // R.F.C
+                    fila[3] = rs.getString("CMON");       // Moneda
+                    fila[4] = rs.getString("USER");       // Usuario Mod.
+                    fila[5] = rs.getString("FEAC");       // Fecha Mod.
+                    fila[6] = rs.getString("HOAC");       // Hora Mod.
+
+                    // Agregamos la fila terminada al modelo de la tabla
+                    modelo.addRow(fila);
+                }
+
+                // 6. Cerramos las conexiones
+                rs.close();
+                ps.close();
+                db.Cerrar();
+            }
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Error al cargar la tabla de compañías: " + e.getMessage());
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCompania;
