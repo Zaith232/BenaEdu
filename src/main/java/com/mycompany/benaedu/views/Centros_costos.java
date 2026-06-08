@@ -3,7 +3,22 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.BorderFactory;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -15,6 +30,49 @@ public class Centros_costos extends javax.swing.JPanel {
      */
     public Centros_costos() {
         initComponents();
+    }
+    
+    private void cargarTablaCentroCostos() {
+        DefaultTableModel modelo = (DefaultTableModel) tblCentroCostos.getModel();
+        modelo.setRowCount(0); 
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_centro_costos' por el nombre real de tu tabla
+                String sql = "SELECT cia, clave, nombre, clas1, clas2, clas3, clas4, clas5, clas6, clas7, clas8, clas9, clas10 FROM tabla_centro_costos";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[16]; 
+                    fila[0] = rs.getString("cia");
+                    fila[1] = rs.getString("clave");
+                    fila[2] = rs.getString("nombre");
+                    fila[3] = rs.getString("clas1");
+                    fila[4] = rs.getString("clas2");
+                    fila[5] = rs.getString("clas3");
+                    fila[6] = rs.getString("clas4");
+                    fila[7] = rs.getString("clas5");
+                    fila[8] = rs.getString("clas6");
+                    fila[9] = rs.getString("clas7");
+                    fila[10] = rs.getString("clas8");
+                    fila[11] = rs.getString("clas9");
+                    fila[12] = rs.getString("clas10");
+                    // Los campos de usuario, fecha y hora los puedes llenar si los tienes en la BD
+                    fila[13] = "admin"; 
+                    fila[14] = "2026-06-08"; 
+                    fila[15] = "12:00:00"; 
+
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
     }
 
     /**
@@ -70,6 +128,7 @@ public class Centros_costos extends javax.swing.JPanel {
         btnEditCentroCostos.setText("Editar");
         btnEditCentroCostos.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditCentroCostos.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCentroCostos.addActionListener(this::btnEditCentroCostosActionPerformed);
 
         btnDeleteCentroCostos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnDeleteCentroCostos.setForeground(new java.awt.Color(26, 61, 99));
@@ -116,13 +175,154 @@ public class Centros_costos extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCentroCostosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCentroCostosActionPerformed
-        // TODO add your handling code here:
+       mostrarDialogoCentroCostos(false);
     }//GEN-LAST:event_btnAddCentroCostosActionPerformed
 
     private void btnDeleteCentroCostosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCentroCostosActionPerformed
-        // TODO add your handling code here:
+        int fila = tblCentroCostos.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un Centro de Costo para eliminar.");
+            return;
+        }
+
+        String clave = tblCentroCostos.getValueAt(fila, 1).toString();
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar Centro de Costo " + clave + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (resp == JOptionPane.YES_OPTION) {
+            // Tu código DELETE FROM tabla WHERE clave = ?
+            JOptionPane.showMessageDialog(this, "Eliminado correctamente.");
+            cargarTablaCentroCostos();
+        }
     }//GEN-LAST:event_btnDeleteCentroCostosActionPerformed
 
+    private void btnEditCentroCostosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCentroCostosActionPerformed
+       if (tblCentroCostos.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un Centro de Costo para editar.");
+            return;
+        }
+        mostrarDialogoCentroCostos(true);
+    }//GEN-LAST:event_btnEditCentroCostosActionPerformed
+
+    private void mostrarDialogoCentroCostos(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Centro de Costo" : "Agregar Centro de Costo";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(550, 600); // Ventana un poco más alta para que quepa todo
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        JLabel lblCia = new JLabel("Compañía:");
+        lblCia.setBounds(20, 10, 70, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12 - UNIDAD ESCOLAR BENAVENTE", "13 - COMUNIDAD SALESIANA"});
+        cmbCia.setBounds(100, 10, 250, 25);
+
+        JLabel lblClave = new JLabel("Clave:");
+        lblClave.setBounds(20, 40, 70, 25);
+        JTextField txtClave = new JTextField();
+        txtClave.setBounds(100, 40, 100, 25);
+        if (modoEdicion) txtClave.setEditable(false);
+
+        JLabel lblNombre = new JLabel("Nombre:");
+        lblNombre.setBounds(20, 70, 70, 25);
+        JTextField txtNombre = new JTextField();
+        txtNombre.setBounds(100, 70, 400, 25);
+
+        dialogo.add(lblCia); dialogo.add(cmbCia);
+        dialogo.add(lblClave); dialogo.add(txtClave);
+        dialogo.add(lblNombre); dialogo.add(txtNombre);
+
+        // --- 2. PESTAÑAS ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(20, 110, 490, 380);
+
+        // >> Pestaña 1: Clasificaciones
+        JPanel pnlClasificaciones = new JPanel(null);
+        
+        // Marco (Border) interno para agrupar
+        JPanel pnlGrupoClas = new JPanel(null);
+        pnlGrupoClas.setBorder(BorderFactory.createTitledBorder("Clasificaciones"));
+        pnlGrupoClas.setBounds(10, 10, 460, 300);
+        
+        JLabel lblSub1 = new JLabel("Clasificaciones");
+        lblSub1.setBounds(100, 15, 100, 20);
+        JLabel lblSub2 = new JLabel("Descripción");
+        lblSub2.setBounds(250, 15, 100, 20);
+        pnlGrupoClas.add(lblSub1); pnlGrupoClas.add(lblSub2);
+
+        // Dibujamos las 10 clasificaciones automáticamente con un FOR
+        String[] nombresClas = {"Tipo", "Rubro", "Clasificación 3", "Clasificación 4", "Clasificación 5", 
+                                "Clasificación 6", "Clasificación 7", "Clasificación 8", "Clasificación 9", "Clasificación 10"};
+        JComboBox[] combosClas = new JComboBox[10];
+        
+        int yOffset = 40;
+        for (int i = 0; i < 10; i++) {
+            JLabel lblDinamico = new JLabel(nombresClas[i]);
+            lblDinamico.setBounds(10, yOffset, 100, 20);
+            
+            combosClas[i] = new JComboBox<>(new String[]{"", "Opción A", "Opción B"}); // Aquí pondrías tus opciones reales
+            combosClas[i].setBounds(110, yOffset, 100, 20);
+            
+            JLabel lblDescDinamico = new JLabel("..."); // Aquí iría la descripción de la BD
+            lblDescDinamico.setBounds(250, yOffset, 200, 20);
+            
+            pnlGrupoClas.add(lblDinamico);
+            pnlGrupoClas.add(combosClas[i]);
+            pnlGrupoClas.add(lblDescDinamico);
+            
+            yOffset += 25; // Bajamos 25 pixeles para el siguiente renglón
+        }
+        pnlClasificaciones.add(pnlGrupoClas);
+
+        // Ruta de autorización abajo
+        JLabel lblRuta = new JLabel("Ruta de Autorización:");
+        lblRuta.setBounds(20, 320, 150, 25);
+        JComboBox<String> cmbRuta = new JComboBox<>(new String[]{"", "Ruta 1"});
+        cmbRuta.setBounds(150, 320, 100, 25);
+        pnlClasificaciones.add(lblRuta); pnlClasificaciones.add(cmbRuta);
+
+        // >> Pestaña 2: Información Escolar (Vacía por ahora)
+        JPanel pnlInfEscolar = new JPanel(null);
+
+        pestanas.addTab("Clasificaciones", pnlClasificaciones);
+        pestanas.addTab("Inf. Escolar", pnlInfEscolar);
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(150, 500, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(280, 500, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = tblCentroCostos.getSelectedRow();
+            txtClave.setText(tblCentroCostos.getValueAt(fila, 1).toString());
+            txtNombre.setText(tblCentroCostos.getValueAt(fila, 2).toString());
+            // Lógica para llenar los combos según tu base de datos...
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            // Aquí va tu código INSERT o UPDATE usando PreparedStatement igual que en Compañias
+            // String clave = txtClave.getText(); 
+            // String nombre = txtNombre.getText();
+            
+            JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito (Simulación)");
+            dialogo.dispose();
+            cargarTablaCentroCostos(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCentroCostos;
