@@ -3,7 +3,27 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +36,44 @@ public class Cobranza_Escolar extends javax.swing.JPanel {
     public Cobranza_Escolar() {
         initComponents();
     }
+private void cargarTablaCobranza() {
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Recibo", "Matrícula", "Alumno", "Fecha", "Total Pago", "Estatus"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        tblCOEscolar.setModel(modelo);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia por tu tabla real de recibos de cobranza
+                String sql = "SELECT id_recibo, matricula, nombre_alumno, fecha_pago, total, estatus FROM tabla_cobranza";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[6]; 
+                    fila[0] = rs.getString("id_recibo");
+                    fila[1] = rs.getString("matricula");
+                    fila[2] = rs.getString("nombre_alumno");
+                    fila[3] = rs.getString("fecha_pago");
+                    fila[4] = rs.getString("total");
+                    fila[5] = rs.getString("estatus");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +83,316 @@ public class Cobranza_Escolar extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCOEscolar = new javax.swing.JTable();
+        btnAddCEscolar = new javax.swing.JButton();
+        btnEditCEscolar = new javax.swing.JButton();
+        btnDeleteCEscolar = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblCOEscolar.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblCOEscolar);
+
+        btnAddCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCEscolar.setText("Añadir");
+        btnAddCEscolar.addActionListener(this::btnAddCEscolarActionPerformed);
+
+        btnEditCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCEscolar.setText("Editar");
+        btnEditCEscolar.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCEscolar.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCEscolar.addActionListener(this::btnEditCEscolarActionPerformed);
+
+        btnDeleteCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCEscolar.setText("Eliminar");
+        btnDeleteCEscolar.addActionListener(this::btnDeleteCEscolarActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCEscolar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCEscolar)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCEscolarActionPerformed
+      mostrarDialogoCobranza(false);
+    }//GEN-LAST:event_btnAddCEscolarActionPerformed
+
+    private void btnEditCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCEscolarActionPerformed
+     if (tblCOEscolar.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un registro de cobranza para editar.");
+            return;
+        }
+        mostrarDialogoCobranza(true);
+    }//GEN-LAST:event_btnEditCEscolarActionPerformed
+
+    private void btnDeleteCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCEscolarActionPerformed
+       int fila = tblCOEscolar.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un registro de cobranza para cancelar/eliminar.");
+            return;
+        }
+
+        String recibo = tblCOEscolar.getValueAt(fila, 0).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas cancelar el recibo: " + recibo + "?", "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real de cobranza
+                    String sql = "DELETE FROM tabla_cobranza WHERE id_recibo = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, recibo);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Recibo cancelado correctamente.");
+                        cargarTablaCobranza();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al cancelar el recibo: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteCEscolarActionPerformed
+private void mostrarDialogoCobranza(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = "Cobranza Escolar";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(920, 680);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // ==========================================
+        // 1. SECCIÓN SUPERIOR (Datos del Alumno)
+        // ==========================================
+        JPanel pnlTop = new JPanel(null);
+        pnlTop.setBorder(BorderFactory.createEtchedBorder());
+        pnlTop.setBounds(10, 10, 885, 90);
+
+        pnlTop.add(new JLabel("Compañía")).setBounds(15, 15, 70, 25);
+        pnlTop.add(new JComboBox<>(new String[]{"12"})).setBounds(85, 15, 60, 25);
+        
+        pnlTop.add(new JLabel("C. Costos")).setBounds(160, 15, 70, 25);
+        pnlTop.add(new JComboBox<>(new String[]{"12100"})).setBounds(230, 15, 80, 25);
+        
+        pnlTop.add(new JLabel("Ciclo Escolar")).setBounds(330, 15, 80, 25);
+        pnlTop.add(new JComboBox<>(new String[]{""})).setBounds(415, 15, 80, 25);
+        
+        pnlTop.add(new JLabel("Fecha Recibo")).setBounds(510, 15, 80, 25);
+        pnlTop.add(new JTextField("04/06/2026")).setBounds(595, 15, 90, 25);
+
+        pnlTop.add(new JLabel("Matrícula")).setBounds(15, 45, 70, 25);
+        pnlTop.add(new JTextField()).setBounds(85, 45, 90, 25);
+        pnlTop.add(new JComboBox<>(new String[]{""})).setBounds(180, 45, 20, 25); // Flechita
+
+        pnlTop.add(new JLabel("Grado")).setBounds(330, 45, 50, 25);
+        pnlTop.add(new JTextField()).setBounds(385, 45, 50, 25);
+        
+        pnlTop.add(new JLabel("Grupo")).setBounds(510, 45, 50, 25);
+        pnlTop.add(new JTextField()).setBounds(565, 45, 50, 25);
+
+        // Cuadro para foto simulado a la derecha
+        JPanel pnlFoto = new JPanel();
+        pnlFoto.setBorder(BorderFactory.createLineBorder(java.awt.Color.GRAY));
+        pnlFoto.setBounds(770, 10, 90, 70);
+        pnlTop.add(pnlFoto);
+
+        dialogo.add(pnlTop);
+
+        // ==========================================
+        // 2. PESTAÑAS PRINCIPALES
+        // ==========================================
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(10, 110, 885, 520);
+
+        // ------------------------------------------
+        // TAB 1: REGISTRO CONCEPTOS
+        // ------------------------------------------
+        JPanel pnlConceptos = new JPanel(null);
+
+        JPanel pnlPrograma = new JPanel(null);
+        pnlPrograma.setBorder(BorderFactory.createTitledBorder("Programa Pagos"));
+        pnlPrograma.setBounds(10, 10, 280, 60);
+        JRadioButton rbOtros = new JRadioButton("Otros"); rbOtros.setBounds(10, 20, 60, 25);
+        JRadioButton rbInsc = new JRadioButton("Inscripción"); rbInsc.setBounds(70, 20, 90, 25);
+        pnlPrograma.add(rbOtros); pnlPrograma.add(rbInsc);
+        pnlPrograma.add(new JComboBox<>(new String[]{""})).setBounds(165, 20, 100, 25);
+
+        JPanel pnlBeca = new JPanel(null);
+        pnlBeca.setBorder(BorderFactory.createTitledBorder("Aplica Beca/Convenio"));
+        pnlBeca.setBounds(300, 10, 200, 60);
+        pnlBeca.add(new JRadioButton("No")).setBounds(10, 20, 50, 25);
+        pnlBeca.add(new JRadioButton("Beca")).setBounds(60, 20, 60, 25);
+        pnlBeca.add(new JRadioButton("Convenio")).setBounds(120, 20, 75, 25);
+
+        JPanel pnlSelBeca = new JPanel(null);
+        pnlSelBeca.setBorder(BorderFactory.createTitledBorder("Seleccionar Beca/Convenio"));
+        pnlSelBeca.setBounds(510, 10, 200, 60);
+        pnlSelBeca.add(new JTextField()).setBounds(10, 20, 175, 25);
+
+        pnlConceptos.add(pnlPrograma); pnlConceptos.add(pnlBeca); pnlConceptos.add(pnlSelBeca);
+        
+        pnlConceptos.add(new JLabel("Moneda")).setBounds(720, 20, 50, 25);
+        pnlConceptos.add(new JTextField()).setBounds(775, 20, 50, 25);
+        pnlConceptos.add(new JLabel("Tipo Cambio")).setBounds(720, 50, 80, 25);
+        pnlConceptos.add(new JTextField("0.0000")).setBounds(805, 50, 60, 25);
+
+        // Sub-Pestañas de Adeudos
+        JTabbedPane subTabAdeudos = new JTabbedPane();
+        subTabAdeudos.setBounds(10, 80, 860, 400);
+        
+        JPanel pnlAdeudos = new JPanel(null);
+        pnlAdeudos.setBorder(BorderFactory.createTitledBorder("Conceptos a Pagar"));
+        JTable tblAdeudos = new JTable(new DefaultTableModel(new Object[][]{}, new String[]{"Concepto", "Descripcion", "Importe", "Pagado", "Saldo", "ID", "F Venc", "Ciclo", "Tpo Cont"}));
+        JScrollPane scrollAdeudos = new JScrollPane(tblAdeudos);
+        scrollAdeudos.setBounds(15, 25, 825, 290);
+        pnlAdeudos.add(scrollAdeudos);
+        
+        pnlAdeudos.add(new JLabel("Total Adeudo")).setBounds(650, 330, 80, 25);
+        pnlAdeudos.add(new JTextField("0.00")).setBounds(740, 330, 100, 25);
+
+        subTabAdeudos.addTab("Adeudos", pnlAdeudos);
+        subTabAdeudos.addTab("A Pagar", new JPanel());
+        pnlConceptos.add(subTabAdeudos);
+
+        // ------------------------------------------
+        // TAB 2: REGISTRO DE PAGO
+        // ------------------------------------------
+        JPanel pnlPagos = new JPanel(null);
+        
+        JPanel pnlTotalPagar = new JPanel(null);
+        pnlTotalPagar.setBorder(BorderFactory.createTitledBorder("Total a Pagar"));
+        pnlTotalPagar.setBounds(10, 10, 860, 60);
+        pnlTotalPagar.add(new JTextField()).setBounds(740, 20, 100, 25);
+        pnlPagos.add(pnlTotalPagar);
+
+        JPanel pnlRegPagos = new JPanel(null);
+        pnlRegPagos.setBorder(BorderFactory.createTitledBorder("Registro de Pagos"));
+        pnlRegPagos.setBounds(10, 80, 860, 400);
+
+        pnlRegPagos.add(new JLabel("Forma de pago")).setBounds(15, 20, 100, 20);
+        pnlRegPagos.add(new JComboBox<>(new String[]{""})).setBounds(15, 40, 90, 25);
+        pnlRegPagos.add(new JLabel("Descripción")).setBounds(115, 20, 100, 20);
+        pnlRegPagos.add(new JTextField()).setBounds(115, 40, 200, 25);
+        pnlRegPagos.add(new JLabel("Banco")).setBounds(325, 20, 60, 20);
+        pnlRegPagos.add(new JComboBox<>(new String[]{""})).setBounds(325, 40, 80, 25);
+        pnlRegPagos.add(new JLabel("Cta Pago")).setBounds(415, 20, 70, 20);
+        pnlRegPagos.add(new JTextField()).setBounds(415, 40, 80, 25);
+        pnlRegPagos.add(new JLabel("Referencia")).setBounds(505, 20, 80, 20);
+        pnlRegPagos.add(new JTextField()).setBounds(505, 40, 100, 25);
+        pnlRegPagos.add(new JLabel("Fecha pago")).setBounds(615, 20, 80, 20);
+        pnlRegPagos.add(new JTextField("04/06/2026")).setBounds(615, 40, 80, 25);
+        pnlRegPagos.add(new JLabel("Importe")).setBounds(705, 20, 60, 20);
+        pnlRegPagos.add(new JTextField("0.00")).setBounds(705, 40, 70, 25);
+        pnlRegPagos.add(new JButton("OK")).setBounds(785, 40, 55, 25);
+
+        JTable tblInstr = new JTable(new DefaultTableModel(new Object[][]{}, new String[]{"IPago", "Descripcion", "CBanco", "Banco", "CtaPag", "Referencia", "Fecha", "Importe"}));
+        JScrollPane scrollInstr = new JScrollPane(tblInstr);
+        scrollInstr.setBounds(15, 80, 825, 220);
+        pnlRegPagos.add(scrollInstr);
+
+        pnlRegPagos.add(new JLabel("Total")).setBounds(660, 310, 50, 25);
+        pnlRegPagos.add(new JTextField("0.00")).setBounds(700, 310, 100, 25);
+        pnlRegPagos.add(new JLabel("Saldo")).setBounds(660, 340, 50, 25);
+        pnlRegPagos.add(new JTextField("0.00")).setBounds(700, 340, 100, 25);
+        
+        JButton btnAceptarCobro = new JButton("Aceptar");
+        btnAceptarCobro.setBounds(810, 310, 40, 55); // Botón cuadrado con palomita simulado
+        pnlRegPagos.add(btnAceptarCobro);
+        
+        pnlPagos.add(pnlRegPagos);
+
+        // ------------------------------------------
+        // TAB 3: IMPRESIÓN (Simulada para espacio)
+        // ------------------------------------------
+        JPanel pnlImpresion = new JPanel(null);
+        JPanel pnlRecibo = new JPanel(null);
+        pnlRecibo.setBorder(BorderFactory.createTitledBorder("Imprime Recibo Inscripciones y Colegiaturas"));
+        pnlRecibo.setBounds(10, 10, 860, 60);
+        pnlRecibo.add(new JLabel("Numero de recibo")).setBounds(20, 20, 120, 25);
+        pnlRecibo.add(new JTextField()).setBounds(140, 20, 100, 25);
+        pnlRecibo.add(new JCheckBox("Imprimir Estado de Cuenta")).setBounds(250, 20, 180, 25);
+        pnlRecibo.add(new JButton("Imprime Recibo")).setBounds(700, 20, 130, 25);
+        pnlImpresion.add(pnlRecibo);
+
+        // Agregar Pestañas principales
+        pestanas.addTab("Registro Conceptos", pnlConceptos);
+        pestanas.addTab("Registro de Pago", pnlPagos);
+        pestanas.addTab("Impresión de Recibo/Factura", pnlImpresion);
+
+        dialogo.add(pestanas);
+
+        // Eventos
+        btnAceptarCobro.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Cobro registrado correctamente.");
+            dialogo.dispose();
+            cargarTablaCobranza();
+        });
+
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCEscolar;
+    private javax.swing.JButton btnDeleteCEscolar;
+    private javax.swing.JButton btnEditCEscolar;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblCOEscolar;
     // End of variables declaration//GEN-END:variables
 }

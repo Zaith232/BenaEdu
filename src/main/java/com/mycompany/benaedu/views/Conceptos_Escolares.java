@@ -3,7 +3,23 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +32,48 @@ public class Conceptos_Escolares extends javax.swing.JPanel {
     public Conceptos_Escolares() {
         initComponents();
     }
+private void cargarTablaConceptos() {
+        // 1. Arreglamos las columnas de la tabla por código
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Compañía", "Centro Costos", "Clave", "Descripción", "Tipo Concepto", "Costo", "Usuario", "Fecha Mod."}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        jTable1.setModel(modelo);
 
+        // 2. Cargamos los datos
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_conceptos' por tu tabla real
+                String sql = "SELECT compania, centro_costos, clave, descripcion, tipo, costo, usuario, fecha_mod FROM tabla_conceptos";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[8]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("centro_costos");
+                    fila[2] = rs.getString("clave");
+                    fila[3] = rs.getString("descripcion");
+                    fila[4] = rs.getString("tipo");
+                    fila[5] = rs.getString("costo");
+                    fila[6] = rs.getString("usuario");
+                    fila[7] = rs.getString("fecha_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +83,299 @@ public class Conceptos_Escolares extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        btnAddCEscolar = new javax.swing.JButton();
+        btnEditCEscolar = new javax.swing.JButton();
+        btnDeleteCEscolar = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        btnAddCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCEscolar.setText("Añadir");
+        btnAddCEscolar.addActionListener(this::btnAddCEscolarActionPerformed);
+
+        btnEditCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCEscolar.setText("Editar");
+        btnEditCEscolar.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCEscolar.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCEscolar.addActionListener(this::btnEditCEscolarActionPerformed);
+
+        btnDeleteCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCEscolar.setText("Eliminar");
+        btnDeleteCEscolar.addActionListener(this::btnDeleteCEscolarActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCEscolar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCEscolar)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCEscolarActionPerformed
+     mostrarDialogoConceptos(false);
+    }//GEN-LAST:event_btnAddCEscolarActionPerformed
 
+    private void btnEditCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCEscolarActionPerformed
+       if (jTable1.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un concepto para editar.");
+            return;
+        }
+        mostrarDialogoConceptos(true);
+    }//GEN-LAST:event_btnEditCEscolarActionPerformed
+
+    private void btnDeleteCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCEscolarActionPerformed
+       int fila = jTable1.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un concepto para eliminar.");
+            return;
+        }
+
+        String compania = jTable1.getValueAt(fila, 0).toString();
+        String cc = jTable1.getValueAt(fila, 1).toString();
+        String clave = jTable1.getValueAt(fila, 2).toString();
+        String desc = jTable1.getValueAt(fila, 3).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el concepto " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real de conceptos
+                    String sql = "DELETE FROM tabla_conceptos WHERE compania = ? AND centro_costos = ? AND clave = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, compania);
+                    ps.setString(2, cc);
+                    ps.setString(3, clave);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Concepto eliminado.");
+                        cargarTablaConceptos();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteCEscolarActionPerformed
+
+private void mostrarDialogoConceptos(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Conceptos" : "Agregar Conceptos";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(620, 520);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        JLabel lblCia = new JLabel("Compañía");
+        lblCia.setBounds(20, 15, 100, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        cmbCia.setBounds(130, 15, 70, 25);
+        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
+        lblCiaDesc.setBounds(210, 15, 250, 25);
+
+        JLabel lblCC = new JLabel("Centro de Costos");
+        lblCC.setBounds(20, 45, 100, 25);
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", ""});
+        cmbCC.setBounds(130, 45, 80, 25);
+        JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE (JARDIN DE NIÑOS)");
+        lblCCDesc.setBounds(220, 45, 300, 25);
+
+        JLabel lblClave = new JLabel("Clave Concepto");
+        lblClave.setBounds(20, 75, 100, 25);
+        JTextField txtClave = new JTextField();
+        txtClave.setBounds(130, 75, 80, 25);
+
+        JLabel lblDesc = new JLabel("Descripción");
+        lblDesc.setBounds(20, 105, 100, 25);
+        JTextField txtDesc = new JTextField();
+        txtDesc.setBounds(130, 105, 450, 25);
+
+        if (modoEdicion) {
+            cmbCia.setEnabled(false);
+            cmbCC.setEnabled(false);
+            txtClave.setEditable(false); // Llave bloqueada
+        }
+
+        dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
+        dialogo.add(lblCC); dialogo.add(cmbCC); dialogo.add(lblCCDesc);
+        dialogo.add(lblClave); dialogo.add(txtClave);
+        dialogo.add(lblDesc); dialogo.add(txtDesc);
+
+        // --- 2. PESTAÑAS Y MARCOS ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(15, 145, 575, 270);
+
+        JPanel pnlGenerales = new JPanel(null);
+
+        // Sub-panel izquierdo (Campos descriptivos)
+        JLabel lblDescCorta = new JLabel("Descripción Corta");
+        lblDescCorta.setBounds(15, 15, 110, 25);
+        JTextField txtDescCorta = new JTextField();
+        txtDescCorta.setBounds(130, 15, 260, 25);
+
+        JLabel lblCodProd = new JLabel("Codigo Producto");
+        lblCodProd.setBounds(15, 45, 110, 25);
+        JComboBox<String> cmbCodProd = new JComboBox<>(new String[]{"86121500"});
+        cmbCodProd.setBounds(130, 45, 100, 25);
+        JLabel lblCodProdDesc = new JLabel("ESCUELAS PREESCOLARES, PRIM Y SEC");
+        lblCodProdDesc.setBounds(240, 45, 160, 25);
+
+        JLabel lblTipo = new JLabel("Tipo de Concepto");
+        lblTipo.setBounds(15, 75, 110, 25);
+        JComboBox<String> cmbTipo = new JComboBox<>(new String[]{"I"});
+        cmbTipo.setBounds(130, 75, 60, 25);
+        JLabel lblTipoDesc = new JLabel("INSCRIPCION");
+        lblTipoDesc.setBounds(200, 75, 150, 25);
+
+        JLabel lblCosto = new JLabel("Costo Unitario");
+        lblCosto.setBounds(15, 105, 110, 25);
+        JTextField txtCosto = new JTextField("0.00");
+        txtCosto.setBounds(130, 105, 100, 25);
+
+        pnlGenerales.add(lblDescCorta); pnlGenerales.add(txtDescCorta);
+        pnlGenerales.add(lblCodProd); pnlGenerales.add(cmbCodProd); pnlGenerales.add(lblCodProdDesc);
+        pnlGenerales.add(lblTipo); pnlGenerales.add(cmbTipo); pnlGenerales.add(lblTipoDesc);
+        pnlGenerales.add(lblCosto); pnlGenerales.add(txtCosto);
+
+        // Marco: Información para Referencia Bancaria
+        JPanel pnlRef = new JPanel(null);
+        pnlRef.setBorder(BorderFactory.createTitledBorder("Información para Referencia Bancaria"));
+        pnlRef.setBounds(10, 150, 390, 65);
+        
+        JLabel lblIdRef = new JLabel("Código para Identificar Concepto");
+        lblIdRef.setBounds(10, 25, 200, 25);
+        JTextField txtIdRef = new JTextField();
+        txtIdRef.setBounds(220, 25, 70, 25);
+        
+        pnlRef.add(lblIdRef); pnlRef.add(txtIdRef);
+        pnlGenerales.add(pnlRef);
+
+        // Marco Derecho: Condiciones (Checkboxes)
+        JPanel pnlCond = new JPanel(null);
+        pnlCond.setBorder(BorderFactory.createTitledBorder("Condiciones"));
+        pnlCond.setBounds(410, 10, 145, 205);
+
+        JCheckBox chkDescuentos = new JCheckBox("Aplica descuentos", true);
+        chkDescuentos.setBounds(10, 25, 130, 25);
+        JCheckBox chkBeca = new JCheckBox("Aplica Beca");
+        chkBeca.setBounds(10, 65, 130, 25);
+        JCheckBox chkRecargos = new JCheckBox("Aplica Recargos");
+        chkRecargos.setBounds(10, 105, 130, 25);
+        JCheckBox chkRef = new JCheckBox("Genera Referencia");
+        chkRef.setBounds(10, 145, 130, 25);
+
+        pnlCond.add(chkDescuentos); pnlCond.add(chkBeca); 
+        pnlCond.add(chkRecargos); pnlCond.add(chkRef);
+        pnlGenerales.add(pnlCond);
+
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        pestanas.addTab("Información Contable", new JPanel()); // Pestaña vacía
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(180, 430, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(310, 430, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = jTable1.getSelectedRow();
+            cmbCia.setSelectedItem(jTable1.getValueAt(fila, 0).toString());
+            cmbCC.setSelectedItem(jTable1.getValueAt(fila, 1).toString());
+            txtClave.setText(jTable1.getValueAt(fila, 2).toString());
+            txtDesc.setText(jTable1.getValueAt(fila, 3).toString());
+            // Lógica para marcar o desmarcar los checkboxes usando datos de la base de datos
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String clave = txtClave.getText().trim();
+            if (clave.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La clave del concepto no puede estar vacía.");
+                return;
+            }
+
+            // Aquí va la lógica SQL (INSERT / UPDATE)
+            // Tip: para los checkbox usas chkDescuentos.isSelected() que devuelve true o false
+            JOptionPane.showMessageDialog(dialogo, "Concepto guardado (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaConceptos(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCEscolar;
+    private javax.swing.JButton btnDeleteCEscolar;
+    private javax.swing.JButton btnEditCEscolar;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
 }

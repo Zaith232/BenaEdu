@@ -3,7 +3,22 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +31,47 @@ public class Catalogo_Cajeros extends javax.swing.JPanel {
     public Catalogo_Cajeros() {
         initComponents();
     }
+private void cargarTablaCajeros() {
+        // 1. Arreglamos las columnas de la tabla por código
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Compañía", "Núm. Emp.", "RFC", "Nombre", "Estatus", "Usuario", "Fecha Mod."}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        jTable1.setModel(modelo);
 
+        // 2. Cargamos los datos
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_cajeros' por tu tabla real
+                String sql = "SELECT compania, num_emp, rfc, nombre, estatus, usuario, fecha_mod FROM tabla_cajeros";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("num_emp");
+                    fila[2] = rs.getString("rfc");
+                    fila[3] = rs.getString("nombre");
+                    fila[4] = rs.getString("estatus");
+                    fila[5] = rs.getString("usuario");
+                    fila[6] = rs.getString("fecha_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +81,299 @@ public class Catalogo_Cajeros extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        btnAddCCajero = new javax.swing.JButton();
+        btnEditCCajero = new javax.swing.JButton();
+        btnDeleteCCajero = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        btnAddCCajero.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCCajero.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCCajero.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCCajero.setText("Añadir");
+        btnAddCCajero.addActionListener(this::btnAddCCajeroActionPerformed);
+
+        btnEditCCajero.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCCajero.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCCajero.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCCajero.setText("Editar");
+        btnEditCCajero.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCCajero.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCCajero.addActionListener(this::btnEditCCajeroActionPerformed);
+
+        btnDeleteCCajero.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCCajero.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCCajero.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCCajero.setText("Eliminar");
+        btnDeleteCCajero.addActionListener(this::btnDeleteCCajeroActionPerformed);
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCCajero)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCCajero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCCajero)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCCajero, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCCajero, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCCajero, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCCajeroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCCajeroActionPerformed
+       mostrarDialogoCajero(false);
+    }//GEN-LAST:event_btnAddCCajeroActionPerformed
 
+    private void btnEditCCajeroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCCajeroActionPerformed
+       if (jTable1.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un cajero para editar.");
+            return;
+        }
+        mostrarDialogoCajero(true);
+    }//GEN-LAST:event_btnEditCCajeroActionPerformed
+
+    private void btnDeleteCCajeroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCCajeroActionPerformed
+      int fila = jTable1.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un cajero para eliminar.");
+            return;
+        }
+
+        String compania = jTable1.getValueAt(fila, 0).toString();
+        String numEmp = jTable1.getValueAt(fila, 1).toString();
+        String nombre = jTable1.getValueAt(fila, 3).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar al cajero: " + nombre + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real
+                    String sql = "DELETE FROM tabla_cajeros WHERE compania = ? AND num_emp = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, compania);
+                    ps.setString(2, numEmp);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Cajero eliminado.");
+                        cargarTablaCajeros();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteCCajeroActionPerformed
+
+private void mostrarDialogoCajero(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Cajero" : "Agregar Cajero";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(520, 560);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        JLabel lblTitCia = new JLabel("Compañía");
+        lblTitCia.setBounds(20, 15, 80, 20);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        cmbCia.setBounds(20, 35, 80, 25);
+
+        JLabel lblTitNum = new JLabel("Núm. Emp.");
+        lblTitNum.setBounds(120, 15, 80, 20);
+        JComboBox<String> cmbNumEmp = new JComboBox<>(new String[]{"35", ""});
+        cmbNumEmp.setEditable(true); // Permite escribir el número
+        cmbNumEmp.setBounds(120, 35, 90, 25);
+
+        JLabel lblTitRfc = new JLabel("RFC:");
+        lblTitRfc.setBounds(230, 15, 80, 20);
+        JTextField txtRfc = new JTextField();
+        txtRfc.setBounds(230, 35, 250, 25);
+
+        JLabel lblNombre = new JLabel("Nombre");
+        lblNombre.setBounds(20, 75, 60, 25);
+        JTextField txtNombre = new JTextField();
+        txtNombre.setBounds(80, 75, 400, 25);
+
+        if (modoEdicion) {
+            cmbCia.setEnabled(false);
+            cmbNumEmp.setEnabled(false); // Llave primaria
+        }
+
+        dialogo.add(lblTitCia); dialogo.add(cmbCia);
+        dialogo.add(lblTitNum); dialogo.add(cmbNumEmp);
+        dialogo.add(lblTitRfc); dialogo.add(txtRfc);
+        dialogo.add(lblNombre); dialogo.add(txtNombre);
+
+        // --- 2. PESTAÑAS (TABS) ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(15, 120, 475, 330);
+
+        JPanel pnlGenerales = new JPanel(null);
+
+        // Marco interior gris
+        JPanel pnlInterior = new JPanel(null);
+        pnlInterior.setBorder(BorderFactory.createEtchedBorder());
+        pnlInterior.setBounds(15, 15, 440, 270);
+
+        JLabel lblCalle = new JLabel("Calle");
+        lblCalle.setBounds(20, 20, 80, 25);
+        JTextField txtCalle = new JTextField();
+        txtCalle.setBounds(100, 20, 320, 25);
+
+        JLabel lblColonia = new JLabel("Colonia");
+        lblColonia.setBounds(20, 55, 80, 25);
+        JTextField txtColonia = new JTextField();
+        txtColonia.setBounds(100, 55, 320, 25);
+
+        JLabel lblPob = new JLabel("Población");
+        lblPob.setBounds(20, 95, 80, 25);
+        JComboBox<String> cmbPob = new JComboBox<>(new String[]{"TEH", ""});
+        cmbPob.setBounds(100, 95, 70, 25);
+        JLabel lblPobDesc = new JLabel("TEHUACAN");
+        lblPobDesc.setBounds(180, 95, 200, 25);
+
+        JLabel lblEstado = new JLabel("Estado");
+        lblEstado.setBounds(20, 130, 80, 25);
+        JComboBox<String> cmbEstado = new JComboBox<>(new String[]{"PUE", ""});
+        cmbEstado.setBounds(100, 130, 70, 25);
+        JLabel lblEstadoDesc = new JLabel("PUEBLA");
+        lblEstadoDesc.setBounds(180, 130, 200, 25);
+
+        JLabel lblPais = new JLabel("País");
+        lblPais.setBounds(20, 165, 80, 25);
+        JComboBox<String> cmbPais = new JComboBox<>(new String[]{"MEX", ""});
+        cmbPais.setBounds(100, 165, 70, 25);
+        JLabel lblPaisDesc = new JLabel("MEXICO");
+        lblPaisDesc.setBounds(180, 165, 200, 25);
+
+        JLabel lblCP = new JLabel("C Postal");
+        lblCP.setBounds(20, 200, 80, 25);
+        JTextField txtCP = new JTextField();
+        txtCP.setBounds(100, 200, 80, 25);
+
+        JLabel lblEstatus = new JLabel("Estatus");
+        lblEstatus.setBounds(240, 200, 60, 25);
+        JComboBox<String> cmbEstatus = new JComboBox<>(new String[]{"I", "A"});
+        cmbEstatus.setBounds(300, 200, 50, 25);
+        JLabel lblEstatusDesc = new JLabel("INACTIVO");
+        lblEstatusDesc.setBounds(360, 200, 70, 25);
+
+        JLabel lblTel = new JLabel("Teléfono");
+        lblTel.setBounds(20, 235, 80, 25);
+        JComboBox<String> cmbTel = new JComboBox<>(new String[]{"PAR", "CEL"});
+        cmbTel.setBounds(100, 235, 70, 25);
+        JTextField txtTel = new JTextField();
+        txtTel.setBounds(180, 235, 240, 25);
+
+        pnlInterior.add(lblCalle); pnlInterior.add(txtCalle);
+        pnlInterior.add(lblColonia); pnlInterior.add(txtColonia);
+        pnlInterior.add(lblPob); pnlInterior.add(cmbPob); pnlInterior.add(lblPobDesc);
+        pnlInterior.add(lblEstado); pnlInterior.add(cmbEstado); pnlInterior.add(lblEstadoDesc);
+        pnlInterior.add(lblPais); pnlInterior.add(cmbPais); pnlInterior.add(lblPaisDesc);
+        pnlInterior.add(lblCP); pnlInterior.add(txtCP);
+        pnlInterior.add(lblEstatus); pnlInterior.add(cmbEstatus); pnlInterior.add(lblEstatusDesc);
+        pnlInterior.add(lblTel); pnlInterior.add(cmbTel); pnlInterior.add(txtTel);
+
+        pnlGenerales.add(pnlInterior);
+
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        pestanas.addTab("Información Adicional", new JPanel()); // Pestaña vacía
+
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(130, 465, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(260, 465, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = jTable1.getSelectedRow();
+            cmbCia.setSelectedItem(jTable1.getValueAt(fila, 0).toString());
+            cmbNumEmp.setSelectedItem(jTable1.getValueAt(fila, 1).toString());
+            txtRfc.setText(jTable1.getValueAt(fila, 2).toString());
+            txtNombre.setText(jTable1.getValueAt(fila, 3).toString());
+            cmbEstatus.setSelectedItem(jTable1.getValueAt(fila, 4).toString());
+            // Lógica para cargar las direcciones conectándose a la BD
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String numEmp = cmbNumEmp.getSelectedItem().toString().trim();
+            if (numEmp.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El número de empleado es obligatorio.");
+                return;
+            }
+
+            // Aquí va la lógica SQL (INSERT / UPDATE)
+            JOptionPane.showMessageDialog(dialogo, "Cajero guardado (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaCajeros(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCCajero;
+    private javax.swing.JButton btnDeleteCCajero;
+    private javax.swing.JButton btnEditCCajero;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
 }

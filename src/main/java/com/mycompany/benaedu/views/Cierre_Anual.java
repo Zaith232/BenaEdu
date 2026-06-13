@@ -1,0 +1,157 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
+ */
+package com.mycompany.benaedu.views;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import java.awt.Font;
+/**
+ *
+ * @author b17za
+ */
+public class Cierre_Anual extends javax.swing.JPanel {
+
+    /**
+     * Creates new form Cierre_Anual
+     */
+    public Cierre_Anual() {
+        initComponents();
+        diseñarPanelCierreAnual();
+    }
+private void diseñarPanelCierreAnual() {
+        // 1. Limpiamos el panel principal
+        pnlBg.removeAll();
+        pnlBg.setLayout(null);
+
+        // 2. Creamos un contenedor centrado simulando la ventana
+        // Lo hacemos un poco más ancho para que quepa bien el texto y la cuenta de cierre
+        JPanel pnlVentana = new JPanel(null);
+        pnlVentana.setBounds(40, 40, 660, 330); 
+        pnlVentana.setBorder(BorderFactory.createEtchedBorder());
+
+        // --- PANEL DE ADVERTENCIA ---
+        JPanel pnlAdver = new JPanel(null);
+        pnlAdver.setBorder(BorderFactory.createEtchedBorder());
+        pnlAdver.setBounds(15, 15, 630, 130);
+
+        // Signos de exclamación
+        JLabel lblExclamacionIzq = new JLabel("!", SwingUtilities.CENTER);
+        lblExclamacionIzq.setFont(new Font("Arial", Font.BOLD, 80));
+        lblExclamacionIzq.setBounds(10, 20, 50, 90);
+        pnlAdver.add(lblExclamacionIzq);
+
+        JLabel lblExclamacionDer = new JLabel("!", SwingUtilities.CENTER);
+        lblExclamacionDer.setFont(new Font("Arial", Font.BOLD, 80));
+        lblExclamacionDer.setBounds(570, 20, 50, 90);
+        pnlAdver.add(lblExclamacionDer);
+
+        // Texto centrado multilínea usando HTML
+        String textoAdvertencia = "<html><div style='text-align: center; font-family: Segoe UI; font-size: 13px; font-weight: bold;'>"
+                + "Este proceso se encarga de generar y actualizar los saldos<br>"
+                + "de un año a otro. Las cuentas de resultados serán puestas<br>"
+                + "en cero y se aplicará la ganancia/pérdida a la cuenta de cierre<br>"
+                + "especificada en la pantalla.</div></html>";
+        
+        JLabel lblTexto = new JLabel(textoAdvertencia, SwingUtilities.CENTER);
+        lblTexto.setBounds(70, 15, 490, 100);
+        pnlAdver.add(lblTexto);
+
+        pnlVentana.add(pnlAdver);
+
+        // --- PANEL DE SELECCIÓN ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createEtchedBorder());
+        pnlSel.setBounds(15, 155, 630, 80);
+
+        // Títulos (Centrados respecto a sus combos)
+        pnlSel.add(new JLabel("Compañía", SwingUtilities.CENTER)).setBounds(20, 15, 100, 20);
+        pnlSel.add(new JLabel("Año", SwingUtilities.CENTER)).setBounds(140, 15, 100, 20);
+        pnlSel.add(new JLabel("Cuenta de Cierre", SwingUtilities.CENTER)).setBounds(260, 15, 350, 20);
+
+        // Combos
+        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(20, 40, 100, 25);
+        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(140, 40, 100, 25);
+        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(260, 40, 350, 25);
+
+        pnlVentana.add(pnlSel);
+
+        // --- BOTONES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(210, 255, 110, 45);
+        
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(350, 255, 110, 45);
+
+        pnlVentana.add(btnAceptar);
+        pnlVentana.add(btnSalir);
+
+        // --- EVENTOS ---
+        btnAceptar.addActionListener(e -> {
+            int resp = JOptionPane.showConfirmDialog(pnlBg, 
+                "¿Está completamente seguro de realizar el Cierre Anual?\nEsta acción actualizará saldos y reiniciará cuentas de resultados.", 
+                "Confirmación Crítica", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.WARNING_MESSAGE);
+                
+            if(resp == JOptionPane.YES_OPTION){
+                JOptionPane.showMessageDialog(pnlBg, "Procesando... El Cierre Anual se ha ejecutado exitosamente.");
+            }
+        });
+
+        btnSalir.addActionListener(e -> {
+             JOptionPane.showMessageDialog(pnlBg, "Saliendo del módulo de Cierre Anual...");
+             // Aquí va tu código para cerrar la pestaña
+        });
+
+        // 3. Agregamos el diseño al panel de fondo y refrescamos
+        pnlBg.add(pnlVentana);
+        pnlBg.revalidate();
+        pnlBg.repaint();
+    }
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        pnlBg = new javax.swing.JPanel();
+
+        pnlBg.setBackground(new java.awt.Color(255, 255, 255));
+
+        javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
+        pnlBg.setLayout(pnlBgLayout);
+        pnlBgLayout.setHorizontalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 750, Short.MAX_VALUE)
+        );
+        pnlBgLayout.setVerticalGroup(
+            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 430, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(pnlBg, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel pnlBg;
+    // End of variables declaration//GEN-END:variables
+}

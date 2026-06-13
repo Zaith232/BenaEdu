@@ -3,7 +3,24 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +33,48 @@ public class Planes_Pago extends javax.swing.JPanel {
     public Planes_Pago() {
         initComponents();
     }
+private void cargarTablaPlanes() {
+        // 1. Arreglamos las columnas de la tabla por código
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Compañía", "Centro Costos", "Ciclo", "Plan", "Tipo", "Descripción", "Usuario", "Fecha Mod."}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        jTable1.setModel(modelo);
 
+        // 2. Cargamos los datos
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_planes_pago' por tu tabla real
+                String sql = "SELECT compania, centro_costos, ciclo, plan, tipo, descripcion, usuario, fecha_mod FROM tabla_planes_pago";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[8]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("centro_costos");
+                    fila[2] = rs.getString("ciclo");
+                    fila[3] = rs.getString("plan");
+                    fila[4] = rs.getString("tipo");
+                    fila[5] = rs.getString("descripcion");
+                    fila[6] = rs.getString("usuario");
+                    fila[7] = rs.getString("fecha_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +84,324 @@ public class Planes_Pago extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        btnAddGEscolar = new javax.swing.JButton();
+        btnEditGEscolar = new javax.swing.JButton();
+        btnDeleteGEscolar = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        btnAddGEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddGEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddGEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddGEscolar.setText("Añadir");
+        btnAddGEscolar.addActionListener(this::btnAddGEscolarActionPerformed);
+
+        btnEditGEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditGEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditGEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditGEscolar.setText("Editar");
+        btnEditGEscolar.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditGEscolar.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditGEscolar.addActionListener(this::btnEditGEscolarActionPerformed);
+
+        btnDeleteGEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteGEscolar.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteGEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteGEscolar.setText("Eliminar");
+        btnDeleteGEscolar.addActionListener(this::btnDeleteGEscolarActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddGEscolar)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteGEscolar)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddGEscolarActionPerformed
+        mostrarDialogoPlanPagos(false);
+    }//GEN-LAST:event_btnAddGEscolarActionPerformed
 
+    private void btnEditGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditGEscolarActionPerformed
+       if (jTable1.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un plan para editar.");
+            return;
+        }
+        mostrarDialogoPlanPagos(true);
+    }//GEN-LAST:event_btnEditGEscolarActionPerformed
+
+    private void btnDeleteGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteGEscolarActionPerformed
+       int fila = jTable1.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un plan para eliminar.");
+            return;
+        }
+
+        String compania = jTable1.getValueAt(fila, 0).toString();
+        String cc = jTable1.getValueAt(fila, 1).toString();
+        String ciclo = jTable1.getValueAt(fila, 2).toString();
+        String plan = jTable1.getValueAt(fila, 3).toString();
+        String desc = jTable1.getValueAt(fila, 5).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el plan " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real
+                    String sql = "DELETE FROM tabla_planes_pago WHERE compania = ? AND centro_costos = ? AND ciclo = ? AND plan = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, compania);
+                    ps.setString(2, cc);
+                    ps.setString(3, ciclo);
+                    ps.setString(4, plan);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Plan eliminado.");
+                        cargarTablaPlanes();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteGEscolarActionPerformed
+
+private void mostrarDialogoPlanPagos(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Plan de Pagos" : "Agregar Plan de Pagos";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(720, 620); // Ventana ancha para que quepa la tabla interna
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        JLabel lblCia = new JLabel("Compañía");
+        lblCia.setBounds(20, 15, 80, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        cmbCia.setBounds(110, 15, 70, 25);
+        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
+        lblCiaDesc.setBounds(190, 15, 250, 25);
+
+        JLabel lblCC = new JLabel("Centro Costos");
+        lblCC.setBounds(20, 45, 90, 25);
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", ""});
+        cmbCC.setBounds(110, 45, 80, 25);
+        JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE (JARDIN DE NIÑOS)");
+        lblCCDesc.setBounds(200, 45, 300, 25);
+
+        JLabel lblCiclo = new JLabel("Ciclo Escolar");
+        lblCiclo.setBounds(20, 75, 90, 25);
+        JComboBox<String> cmbCiclo = new JComboBox<>(new String[]{"0809"});
+        cmbCiclo.setBounds(110, 75, 80, 25);
+
+        JLabel lblPlan = new JLabel("Plan de Pagos");
+        lblPlan.setBounds(20, 105, 90, 25);
+        JTextField txtPlan = new JTextField();
+        txtPlan.setBounds(110, 105, 80, 25);
+
+        JLabel lblTpoPlan = new JLabel("Tpo Plan");
+        lblTpoPlan.setBounds(330, 105, 60, 25);
+        JComboBox<String> cmbTpoPlan = new JComboBox<>(new String[]{"I"});
+        cmbTpoPlan.setBounds(390, 105, 60, 25);
+        JLabel lblTpoDesc = new JLabel("INSCRIPCIONES");
+        lblTpoDesc.setBounds(460, 105, 150, 25);
+
+        JLabel lblDesc = new JLabel("Descripción");
+        lblDesc.setBounds(20, 135, 80, 25);
+        JTextField txtDesc = new JTextField();
+        txtDesc.setBounds(110, 135, 560, 25);
+
+        if (modoEdicion) {
+            cmbCia.setEnabled(false);
+            cmbCC.setEnabled(false);
+            cmbCiclo.setEnabled(false);
+            txtPlan.setEditable(false);
+        }
+
+        dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
+        dialogo.add(lblCC); dialogo.add(cmbCC); dialogo.add(lblCCDesc);
+        dialogo.add(lblCiclo); dialogo.add(cmbCiclo);
+        dialogo.add(lblPlan); dialogo.add(txtPlan);
+        dialogo.add(lblTpoPlan); dialogo.add(cmbTpoPlan); dialogo.add(lblTpoDesc);
+        dialogo.add(lblDesc); dialogo.add(txtDesc);
+
+        // --- 2. PESTAÑAS Y MARCOS ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(15, 175, 675, 335);
+
+        JPanel pnlGenerales = new JPanel(null);
+
+        // >> Marco: Vigencia del Plan de Pagos
+        JPanel pnlVigencia = new JPanel(null);
+        pnlVigencia.setBorder(BorderFactory.createTitledBorder("Vigencia del Plan de Pagos"));
+        pnlVigencia.setBounds(10, 10, 650, 65);
+
+        JLabel lblFecIni = new JLabel("Fecha Inicial");
+        lblFecIni.setBounds(50, 25, 80, 25);
+        JTextField txtFecIni = new JTextField("01/09/2008");
+        txtFecIni.setBounds(130, 25, 90, 25);
+
+        JLabel lblFecFin = new JLabel("Fecha Final");
+        lblFecFin.setBounds(420, 25, 80, 25);
+        JTextField txtFecFin = new JTextField("30/07/2009");
+        txtFecFin.setBounds(490, 25, 90, 25);
+
+        pnlVigencia.add(lblFecIni); pnlVigencia.add(txtFecIni);
+        pnlVigencia.add(lblFecFin); pnlVigencia.add(txtFecFin);
+        pnlGenerales.add(pnlVigencia);
+
+        // >> Sección Inferior: Captura de Detalle y Tabla
+        JPanel pnlDetalle = new JPanel(null);
+        pnlDetalle.setBorder(BorderFactory.createEtchedBorder());
+        pnlDetalle.setBounds(10, 85, 650, 205);
+
+        // Títulos de captura
+        JLabel l1 = new JLabel("Sec"); l1.setBounds(10, 5, 30, 20);
+        JLabel l2 = new JLabel("Concepto"); l2.setBounds(50, 5, 70, 20);
+        JLabel l3 = new JLabel("Descripción"); l3.setBounds(130, 5, 80, 20);
+        JLabel l4 = new JLabel("Costo Unitario"); l4.setBounds(310, 5, 90, 20);
+        JLabel l5 = new JLabel("% Dscto"); l5.setBounds(400, 5, 60, 20);
+        JLabel l6 = new JLabel("Fecha Inicial"); l6.setBounds(460, 5, 80, 20);
+        JLabel l7 = new JLabel("Fecha Final"); l7.setBounds(540, 5, 80, 20);
+        pnlDetalle.add(l1); pnlDetalle.add(l2); pnlDetalle.add(l3); pnlDetalle.add(l4);
+        pnlDetalle.add(l5); pnlDetalle.add(l6); pnlDetalle.add(l7);
+
+        // Campos de captura
+        JTextField txtSec = new JTextField("14"); txtSec.setBounds(10, 25, 30, 25);
+        JComboBox<String> cmbConcepto = new JComboBox<>(new String[]{""}); cmbConcepto.setBounds(45, 25, 80, 25);
+        JTextField txtDescDet = new JTextField(); txtDescDet.setBounds(130, 25, 175, 25);
+        JTextField txtCosto = new JTextField("0.00"); txtCosto.setBounds(310, 25, 80, 25);
+        JTextField txtPorc = new JTextField("0.00"); txtPorc.setBounds(395, 25, 55, 25);
+        JTextField txtFecIniDet = new JTextField("01/09/2008"); txtFecIniDet.setBounds(455, 25, 75, 25);
+        JTextField txtFecFinDet = new JTextField("30/07/2009"); txtFecFinDet.setBounds(535, 25, 75, 25);
+        JButton btnOk = new JButton("OK"); btnOk.setBounds(615, 25, 30, 25);
+        
+        pnlDetalle.add(txtSec); pnlDetalle.add(cmbConcepto); pnlDetalle.add(txtDescDet); pnlDetalle.add(txtCosto);
+        pnlDetalle.add(txtPorc); pnlDetalle.add(txtFecIniDet); pnlDetalle.add(txtFecFinDet); pnlDetalle.add(btnOk);
+
+        // Tabla interna de Detalles
+        JTable tblDetalle = new JTable();
+        DefaultTableModel modDetalle = new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Sec", "Concepto", "Descripción", "Tipo", "Costo Unitario", "Porc. Descuento", "Fec Vig Ini", "Fec Vig Fin"}
+        );
+        tblDetalle.setModel(modDetalle);
+        JScrollPane scrollDetalle = new JScrollPane(tblDetalle);
+        scrollDetalle.setBounds(10, 60, 630, 130);
+        pnlDetalle.add(scrollDetalle);
+
+        // Lógica del botón "OK" para agregar a la tablita interna visualmente
+        btnOk.addActionListener(e -> {
+            modDetalle.addRow(new Object[]{
+                txtSec.getText(), cmbConcepto.getSelectedItem().toString(), txtDescDet.getText(), 
+                "I", txtCosto.getText(), txtPorc.getText(), txtFecIniDet.getText(), txtFecFinDet.getText()
+            });
+            txtSec.setText(String.valueOf(modDetalle.getRowCount() + 1)); 
+            txtDescDet.setText("");
+        });
+
+        pnlGenerales.add(pnlDetalle);
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(230, 525, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(360, 525, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = jTable1.getSelectedRow();
+            cmbCia.setSelectedItem(jTable1.getValueAt(fila, 0).toString());
+            cmbCC.setSelectedItem(jTable1.getValueAt(fila, 1).toString());
+            cmbCiclo.setSelectedItem(jTable1.getValueAt(fila, 2).toString());
+            txtPlan.setText(jTable1.getValueAt(fila, 3).toString());
+            txtDesc.setText(jTable1.getValueAt(fila, 5).toString());
+            // Aquí simularías cargar los detalles en la tablita interna `modDetalle`
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String plan = txtPlan.getText().trim();
+            if (plan.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El ID del plan no puede estar vacío.");
+                return;
+            }
+
+            // Aquí va tu código SQL INSERT o UPDATE para el maestro y sus detalles
+            JOptionPane.showMessageDialog(dialogo, "Plan de pagos guardado (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaPlanes(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddGEscolar;
+    private javax.swing.JButton btnDeleteGEscolar;
+    private javax.swing.JButton btnEditGEscolar;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable jTable1;
     // End of variables declaration//GEN-END:variables
 }

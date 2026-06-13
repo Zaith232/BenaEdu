@@ -3,12 +3,27 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
  */
 public class Condiciones_Pago extends javax.swing.JPanel {
+    
 
     /**
      * Creates new form Condiciones_Pago
@@ -17,6 +32,43 @@ public class Condiciones_Pago extends javax.swing.JPanel {
         initComponents();
     }
 
+    private void cargarTablaCondicionesPago() {
+        DefaultTableModel modelo = (DefaultTableModel) tblCPago.getModel();
+        modelo.setRowCount(0); 
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_condiciones_pago' por tu tabla real
+                String sql = "SELECT clave, descripcion, dia_pago1, dia_pago2, dia_pago3, dia_lim1, dia_lim2, dia_lim3, dias_pron, porc_desc, usuario, fecha_mod, hora_mod FROM tabla_condiciones_pago";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[13]; 
+                    fila[0] = rs.getString("clave");
+                    fila[1] = rs.getString("descripcion");
+                    fila[2] = rs.getString("dia_pago1");
+                    fila[3] = rs.getString("dia_pago2");
+                    fila[4] = rs.getString("dia_pago3");
+                    fila[5] = rs.getString("dia_lim1");
+                    fila[6] = rs.getString("dia_lim2");
+                    fila[7] = rs.getString("dia_lim3");
+                    fila[8] = rs.getString("dias_pron");
+                    fila[9] = rs.getString("porc_desc");
+                    fila[10] = rs.getString("usuario");
+                    fila[11] = rs.getString("fecha_mod");
+                    fila[12] = rs.getString("hora_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -47,6 +99,7 @@ public class Condiciones_Pago extends javax.swing.JPanel {
         btnEditCPago.setText("Editar");
         btnEditCPago.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditCPago.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCPago.addActionListener(this::btnEditCPagoActionPerformed);
 
         btnDeleteCPago.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnDeleteCPago.setForeground(new java.awt.Color(26, 61, 99));
@@ -106,13 +159,169 @@ public class Condiciones_Pago extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCPagoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCPagoActionPerformed
-        // TODO add your handling code here:
+        mostrarDialogoCondicionPago(false);
     }//GEN-LAST:event_btnAddCPagoActionPerformed
 
     private void btnDeleteCPagoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCPagoActionPerformed
-        // TODO add your handling code here:
+        int fila = tblCPago.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una condición de pago para eliminar.");
+            return;
+        }
+
+        String clave = tblCPago.getValueAt(fila, 0).toString();
+        String desc = tblCPago.getValueAt(fila, 1).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar condición de pago: " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Cambia por el nombre real de tu tabla
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM tabla_condiciones_pago WHERE clave = ?");
+                    ps.setString(1, clave);
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Condición eliminada.");
+                        cargarTablaCondicionesPago();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteCPagoActionPerformed
 
+    private void btnEditCPagoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCPagoActionPerformed
+      if (tblCPago.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un registro para editar.");
+            return;
+        }
+        mostrarDialogoCondicionPago(true);
+    }//GEN-LAST:event_btnEditCPagoActionPerformed
+private void mostrarDialogoCondicionPago(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Condición de Pago" : "Agregar Condición de Pago";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(520, 500);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        JLabel lblClave = new JLabel("Clave");
+        lblClave.setBounds(20, 15, 80, 25);
+        JTextField txtClave = new JTextField();
+        txtClave.setBounds(100, 15, 80, 25);
+        if (modoEdicion) txtClave.setEditable(false);
+
+        JLabel lblDesc = new JLabel("Descripción");
+        lblDesc.setBounds(20, 45, 80, 25);
+        JTextField txtDesc = new JTextField();
+        txtDesc.setBounds(100, 45, 380, 25);
+
+        JLabel lblDiasNeto = new JLabel("Días Neto");
+        lblDiasNeto.setBounds(20, 75, 80, 25);
+        JTextField txtDiasNeto = new JTextField();
+        txtDiasNeto.setBounds(100, 75, 80, 25);
+
+        dialogo.add(lblClave); dialogo.add(txtClave);
+        dialogo.add(lblDesc); dialogo.add(txtDesc);
+        dialogo.add(lblDiasNeto); dialogo.add(txtDiasNeto);
+
+        // --- 2. PESTAÑAS Y MARCOS ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(10, 115, 485, 290);
+
+        JPanel pnlGenerales = new JPanel(null);
+
+        // >> Marco: Días Programados
+        JPanel pnlDiasProg = new JPanel(null);
+        pnlDiasProg.setBorder(BorderFactory.createTitledBorder("Días Programados"));
+        pnlDiasProg.setBounds(10, 15, 460, 150);
+
+        JLabel lblProgPago = new JLabel("Días Programados para Pago");
+        lblProgPago.setBounds(80, 20, 180, 20);
+        JLabel lblDiaLim = new JLabel("Día Límite para programar pago");
+        lblDiaLim.setBounds(260, 20, 180, 20);
+        
+        pnlDiasProg.add(lblProgPago); pnlDiasProg.add(lblDiaLim);
+
+        // Cajas de texto para Días Programados
+        JTextField txtProg1 = new JTextField("0"); txtProg1.setBounds(120, 45, 70, 25);
+        JTextField txtProg2 = new JTextField("0"); txtProg2.setBounds(120, 75, 70, 25);
+        JTextField txtProg3 = new JTextField("0"); txtProg3.setBounds(120, 105, 70, 25);
+
+        JTextField txtLim1 = new JTextField("0"); txtLim1.setBounds(300, 45, 70, 25);
+        JTextField txtLim2 = new JTextField("0"); txtLim2.setBounds(300, 75, 70, 25);
+        JTextField txtLim3 = new JTextField("0"); txtLim3.setBounds(300, 105, 70, 25);
+
+        pnlDiasProg.add(txtProg1); pnlDiasProg.add(txtProg2); pnlDiasProg.add(txtProg3);
+        pnlDiasProg.add(txtLim1); pnlDiasProg.add(txtLim2); pnlDiasProg.add(txtLim3);
+
+        // >> Marco: Descuento por Pronto Pago
+        JPanel pnlDesc = new JPanel(null);
+        pnlDesc.setBorder(BorderFactory.createTitledBorder("Descuento por Pronto Pago"));
+        pnlDesc.setBounds(10, 175, 460, 70);
+
+        JLabel lblDiasDesc = new JLabel("Días");
+        lblDiasDesc.setBounds(90, 25, 40, 25);
+        JTextField txtDiasDesc = new JTextField("0");
+        txtDiasDesc.setBounds(130, 25, 70, 25);
+
+        JLabel lblPorcDesc = new JLabel("Porcentaje");
+        lblPorcDesc.setBounds(250, 25, 70, 25);
+        JTextField txtPorcDesc = new JTextField("0");
+        txtPorcDesc.setBounds(330, 25, 70, 25);
+
+        pnlDesc.add(lblDiasDesc); pnlDesc.add(txtDiasDesc);
+        pnlDesc.add(lblPorcDesc); pnlDesc.add(txtPorcDesc);
+
+        pnlGenerales.add(pnlDiasProg);
+        pnlGenerales.add(pnlDesc);
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(140, 415, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(260, 415, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = tblCPago.getSelectedRow();
+            txtClave.setText(tblCPago.getValueAt(fila, 0).toString());
+            txtDesc.setText(tblCPago.getValueAt(fila, 1).toString());
+            // Llenarías el resto de los campos basándote en la consulta o extrayéndolos de la tabla si los tienes visibles.
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String clave = txtClave.getText().trim();
+            if (clave.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La clave no puede estar vacía.");
+                return;
+            }
+
+            // Aquí va tu código SQL INSERT INTO o UPDATE
+            JOptionPane.showMessageDialog(dialogo, "Condición de Pago guardada (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaCondicionesPago(); // Refresca la vista principal
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCPago;

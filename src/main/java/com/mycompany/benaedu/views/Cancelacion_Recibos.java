@@ -3,7 +3,23 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +32,47 @@ public class Cancelacion_Recibos extends javax.swing.JPanel {
     public Cancelacion_Recibos() {
         initComponents();
     }
+private void cargarTablaHistorialCancelaciones() {
+        // 1. Arreglamos las columnas de la tabla por código
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Compañía", "C. Costos", "Num Recibo", "Matrícula", "Motivo", "Fecha", "Usuario"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        tblCConceptos.setModel(modelo);
 
+        // 2. Cargamos los datos
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_recibos_cancelados' por tu tabla real
+                String sql = "SELECT compania, centro_costos, num_recibo, matricula, motivo, fecha_mod, usuario FROM tabla_recibos_cancelados";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("centro_costos");
+                    fila[2] = rs.getString("num_recibo");
+                    fila[3] = rs.getString("matricula");
+                    fila[4] = rs.getString("motivo");
+                    fila[5] = rs.getString("fecha_mod");
+                    fila[6] = rs.getString("usuario");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +82,199 @@ public class Cancelacion_Recibos extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCConceptos = new javax.swing.JTable();
+        btnAddCRecibos = new javax.swing.JButton();
+        btnEditCRecibos = new javax.swing.JButton();
+        btnDeleteCRecibos = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblCConceptos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblCConceptos);
+
+        btnAddCRecibos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCRecibos.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCRecibos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCRecibos.setText("Añadir");
+        btnAddCRecibos.addActionListener(this::btnAddCRecibosActionPerformed);
+
+        btnEditCRecibos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCRecibos.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCRecibos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCRecibos.setText("Editar");
+        btnEditCRecibos.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCRecibos.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCRecibos.addActionListener(this::btnEditCRecibosActionPerformed);
+
+        btnDeleteCRecibos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCRecibos.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCRecibos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCRecibos.setText("Eliminar");
+        btnDeleteCRecibos.addActionListener(this::btnDeleteCRecibosActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 740, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCRecibos)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCRecibos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCRecibos)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCRecibos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCRecibos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCRecibos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 740, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCRecibosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCRecibosActionPerformed
+        mostrarDialogoCancelacionRecibos();
+    }//GEN-LAST:event_btnAddCRecibosActionPerformed
 
+    private void btnEditCRecibosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCRecibosActionPerformed
+        JOptionPane.showMessageDialog(this, "Un recibo cancelado no puede modificarse.");
+    }//GEN-LAST:event_btnEditCRecibosActionPerformed
+
+    private void btnDeleteCRecibosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCRecibosActionPerformed
+       JOptionPane.showMessageDialog(this, "El historial de recibos cancelados no se puede eliminar por control de auditoría.");
+    }//GEN-LAST:event_btnDeleteCRecibosActionPerformed
+
+private void mostrarDialogoCancelacionRecibos() {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Cancelación de Recibos", true);
+        dialogo.setSize(850, 520);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. DATOS DE SELECCIÓN ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección"));
+        pnlSel.setBounds(10, 10, 810, 90);
+
+        pnlSel.add(new JLabel("Compañía")).setBounds(15, 25, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(80, 25, 60, 25);
+
+        pnlSel.add(new JLabel("C. Costos")).setBounds(160, 25, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12100"})).setBounds(230, 25, 80, 25);
+
+        pnlSel.add(new JLabel("Fecha Inicial")).setBounds(330, 25, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(410, 25, 90, 25);
+
+        pnlSel.add(new JLabel("Fecha Final")).setBounds(520, 25, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(590, 25, 90, 25);
+
+        pnlSel.add(new JLabel("Matrícula")).setBounds(15, 55, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(80, 55, 120, 25);
+
+        JButton btnFiltra = new JButton("Filtra Información");
+        btnFiltra.setBounds(650, 50, 140, 30);
+        pnlSel.add(btnFiltra);
+
+        dialogo.add(pnlSel);
+
+        // --- 2. MOTIVO DE CANCELACIÓN ---
+        JLabel lblMotivo = new JLabel("Motivo de Cancelación");
+        lblMotivo.setBounds(160, 110, 150, 25);
+        JComboBox<String> cmbMotivo = new JComboBox<>(new String[]{""});
+        cmbMotivo.setBounds(300, 110, 60, 25);
+        JTextField txtMotivoDesc = new JTextField();
+        txtMotivoDesc.setBounds(370, 110, 350, 25);
+
+        dialogo.add(lblMotivo);
+        dialogo.add(cmbMotivo);
+        dialogo.add(txtMotivoDesc);
+
+        // --- 3. TABLA DE RECIBOS SIN CONTABILIZAR ---
+        JTable tblRecibosPendientes = new JTable(new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Compañía", "C. Costos", "Descripción", "Ciclo Escolar", "Matrícula", "Num Recibo", "Tipo", "Fec Recibo", "Moneda", "Importe MN"}
+        ));
+        
+        // Agrupamos la tabla en un panel para simular el título central
+        JPanel pnlTabla = new JPanel(null);
+        pnlTabla.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Recibos Sin Contabilizar", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP));
+        pnlTabla.setBounds(10, 150, 810, 250);
+        
+        JScrollPane scrollRecibos = new JScrollPane(tblRecibosPendientes);
+        scrollRecibos.setBounds(10, 20, 790, 220);
+        pnlTabla.add(scrollRecibos);
+        
+        dialogo.add(pnlTabla);
+
+        // --- 4. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(310, 420, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(430, 420, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnFiltra.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Buscando recibos sin contabilizar para estas fechas/matrícula... (Simulación)");
+            // Lógica SQL para llenar tblRecibosPendientes
+        });
+
+        btnAceptar.addActionListener(e -> {
+            int filaSel = tblRecibosPendientes.getSelectedRow();
+            if (filaSel == -1 && tblRecibosPendientes.getRowCount() > 0) {
+                JOptionPane.showMessageDialog(dialogo, "Seleccione al menos un recibo de la tabla para cancelar.");
+                return;
+            }
+            
+            JOptionPane.showMessageDialog(dialogo, "Recibo(s) cancelado(s) exitosamente (Simulación).");
+            dialogo.dispose();
+            cargarTablaHistorialCancelaciones(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCRecibos;
+    private javax.swing.JButton btnDeleteCRecibos;
+    private javax.swing.JButton btnEditCRecibos;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblCConceptos;
     // End of variables declaration//GEN-END:variables
 }

@@ -3,7 +3,25 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +34,47 @@ public class Cancela_Contabilizacion_Corte extends javax.swing.JPanel {
     public Cancela_Contabilizacion_Corte() {
         initComponents();
     }
+private void cargarTablaCancelacionesCorte() {
+        // 1. Arreglamos las columnas de la tabla por código
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Compañía", "Poliza", "Tipo", "Fecha Pol", "Descripción", "Fecha Cancela", "Usuario"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        tblCCCaja.setModel(modelo);
 
+        // 2. Cargamos los datos
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_cancela_cortes' por tu tabla real
+                String sql = "SELECT compania, poliza, tipo, fecha_pol, descripcion, fecha_mod, usuario FROM tabla_cancela_cortes";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("poliza");
+                    fila[2] = rs.getString("tipo");
+                    fila[3] = rs.getString("fecha_pol");
+                    fila[4] = rs.getString("descripcion");
+                    fila[5] = rs.getString("fecha_mod");
+                    fila[6] = rs.getString("usuario");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +84,208 @@ public class Cancela_Contabilizacion_Corte extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCCCaja = new javax.swing.JTable();
+        btnAddCCCaja = new javax.swing.JButton();
+        btnEditCCCaja = new javax.swing.JButton();
+        btnDeleteCCCaja = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblCCCaja.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblCCCaja);
+
+        btnAddCCCaja.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCCCaja.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCCCaja.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCCCaja.setText("Añadir");
+        btnAddCCCaja.addActionListener(this::btnAddCCCajaActionPerformed);
+
+        btnEditCCCaja.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCCCaja.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCCCaja.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCCCaja.setText("Editar");
+        btnEditCCCaja.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCCCaja.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCCCaja.addActionListener(this::btnEditCCCajaActionPerformed);
+
+        btnDeleteCCCaja.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCCCaja.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCCCaja.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCCCaja.setText("Eliminar");
+        btnDeleteCCCaja.addActionListener(this::btnDeleteCCCajaActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCCCaja)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCCCaja)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCCCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCCCajaActionPerformed
+       mostrarDialogoCancelacionCorte();
+    }//GEN-LAST:event_btnAddCCCajaActionPerformed
 
+    private void btnEditCCCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCCCajaActionPerformed
+       JOptionPane.showMessageDialog(this, "Las cancelaciones de contabilización no pueden modificarse.");
+    }//GEN-LAST:event_btnEditCCCajaActionPerformed
+
+    private void btnDeleteCCCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCCCajaActionPerformed
+        JOptionPane.showMessageDialog(this, "El historial de cancelaciones no se puede eliminar por integridad contable.");
+    }//GEN-LAST:event_btnDeleteCCCajaActionPerformed
+
+private void mostrarDialogoCancelacionCorte() {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Cancela Contabilizacion de Corte de Caja", true);
+        dialogo.setSize(760, 520);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. DATOS DE SELECCIÓN ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección"));
+        pnlSel.setBounds(10, 10, 480, 90);
+
+        pnlSel.add(new JLabel("Compañía")).setBounds(15, 20, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(90, 20, 70, 25);
+
+        pnlSel.add(new JLabel("Fecha Inicial")).setBounds(15, 55, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(90, 55, 90, 25);
+
+        pnlSel.add(new JLabel("Fecha Final")).setBounds(210, 55, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(290, 55, 90, 25);
+
+        dialogo.add(pnlSel);
+
+        // --- 2. TIPO DE CONTABILIDAD ---
+        JPanel pnlTipoContabilidad = new JPanel(null);
+        pnlTipoContabilidad.setBorder(BorderFactory.createTitledBorder("Tipo de Contabilidad"));
+        pnlTipoContabilidad.setBounds(500, 10, 230, 60);
+
+        JRadioButton rbOficial = new JRadioButton("Oficial", true);
+        rbOficial.setBounds(10, 20, 70, 25);
+        JRadioButton rbParticular = new JRadioButton("Particular");
+        rbParticular.setBounds(90, 20, 100, 25);
+        
+        ButtonGroup bgTipo = new ButtonGroup();
+        bgTipo.add(rbOficial); bgTipo.add(rbParticular);
+        
+        pnlTipoContabilidad.add(rbOficial); pnlTipoContabilidad.add(rbParticular);
+        dialogo.add(pnlTipoContabilidad);
+
+        // --- 3. INFORMACIÓN CONTABLE ---
+        JPanel pnlInfoContable = new JPanel(null);
+        pnlInfoContable.setBorder(BorderFactory.createTitledBorder("Información Contable"));
+        pnlInfoContable.setBounds(10, 105, 480, 60);
+
+        pnlInfoContable.add(new JLabel("Fecha Contable")).setBounds(15, 20, 100, 25);
+        pnlInfoContable.add(new JTextField("04/06/2026")).setBounds(115, 20, 90, 25);
+        
+        dialogo.add(pnlInfoContable);
+
+        // --- 4. BOTÓN FILTRAR ---
+        JButton btnFiltra = new JButton("Filtra Información");
+        btnFiltra.setBounds(500, 120, 230, 30);
+        dialogo.add(btnFiltra);
+
+        // --- 5. TABLA DE INFORMACIÓN DE CORTE ---
+        // Basado en tu imagen, repite Poliza y Tipo al final
+        JTable tblInfoCorte = new JTable(new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Compañía", "Poliza", "Tipo", "Fecha Pol", "Descripción", "Poliza", "Tipo"}
+        ));
+        
+        JPanel pnlTabla = new JPanel(null);
+        pnlTabla.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Información de Corte", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP));
+        pnlTabla.setBounds(10, 175, 720, 220);
+        
+        JScrollPane scrollInfo = new JScrollPane(tblInfoCorte);
+        scrollInfo.setBounds(10, 20, 700, 190);
+        pnlTabla.add(scrollInfo);
+        
+        dialogo.add(pnlTabla);
+
+        // --- 6. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(250, 415, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(390, 415, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 7. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnFiltra.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Buscando información de cortes contabilizados... (Simulación)");
+            // Aquí iría la lógica SQL para llenar tblInfoCorte
+        });
+
+        btnAceptar.addActionListener(e -> {
+            int filaSel = tblInfoCorte.getSelectedRow();
+            if (filaSel == -1 && tblInfoCorte.getRowCount() > 0) {
+                JOptionPane.showMessageDialog(dialogo, "Seleccione al menos un registro de la tabla para cancelar la contabilización.");
+                return;
+            }
+            
+            JOptionPane.showMessageDialog(dialogo, "Contabilización del corte cancelada exitosamente (Simulación).");
+            dialogo.dispose();
+            cargarTablaCancelacionesCorte(); 
+        });
+
+        // --- 8. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCCCaja;
+    private javax.swing.JButton btnDeleteCCCaja;
+    private javax.swing.JButton btnEditCCCaja;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblCCCaja;
     // End of variables declaration//GEN-END:variables
 }

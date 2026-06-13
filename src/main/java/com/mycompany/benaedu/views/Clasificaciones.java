@@ -3,7 +3,24 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -15,6 +32,38 @@ public class Clasificaciones extends javax.swing.JPanel {
      */
     public Clasificaciones() {
         initComponents();
+    }
+    
+    private void cargarTablaClasificaciones() {
+        DefaultTableModel modelo = (DefaultTableModel) tblClasificaciones.getModel();
+        modelo.setRowCount(0); 
+        // Ajustamos las columnas a lo que suele llevar este catálogo
+        modelo.setColumnIdentifiers(new String[]{"Tabla", "Descripción", "Usuario Mod.", "Fecha Mod.", "Hora Mod."});
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_clasificaciones' por el nombre real de tu tabla
+                String sql = "SELECT id_tabla, descripcion, usuario, fecha_mod, hora_mod FROM tabla_clasificaciones";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[5]; 
+                    fila[0] = rs.getString("id_tabla");
+                    fila[1] = rs.getString("descripcion");
+                    fila[2] = rs.getString("usuario");
+                    fila[3] = rs.getString("fecha_mod");
+                    fila[4] = rs.getString("hora_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
     }
 
     /**
@@ -62,6 +111,7 @@ public class Clasificaciones extends javax.swing.JPanel {
         btnEditClasificaciones.setText("Editar");
         btnEditClasificaciones.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditClasificaciones.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditClasificaciones.addActionListener(this::btnEditClasificacionesActionPerformed);
 
         btnDeleteClasificaciones.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnDeleteClasificaciones.setForeground(new java.awt.Color(26, 61, 99));
@@ -108,13 +158,190 @@ public class Clasificaciones extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddClasificacionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddClasificacionesActionPerformed
-        // TODO add your handling code here:
+       mostrarDialogoClasificacion(false);
     }//GEN-LAST:event_btnAddClasificacionesActionPerformed
 
     private void btnDeleteClasificacionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteClasificacionesActionPerformed
-        // TODO add your handling code here:
+        int fila = tblClasificaciones.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una clasificación para eliminar.");
+            return;
+        }
+
+        String idTabla = tblClasificaciones.getValueAt(fila, 0).toString();
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar clasificación " + idTabla + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Cambia por el nombre real de tu tabla
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM tabla_clasificaciones WHERE id_tabla = ?");
+                    ps.setString(1, idTabla);
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Clasificación eliminada.");
+                        cargarTablaClasificaciones();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteClasificacionesActionPerformed
 
+    private void btnEditClasificacionesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditClasificacionesActionPerformed
+       if (tblClasificaciones.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una clasificación para editar.");
+            return;
+        }
+        mostrarDialogoClasificacion(true);
+    }//GEN-LAST:event_btnEditClasificacionesActionPerformed
+
+    private void mostrarDialogoClasificacion(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Tabla" : "Agregar Tabla";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(550, 480);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. PESTAÑAS (TABS) ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(10, 10, 515, 420);
+
+        // ==========================================
+        // >> Pestaña 1: Selección
+        // ==========================================
+        JPanel pnlSeleccion = new JPanel(null);
+
+        JLabel lblSelTabla = new JLabel("Tabla:");
+        lblSelTabla.setBounds(20, 20, 50, 25);
+        JTextField txtSelTabla = new JTextField();
+        txtSelTabla.setBounds(70, 20, 60, 25);
+        JTextField txtSelDesc = new JTextField();
+        txtSelDesc.setBounds(140, 20, 330, 25);
+        if (modoEdicion) {
+            txtSelTabla.setEditable(false);
+            txtSelDesc.setEditable(false);
+        }
+
+        // Tabla interna de la pestaña Selección
+        JTable tblDetalle = new JTable();
+        tblDetalle.setModel(new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Clave", "Descripción"}
+        ));
+        JScrollPane scrollDetalle = new JScrollPane(tblDetalle);
+        scrollDetalle.setBounds(20, 60, 465, 240);
+
+        // Botones de la pestaña Selección (Igual a tu imagen)
+        JButton btnAgregarSel = new JButton("Agregar");
+        btnAgregarSel.setBounds(50, 320, 90, 40);
+        JButton btnModificarSel = new JButton("Modificar");
+        btnModificarSel.setBounds(150, 320, 90, 40);
+        JButton btnEliminarSel = new JButton("Eliminar");
+        btnEliminarSel.setBounds(250, 320, 90, 40);
+        JButton btnSalirSel = new JButton("Salir");
+        btnSalirSel.setBounds(350, 320, 90, 40);
+
+        pnlSeleccion.add(lblSelTabla); pnlSeleccion.add(txtSelTabla); pnlSeleccion.add(txtSelDesc);
+        pnlSeleccion.add(scrollDetalle);
+        pnlSeleccion.add(btnAgregarSel); pnlSeleccion.add(btnModificarSel);
+        pnlSeleccion.add(btnEliminarSel); pnlSeleccion.add(btnSalirSel);
+
+        // ==========================================
+        // >> Pestaña 2: Movimientos
+        // ==========================================
+        JPanel pnlMovimientos = new JPanel(null);
+
+        JLabel lblMovTabla = new JLabel("Tabla:");
+        lblMovTabla.setBounds(30, 20, 50, 25);
+        JTextField txtMovTabla = new JTextField();
+        txtMovTabla.setBounds(80, 20, 60, 25);
+        JTextField txtMovDesc = new JTextField();
+        txtMovDesc.setBounds(150, 20, 320, 25);
+        if (modoEdicion) {
+            txtMovTabla.setEditable(false);
+            txtMovDesc.setEditable(false);
+        }
+
+        // Panel interno gris (Borde)
+        JPanel pnlInternoMov = new JPanel(null);
+        pnlInternoMov.setBorder(BorderFactory.createEtchedBorder());
+        pnlInternoMov.setBounds(20, 65, 465, 120);
+
+        JLabel lblClave = new JLabel("Clave:");
+        lblClave.setBounds(20, 20, 60, 25);
+        JTextField txtClave = new JTextField();
+        txtClave.setBounds(90, 20, 100, 25);
+
+        JCheckBox chkMayMin = new JCheckBox("Cambia May/Min");
+        chkMayMin.setBounds(320, 20, 130, 25);
+
+        JLabel lblDesc = new JLabel("Descripción:");
+        lblDesc.setBounds(20, 60, 80, 25);
+        JTextField txtDesc = new JTextField();
+        txtDesc.setBounds(90, 60, 350, 25);
+
+        pnlInternoMov.add(lblClave); pnlInternoMov.add(txtClave); pnlInternoMov.add(chkMayMin);
+        pnlInternoMov.add(lblDesc); pnlInternoMov.add(txtDesc);
+        
+        pnlMovimientos.add(lblMovTabla); pnlMovimientos.add(txtMovTabla); pnlMovimientos.add(txtMovDesc);
+        pnlMovimientos.add(pnlInternoMov);
+
+        // Botones de la pestaña Movimientos
+        JButton btnAceptarMov = new JButton("Aceptar");
+        btnAceptarMov.setBounds(140, 320, 100, 40);
+        JButton btnSalirMov = new JButton("Salir");
+        btnSalirMov.setBounds(260, 320, 100, 40);
+
+        pnlMovimientos.add(btnAceptarMov); pnlMovimientos.add(btnSalirMov);
+
+        // Agregamos ambas pestañas al JTabbedPane
+        pestanas.addTab("Selección", pnlSeleccion);
+        pestanas.addTab("Movimientos", pnlMovimientos);
+        dialogo.add(pestanas);
+
+        // --- 2. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = tblClasificaciones.getSelectedRow();
+            String idTabla = tblClasificaciones.getValueAt(fila, 0).toString();
+            String descTabla = tblClasificaciones.getValueAt(fila, 1).toString();
+            
+            // Llenamos las cajas de texto que están bloqueadas arriba
+            txtSelTabla.setText(idTabla); txtSelDesc.setText(descTabla);
+            txtMovTabla.setText(idTabla); txtMovDesc.setText(descTabla);
+            
+            // Aquí agregarías un método para llenar la tablita "tblDetalle" con los datos internos (Ej. ACTIVOS FIJOS)
+        }
+
+        // --- 3. EVENTOS DE LOS BOTONES ---
+        btnSalirSel.addActionListener(e -> dialogo.dispose());
+        btnSalirMov.addActionListener(e -> dialogo.dispose());
+
+        // Evento para cambiar a la pestaña de "Movimientos" al darle "Agregar" o "Modificar" en la primera pestaña
+        btnAgregarSel.addActionListener(e -> {
+            txtClave.setText(""); txtDesc.setText(""); txtClave.setEditable(true);
+            pestanas.setSelectedIndex(1); // Cambia automáticamente a la pestaña "Movimientos"
+        });
+
+        // Evento de ACEPTAR para guardar en Base de Datos
+        btnAceptarMov.addActionListener(e -> {
+            // Lógica de BD (INSERT o UPDATE) usando txtMovTabla.getText(), txtClave.getText() y txtDesc.getText()
+            JOptionPane.showMessageDialog(dialogo, "Operación guardada (Simulación).");
+            
+            pestanas.setSelectedIndex(0); // Regresa a la pestaña "Selección" al terminar
+            // cargarTablitaDetalles(); // Refrescaría la tabla interna
+            cargarTablaClasificaciones(); // Refresca la principal
+        });
+
+        // --- 4. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddClasificaciones;

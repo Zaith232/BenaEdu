@@ -3,7 +3,22 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,6 +31,43 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
     public Catalogo_Empleados() {
         initComponents();
     }
+    
+    private void cargarTablaEmpleados() {
+        DefaultTableModel modelo = (DefaultTableModel) tblEmpleados.getModel();
+        modelo.setRowCount(0); 
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_empleados' por el nombre real de tu tabla en la BD
+                String sql = "SELECT num_emp, nombre, telefono, ciudad, estado, compania, centro, usuario, fecha_mod, hora_mod FROM tabla_empleados";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[10]; 
+                    fila[0] = rs.getString("num_emp");
+                    fila[1] = rs.getString("nombre");
+                    fila[2] = rs.getString("telefono");
+                    fila[3] = rs.getString("ciudad");
+                    fila[4] = rs.getString("estado");
+                    fila[5] = rs.getString("compania");
+                    fila[6] = rs.getString("centro");
+                    fila[7] = rs.getString("usuario");
+                    fila[8] = rs.getString("fecha_mod");
+                    fila[9] = rs.getString("hora_mod");
+
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -62,6 +114,7 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         btnEditEmpleados.setText("Editar");
         btnEditEmpleados.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditEmpleados.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditEmpleados.addActionListener(this::btnEditEmpleadosActionPerformed);
 
         btnDeleteEmpleados.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnDeleteEmpleados.setForeground(new java.awt.Color(26, 61, 99));
@@ -108,13 +161,223 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddEmpleadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddEmpleadosActionPerformed
-        // TODO add your handling code here:
+     mostrarDialogoEmpleado(false);
     }//GEN-LAST:event_btnAddEmpleadosActionPerformed
 
     private void btnDeleteEmpleadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteEmpleadosActionPerformed
-        // TODO add your handling code here:
+        if (tblEmpleados.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un empleado de la tabla para editar.");
+            return;
+        }
+        mostrarDialogoEmpleado(true);
     }//GEN-LAST:event_btnDeleteEmpleadosActionPerformed
 
+    private void btnEditEmpleadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditEmpleadosActionPerformed
+        int fila = tblEmpleados.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un empleado para eliminar.");
+            return;
+        }
+
+        String numEmp = tblEmpleados.getValueAt(fila, 0).toString();
+        String nombre = tblEmpleados.getValueAt(fila, 1).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar al empleado: " + nombre + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia 'tabla_empleados' por tu nombre real
+                    String sql = "DELETE FROM tabla_empleados WHERE num_emp = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, numEmp);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Empleado eliminado.");
+                        cargarTablaEmpleados();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnEditEmpleadosActionPerformed
+
+    private void mostrarDialogoEmpleado(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Empleado" : "Agregar Empleado";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(550, 580);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        // Panel superior para agrupar
+        JPanel pnlTop = new JPanel(null);
+        pnlTop.setBorder(BorderFactory.createEtchedBorder());
+        pnlTop.setBounds(15, 10, 500, 110);
+
+        JLabel lblNumEmp = new JLabel("Núm. Emp.");
+        lblNumEmp.setBounds(15, 10, 80, 20);
+        JTextField txtNumEmp = new JTextField();
+        txtNumEmp.setBounds(15, 30, 80, 25);
+        if (modoEdicion) txtNumEmp.setEditable(false);
+
+        JLabel lblRfcTop = new JLabel("R.F.C.");
+        lblRfcTop.setBounds(110, 10, 80, 20);
+        JTextField txtRfcTop = new JTextField();
+        txtRfcTop.setBounds(110, 30, 200, 25);
+
+        JLabel lblTratamiento = new JLabel("Tratamiento");
+        lblTratamiento.setBounds(15, 65, 80, 25);
+        JComboBox<String> cmbTratamiento = new JComboBox<>(new String[]{"", "Sr.", "Sra.", "Srita.", "Dr.", "Ing."});
+        cmbTratamiento.setBounds(100, 65, 80, 25);
+
+        JLabel lblNombre = new JLabel("Nombre");
+        lblNombre.setBounds(15, 100, 80, 25); // Lo pondremos un poco más abajo por el espacio
+        JTextField txtNombre = new JTextField();
+        txtNombre.setBounds(100, 100, 270, 25);
+        
+        // Ajustamos la posición real para que quede como en tu foto
+        lblTratamiento.setBounds(15, 65, 80, 25);
+        cmbTratamiento.setBounds(90, 65, 80, 25);
+        
+        lblNombre.setBounds(15, 100, 60, 25);
+        txtNombre.setBounds(90, 100, 270, 25);
+        
+        // Simulación de la Foto
+        JLabel lblFoto = new JLabel("Foto No Disponible", javax.swing.SwingConstants.CENTER);
+        lblFoto.setBorder(BorderFactory.createLineBorder(java.awt.Color.GRAY));
+        lblFoto.setBounds(390, 15, 90, 110);
+
+        // Ajustamos el tamaño del panel superior para que quepa el nombre
+        pnlTop.setBounds(15, 10, 365, 140);
+        
+        pnlTop.add(lblNumEmp); pnlTop.add(txtNumEmp);
+        pnlTop.add(lblRfcTop); pnlTop.add(txtRfcTop);
+        pnlTop.add(lblTratamiento); pnlTop.add(cmbTratamiento);
+        pnlTop.add(lblNombre); pnlTop.add(txtNombre);
+        
+        dialogo.add(pnlTop);
+        dialogo.add(lblFoto);
+
+        // --- 2. PESTAÑAS (TABS) ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(15, 160, 500, 320);
+
+        // >> Pestaña 1: Datos Generales
+        JPanel pnlGenerales = new JPanel(null);
+
+        JLabel lblCalle = new JLabel("Calle");
+        lblCalle.setBounds(20, 20, 60, 25);
+        JTextField txtCalle = new JTextField();
+        txtCalle.setBounds(90, 20, 380, 25);
+
+        JLabel lblColonia = new JLabel("Colonia");
+        lblColonia.setBounds(20, 60, 60, 25);
+        JTextField txtColonia = new JTextField();
+        txtColonia.setBounds(90, 60, 380, 25);
+
+        JLabel lblPob = new JLabel("Población");
+        lblPob.setBounds(20, 100, 70, 25);
+        JComboBox<String> cmbPob = new JComboBox<>(new String[]{"TEH", "PUE"});
+        cmbPob.setBounds(90, 100, 70, 25);
+        JTextField txtPobDesc = new JTextField("TEHUACAN");
+        txtPobDesc.setBounds(170, 100, 150, 25);
+
+        JLabel lblEdo = new JLabel("Estado");
+        lblEdo.setBounds(20, 140, 70, 25);
+        JComboBox<String> cmbEdo = new JComboBox<>(new String[]{"PUE", "VER"});
+        cmbEdo.setBounds(90, 140, 70, 25);
+        JTextField txtEdoDesc = new JTextField("PUEBLA");
+        txtEdoDesc.setBounds(170, 140, 150, 25);
+
+        JLabel lblPais = new JLabel("País");
+        lblPais.setBounds(20, 180, 70, 25);
+        JComboBox<String> cmbPais = new JComboBox<>(new String[]{"MEX", "USA"});
+        cmbPais.setBounds(90, 180, 70, 25);
+        JTextField txtPaisDesc = new JTextField("MEXICO");
+        txtPaisDesc.setBounds(170, 180, 150, 25);
+
+        JLabel lblCp = new JLabel("Código Postal");
+        lblCp.setBounds(300, 220, 90, 25);
+        JTextField txtCp = new JTextField();
+        txtCp.setBounds(390, 220, 80, 25);
+
+        JLabel lblImss = new JLabel("Núm IMSS");
+        lblImss.setBounds(20, 220, 70, 25);
+        JTextField txtImss = new JTextField();
+        txtImss.setBounds(90, 220, 120, 25);
+
+        JLabel lblCurp = new JLabel("C.U.R.P.");
+        lblCurp.setBounds(220, 220, 60, 25);
+        JTextField txtCurp = new JTextField();
+        txtCurp.setBounds(280, 220, 190, 25);
+
+        // Reajustamos posiciones Y para que quepa el CURP y el Telefono bien
+        lblImss.setBounds(20, 250, 70, 25); txtImss.setBounds(90, 250, 120, 25);
+        lblCurp.setBounds(230, 250, 50, 25); txtCurp.setBounds(280, 250, 190, 25);
+
+        JLabel lblTel = new JLabel("Teléfono");
+        lblTel.setBounds(20, 280, 60, 25);
+        JComboBox<String> cmbTelTipo = new JComboBox<>(new String[]{"PAR", "CEL"});
+        cmbTelTipo.setBounds(90, 280, 60, 25);
+        JTextField txtTel = new JTextField();
+        txtTel.setBounds(160, 280, 310, 25);
+
+        pnlGenerales.add(lblCalle); pnlGenerales.add(txtCalle);
+        pnlGenerales.add(lblColonia); pnlGenerales.add(txtColonia);
+        pnlGenerales.add(lblPob); pnlGenerales.add(cmbPob); pnlGenerales.add(txtPobDesc);
+        pnlGenerales.add(lblEdo); pnlGenerales.add(cmbEdo); pnlGenerales.add(txtEdoDesc);
+        pnlGenerales.add(lblPais); pnlGenerales.add(cmbPais); pnlGenerales.add(txtPaisDesc);
+        pnlGenerales.add(lblCp); pnlGenerales.add(txtCp);
+        pnlGenerales.add(lblImss); pnlGenerales.add(txtImss);
+        pnlGenerales.add(lblCurp); pnlGenerales.add(txtCurp);
+        pnlGenerales.add(lblTel); pnlGenerales.add(cmbTelTipo); pnlGenerales.add(txtTel);
+
+        // >> Pestaña 2: Información Adicional (Vacía por ahora)
+        JPanel pnlAdicional = new JPanel(null);
+
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        pestanas.addTab("Información Adicional", pnlAdicional);
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(150, 490, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(280, 490, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS DATOS BÁSICOS ---
+        if (modoEdicion) {
+            int fila = tblEmpleados.getSelectedRow();
+            txtNumEmp.setText(tblEmpleados.getValueAt(fila, 0).toString());
+            txtNombre.setText(tblEmpleados.getValueAt(fila, 1).toString());
+            // Lógica para conectarse a BD y llenar el resto de campos (RFC, IMSS, etc) ...
+        }
+
+        // --- 5. EVENTOS DE BOTONES ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            // Aquí iría tu lógica SQL: INSERT INTO o UPDATE
+            JOptionPane.showMessageDialog(dialogo, "Operación de empleado guardada con éxito.");
+            dialogo.dispose();
+            cargarTablaEmpleados(); // Refresca la tabla principal
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddEmpleados;

@@ -3,7 +3,23 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +32,47 @@ public class Cancelacion_Conceptos extends javax.swing.JPanel {
     public Cancelacion_Conceptos() {
         initComponents();
     }
+private void cargarTablaCancelaciones() {
+        // 1. Arreglamos las columnas de la tabla por código
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Compañía", "Centro Costos", "Matrícula", "Concepto Cancelado", "Motivo", "Fecha", "Usuario"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        tblCConceptos.setModel(modelo);
 
+        // 2. Cargamos los datos
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_cancelaciones' por tu tabla real
+                String sql = "SELECT compania, centro_costos, matricula, concepto, motivo, fecha_mod, usuario FROM tabla_cancelaciones";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("centro_costos");
+                    fila[2] = rs.getString("matricula");
+                    fila[3] = rs.getString("concepto");
+                    fila[4] = rs.getString("motivo");
+                    fila[5] = rs.getString("fecha_mod");
+                    fila[6] = rs.getString("usuario");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +82,194 @@ public class Cancelacion_Conceptos extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCConceptos = new javax.swing.JTable();
+        btnAddCConceptos = new javax.swing.JButton();
+        btnEditCConceptos = new javax.swing.JButton();
+        btnDeleteCConceptos = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblCConceptos.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblCConceptos);
+
+        btnAddCConceptos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCConceptos.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCConceptos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCConceptos.setText("Añadir");
+        btnAddCConceptos.addActionListener(this::btnAddCConceptosActionPerformed);
+
+        btnEditCConceptos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCConceptos.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCConceptos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCConceptos.setText("Editar");
+        btnEditCConceptos.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCConceptos.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCConceptos.addActionListener(this::btnEditCConceptosActionPerformed);
+
+        btnDeleteCConceptos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCConceptos.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCConceptos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCConceptos.setText("Eliminar");
+        btnDeleteCConceptos.addActionListener(this::btnDeleteCConceptosActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCConceptos)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCConceptos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCConceptos)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCConceptos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCConceptos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCConceptos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCConceptosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCConceptosActionPerformed
+        mostrarDialogoCancelacion();
+    }//GEN-LAST:event_btnAddCConceptosActionPerformed
+
+    private void btnEditCConceptosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCConceptosActionPerformed
+        JOptionPane.showMessageDialog(this, "Las cancelaciones no pueden modificarse. Si hubo un error, debe registrarse el concepto nuevamente.");
+
+    }//GEN-LAST:event_btnEditCConceptosActionPerformed
+
+    private void btnDeleteCConceptosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCConceptosActionPerformed
+       JOptionPane.showMessageDialog(this, "El historial de cancelaciones no se puede eliminar por políticas de auditoría.");
+    }//GEN-LAST:event_btnDeleteCConceptosActionPerformed
+private void mostrarDialogoCancelacion() {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Cancelación de Conceptos", true);
+        dialogo.setSize(820, 520);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. DATOS DE SELECCIÓN ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección - UNIDAD ESCOLAR BENAVENTE (JARDIN DE NIÑOS)"));
+        pnlSel.setBounds(10, 10, 785, 90);
+
+        pnlSel.add(new JLabel("Compañía")).setBounds(20, 25, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(90, 25, 60, 25);
+
+        pnlSel.add(new JLabel("C. Costos")).setBounds(250, 25, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12100"})).setBounds(320, 25, 80, 25);
+
+        pnlSel.add(new JLabel("Matrícula")).setBounds(20, 55, 70, 25);
+        pnlSel.add(new JTextField()).setBounds(90, 55, 120, 25);
+
+        JButton btnFiltra = new JButton("Filtra Información");
+        btnFiltra.setBounds(620, 50, 150, 30);
+        pnlSel.add(btnFiltra);
+
+        dialogo.add(pnlSel);
+
+        // --- 2. MOTIVO DE CANCELACIÓN ---
+        JLabel lblMotivo = new JLabel("Motivo de Cancelación");
+        lblMotivo.setBounds(150, 110, 150, 25);
+        JComboBox<String> cmbMotivo = new JComboBox<>(new String[]{""});
+        cmbMotivo.setBounds(290, 110, 60, 25);
+        JTextField txtMotivoDesc = new JTextField();
+        txtMotivoDesc.setBounds(360, 110, 435, 25);
+
+        dialogo.add(lblMotivo);
+        dialogo.add(cmbMotivo);
+        dialogo.add(txtMotivoDesc);
+
+        // --- 3. TABLA DE CONCEPTOS SIN PAGO ---
+        JTable tblConceptosPendientes = new JTable(new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Compañía", "C. Costos", "Ciclo Escolar", "ID", "Cpto", "Descripcion", "Fecha", "Moneda", "Imp Total", "Imp Pend Pag"}
+        ));
+        JScrollPane scrollConceptos = new JScrollPane(tblConceptosPendientes);
+        scrollConceptos.setBounds(10, 150, 785, 250);
+        
+        JPanel pnlTabla = new JPanel(null);
+        pnlTabla.setBorder(BorderFactory.createTitledBorder("Conceptos Sin Pago"));
+        pnlTabla.setBounds(10, 145, 785, 260);
+        scrollConceptos.setBounds(10, 20, 765, 230);
+        pnlTabla.add(scrollConceptos);
+        
+        dialogo.add(pnlTabla);
+
+        // --- 4. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(280, 425, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(410, 425, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnFiltra.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Buscando conceptos sin pago para esta matrícula... (Simulación)");
+            // Aquí iría la lógica SQL para llenar tblConceptosPendientes
+        });
+
+        btnAceptar.addActionListener(e -> {
+            // Se validaría que haya al menos una fila seleccionada en la tabla interna
+            int filaSel = tblConceptosPendientes.getSelectedRow();
+            if (filaSel == -1 && tblConceptosPendientes.getRowCount() > 0) {
+                JOptionPane.showMessageDialog(dialogo, "Seleccione al menos un concepto de la tabla para cancelar.");
+                return;
+            }
+            
+            JOptionPane.showMessageDialog(dialogo, "Concepto(s) cancelado(s) exitosamente (Simulación).");
+            dialogo.dispose();
+            cargarTablaCancelaciones(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCConceptos;
+    private javax.swing.JButton btnDeleteCConceptos;
+    private javax.swing.JButton btnEditCConceptos;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblCConceptos;
     // End of variables declaration//GEN-END:variables
 }

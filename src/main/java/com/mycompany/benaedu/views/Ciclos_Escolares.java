@@ -3,7 +3,22 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +31,39 @@ public class Ciclos_Escolares extends javax.swing.JPanel {
     public Ciclos_Escolares() {
         initComponents();
     }
+private void cargarTablaCiclos() {
+        DefaultTableModel modelo = (DefaultTableModel) tblCEscolar.getModel();
+        modelo.setRowCount(0); 
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_ciclos' por tu tabla real
+                String sql = "SELECT compania, centro_costos, ciclo, descripcion, fecha_ini, fecha_fin, usuario, fecha_mod, hora_mod FROM tabla_ciclos";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[9]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("centro_costos");
+                    fila[2] = rs.getString("ciclo");
+                    fila[3] = rs.getString("descripcion");
+                    fila[4] = rs.getString("fecha_ini");
+                    fila[5] = rs.getString("fecha_fin");
+                    fila[6] = rs.getString("usuario");
+                    fila[7] = rs.getString("fecha_mod");
+                    fila[8] = rs.getString("hora_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -60,6 +107,7 @@ public class Ciclos_Escolares extends javax.swing.JPanel {
         btnEditCEscolar.setText("Editar");
         btnEditCEscolar.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditCEscolar.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCEscolar.addActionListener(this::btnEditCEscolarActionPerformed);
 
         btnDeleteCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnDeleteCEscolar.setForeground(new java.awt.Color(26, 61, 99));
@@ -106,13 +154,213 @@ public class Ciclos_Escolares extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCEscolarActionPerformed
-        // TODO add your handling code here:
+       mostrarDialogoCiclo(false);
     }//GEN-LAST:event_btnAddCEscolarActionPerformed
 
     private void btnDeleteCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCEscolarActionPerformed
-        // TODO add your handling code here:
+       int fila = tblCEscolar.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un ciclo escolar para eliminar.");
+            return;
+        }
+
+        String compania = tblCEscolar.getValueAt(fila, 0).toString();
+        String cc = tblCEscolar.getValueAt(fila, 1).toString();
+        String ciclo = tblCEscolar.getValueAt(fila, 2).toString();
+        String desc = tblCEscolar.getValueAt(fila, 3).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el ciclo " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real. Se usan 3 llaves (Cia, CC, Ciclo)
+                    String sql = "DELETE FROM tabla_ciclos WHERE compania = ? AND centro_costos = ? AND ciclo = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, compania);
+                    ps.setString(2, cc);
+                    ps.setString(3, ciclo);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Ciclo escolar eliminado.");
+                        cargarTablaCiclos();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteCEscolarActionPerformed
 
+    private void btnEditCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCEscolarActionPerformed
+       if (tblCEscolar.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un ciclo escolar para editar.");
+            return;
+        }
+        mostrarDialogoCiclo(true);
+    }//GEN-LAST:event_btnEditCEscolarActionPerformed
+private void mostrarDialogoCiclo(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Ciclo Escolar" : "Agregar Ciclo Escolar";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(550, 600);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        JLabel lblCia = new JLabel("Compañía");
+        lblCia.setBounds(20, 15, 80, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        cmbCia.setBounds(110, 15, 60, 25);
+        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
+        lblCiaDesc.setBounds(180, 15, 250, 25);
+
+        JLabel lblCC = new JLabel("Centro Costos");
+        lblCC.setBounds(20, 45, 90, 25);
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", ""});
+        cmbCC.setBounds(110, 45, 80, 25);
+        JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE (JARDIN)");
+        lblCCDesc.setBounds(200, 45, 250, 25);
+
+        JLabel lblCiclo = new JLabel("Ciclo");
+        lblCiclo.setBounds(20, 75, 80, 25);
+        JTextField txtCiclo = new JTextField();
+        txtCiclo.setBounds(110, 75, 80, 25);
+
+        JLabel lblDesc = new JLabel("Descripción");
+        lblDesc.setBounds(20, 105, 80, 25);
+        JTextField txtDesc = new JTextField();
+        txtDesc.setBounds(110, 105, 380, 25);
+
+        if (modoEdicion) {
+            cmbCia.setEnabled(false);
+            cmbCC.setEnabled(false);
+            txtCiclo.setEditable(false); // Llaves primarias bloqueadas al editar
+        }
+
+        dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
+        dialogo.add(lblCC); dialogo.add(cmbCC); dialogo.add(lblCCDesc);
+        dialogo.add(lblCiclo); dialogo.add(txtCiclo);
+        dialogo.add(lblDesc); dialogo.add(txtDesc);
+
+        // --- 2. PESTAÑAS Y MARCOS ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(15, 145, 500, 350);
+
+        JPanel pnlGenerales = new JPanel(null);
+
+        // >> Marco: Vigencia del Ciclo Escolar
+        JPanel pnlVigencia = new JPanel(null);
+        pnlVigencia.setBorder(BorderFactory.createTitledBorder("Vigencia del Ciclo Escolar"));
+        pnlVigencia.setBounds(10, 10, 475, 90);
+
+        JLabel lblFecIni = new JLabel("Fecha Inicial");
+        lblFecIni.setBounds(120, 20, 80, 25);
+        JTextField txtFecIni = new JTextField("04/06/2026"); // Simula el date picker
+        txtFecIni.setBounds(200, 20, 80, 25);
+
+        JLabel lblFecFin = new JLabel("Fecha Final");
+        lblFecFin.setBounds(300, 20, 80, 25);
+        JTextField txtFecFin = new JTextField("04/06/2026");
+        txtFecFin.setBounds(370, 20, 80, 25);
+
+        JLabel lblRef = new JLabel("Código utilizado en Referencias Bancarias");
+        lblRef.setBounds(20, 55, 250, 25);
+        JTextField txtRef = new JTextField();
+        txtRef.setBounds(270, 55, 80, 25);
+
+        pnlVigencia.add(lblFecIni); pnlVigencia.add(txtFecIni);
+        pnlVigencia.add(lblFecFin); pnlVigencia.add(txtFecFin);
+        pnlVigencia.add(lblRef); pnlVigencia.add(txtRef);
+
+        // >> Marco: Anualidad
+        JPanel pnlAnualidad = new JPanel(null);
+        pnlAnualidad.setBorder(BorderFactory.createTitledBorder("Anualidad"));
+        pnlAnualidad.setBounds(10, 110, 475, 60);
+
+        JLabel lblFecLim = new JLabel("Fecha Límite Anualidad");
+        lblFecLim.setBounds(20, 20, 140, 25);
+        JTextField txtFecLim = new JTextField("04/06/2026");
+        txtFecLim.setBounds(160, 20, 80, 25);
+
+        JLabel lblDescAnu = new JLabel("% Descuento Anualidad");
+        lblDescAnu.setBounds(260, 20, 140, 25);
+        JTextField txtDescAnu = new JTextField("0.00");
+        txtDescAnu.setBounds(400, 20, 50, 25);
+
+        pnlAnualidad.add(lblFecLim); pnlAnualidad.add(txtFecLim);
+        pnlAnualidad.add(lblDescAnu); pnlAnualidad.add(txtDescAnu);
+
+        // >> Marco: Políticas del Ciclo Escolar
+        JPanel pnlPoliticas = new JPanel(null);
+        pnlPoliticas.setBorder(BorderFactory.createTitledBorder("Establece Políticas del Ciclo Escolar"));
+        pnlPoliticas.setBounds(10, 180, 475, 60);
+        JButton btnPol = new JButton("Políticas de Cobranza");
+        btnPol.setBounds(300, 20, 160, 25);
+        pnlPoliticas.add(btnPol);
+
+        // >> Marco: Plan de Estudios
+        JPanel pnlPlan = new JPanel(null);
+        pnlPlan.setBorder(BorderFactory.createTitledBorder("Plan de Estudios"));
+        pnlPlan.setBounds(10, 250, 475, 60);
+        JButton btnPlan = new JButton("Plan de Estudios");
+        btnPlan.setBounds(300, 20, 160, 25);
+        pnlPlan.add(btnPlan);
+
+        pnlGenerales.add(pnlVigencia); pnlGenerales.add(pnlAnualidad);
+        pnlGenerales.add(pnlPoliticas); pnlGenerales.add(pnlPlan);
+
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        pestanas.addTab("Incorporación", new JPanel()); // Pestaña vacía por ahora
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(150, 505, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(280, 505, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = tblCEscolar.getSelectedRow();
+            // Asegúrate de que los índices coinciden con tblCEscolar
+            cmbCia.setSelectedItem(tblCEscolar.getValueAt(fila, 0).toString());
+            cmbCC.setSelectedItem(tblCEscolar.getValueAt(fila, 1).toString());
+            txtCiclo.setText(tblCEscolar.getValueAt(fila, 2).toString());
+            txtDesc.setText(tblCEscolar.getValueAt(fila, 3).toString());
+            txtFecIni.setText(tblCEscolar.getValueAt(fila, 4).toString());
+            txtFecFin.setText(tblCEscolar.getValueAt(fila, 5).toString());
+            // Llenarías el resto (Descuento, Fecha límite, Código bancario...)
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String ciclo = txtCiclo.getText().trim();
+            if (ciclo.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El ciclo no puede estar vacío.");
+                return;
+            }
+
+            // Lógica SQL (INSERT / UPDATE)
+            JOptionPane.showMessageDialog(dialogo, "Ciclo escolar guardado (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaCiclos(); // Refresca la vista principal
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCEscolar;

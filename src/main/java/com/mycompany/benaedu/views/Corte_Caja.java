@@ -3,7 +3,26 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +35,46 @@ public class Corte_Caja extends javax.swing.JPanel {
     public Corte_Caja() {
         initComponents();
     }
+private void cargarTablaCortesCaja() {
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"ID Corte", "Compañía", "Cajero", "Fecha Inicial", "Fecha Final", "Total Efectivo", "Total Corte", "Usuario"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        tblCCaja.setModel(modelo);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia por tu tabla real
+                String sql = "SELECT id_corte, compania, cajero, fecha_ini, fecha_fin, tot_efectivo, total, usuario FROM tabla_cortes_caja";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[8]; 
+                    fila[0] = rs.getString("id_corte");
+                    fila[1] = rs.getString("compania");
+                    fila[2] = rs.getString("cajero");
+                    fila[3] = rs.getString("fecha_ini");
+                    fila[4] = rs.getString("fecha_fin");
+                    fila[5] = rs.getString("tot_efectivo");
+                    fila[6] = rs.getString("total");
+                    fila[7] = rs.getString("usuario");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +84,257 @@ public class Corte_Caja extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblCCaja = new javax.swing.JTable();
+        btnAddCCaja = new javax.swing.JButton();
+        btnEditCCaja = new javax.swing.JButton();
+        btnDeleteCCaja = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblCCaja.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblCCaja);
+
+        btnAddCCaja.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCCaja.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCCaja.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCCaja.setText("Añadir");
+        btnAddCCaja.addActionListener(this::btnAddCCajaActionPerformed);
+
+        btnEditCCaja.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCCaja.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCCaja.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCCaja.setText("Editar");
+        btnEditCCaja.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCCaja.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCCaja.addActionListener(this::btnEditCCajaActionPerformed);
+
+        btnDeleteCCaja.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCCaja.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCCaja.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCCaja.setText("Eliminar");
+        btnDeleteCCaja.addActionListener(this::btnDeleteCCajaActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCCaja)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCCaja)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCCaja, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCCajaActionPerformed
+        mostrarDialogoCorteCaja();
+    }//GEN-LAST:event_btnAddCCajaActionPerformed
 
+    private void btnEditCCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCCajaActionPerformed
+        JOptionPane.showMessageDialog(this, "Un corte de caja ya generado no puede modificarse.\nSi existe un error, debes cancelarlo y generar uno nuevo.");
+    }//GEN-LAST:event_btnEditCCajaActionPerformed
+
+    private void btnDeleteCCajaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCCajaActionPerformed
+        int fila = tblCCaja.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un corte de caja del historial para eliminar/cancelar.");
+            return;
+        }
+
+        String idCorte = tblCCaja.getValueAt(fila, 0).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas cancelar el corte de caja ID: " + idCorte + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real
+                    String sql = "DELETE FROM tabla_cortes_caja WHERE id_corte = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, idCorte);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Corte de caja cancelado.");
+                        cargarTablaCortesCaja();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al cancelar: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteCCajaActionPerformed
+
+private void mostrarDialogoCorteCaja() {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Corte de Caja", true);
+        dialogo.setSize(920, 680); // Ventana grande para que quepa todo
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. DATOS DE SELECCIÓN ---
+        JPanel pnlSeleccion = new JPanel(null);
+        pnlSeleccion.setBorder(BorderFactory.createTitledBorder("Datos de selección"));
+        pnlSeleccion.setBounds(10, 10, 630, 90);
+
+        pnlSeleccion.add(new JLabel("Compañía")).setBounds(15, 20, 70, 25);
+        pnlSeleccion.add(new JComboBox<>(new String[]{"12"})).setBounds(80, 20, 60, 25);
+        
+        pnlSeleccion.add(new JLabel("Cajero")).setBounds(15, 55, 70, 25);
+        pnlSeleccion.add(new JComboBox<>(new String[]{""})).setBounds(80, 55, 120, 25);
+
+        pnlSeleccion.add(new JLabel("C. Costos")).setBounds(220, 20, 70, 25);
+        pnlSeleccion.add(new JComboBox<>(new String[]{"12100"})).setBounds(290, 20, 80, 25);
+
+        pnlSeleccion.add(new JLabel("Fecha Inicial")).setBounds(220, 55, 80, 25);
+        pnlSeleccion.add(new JTextField("04/06/2026")).setBounds(290, 55, 90, 25);
+
+        pnlSeleccion.add(new JLabel("Ciclo Escolar")).setBounds(400, 20, 80, 25);
+        pnlSeleccion.add(new JComboBox<>(new String[]{""})).setBounds(480, 20, 80, 25);
+
+        pnlSeleccion.add(new JLabel("Fecha Final")).setBounds(400, 55, 80, 25);
+        pnlSeleccion.add(new JTextField("04/06/2026")).setBounds(480, 55, 90, 25);
+
+        dialogo.add(pnlSeleccion);
+
+        // --- 2. TIPO DE CUENTA ---
+        JPanel pnlTipoCta = new JPanel(null);
+        pnlTipoCta.setBorder(BorderFactory.createTitledBorder("Tipo de Cuenta"));
+        pnlTipoCta.setBounds(650, 10, 240, 50);
+        JRadioButton rbOficial = new JRadioButton("Oficial", true); rbOficial.setBounds(20, 20, 80, 20);
+        JRadioButton rbPart = new JRadioButton("Particular"); rbPart.setBounds(110, 20, 100, 20);
+        ButtonGroup bgTipoCta = new ButtonGroup(); bgTipoCta.add(rbOficial); bgTipoCta.add(rbPart);
+        pnlTipoCta.add(rbOficial); pnlTipoCta.add(rbPart);
+        dialogo.add(pnlTipoCta);
+
+        // --- 3. CONTABILIZAR CORTE ---
+        JPanel pnlContabilizar = new JPanel(null);
+        pnlContabilizar.setBorder(BorderFactory.createTitledBorder("Contabilizar Corte"));
+        pnlContabilizar.setBounds(650, 65, 240, 50);
+        JRadioButton rbNo = new JRadioButton("No", true); rbNo.setBounds(20, 20, 60, 20);
+        JRadioButton rbSi = new JRadioButton("Si"); rbSi.setBounds(110, 20, 60, 20);
+        ButtonGroup bgContab = new ButtonGroup(); bgContab.add(rbNo); bgContab.add(rbSi);
+        pnlContabilizar.add(rbNo); pnlContabilizar.add(rbSi);
+        dialogo.add(pnlContabilizar);
+
+        // --- 4. INFORMACIÓN CONTABLE ---
+        JPanel pnlInfoCont = new JPanel(null);
+        pnlInfoCont.setBorder(BorderFactory.createTitledBorder("Información Contable"));
+        pnlInfoCont.setBounds(10, 105, 630, 60);
+        pnlInfoCont.add(new JLabel("Compañía")).setBounds(15, 20, 70, 25);
+        pnlInfoCont.add(new JComboBox<>(new String[]{"12"})).setBounds(80, 20, 60, 25);
+        pnlInfoCont.add(new JLabel("Fecha Contable")).setBounds(220, 20, 100, 25);
+        pnlInfoCont.add(new JTextField("04/06/2026")).setBounds(320, 20, 90, 25);
+        dialogo.add(pnlInfoCont);
+
+        // --- BOTÓN FILTRA INFORMACIÓN ---
+        JButton btnFiltra = new JButton("Filtra Información");
+        btnFiltra.setBounds(650, 125, 240, 35);
+        dialogo.add(btnFiltra);
+
+        // --- 5. TABLA INTERNA CORTE DE CAJA ---
+        JTable tblDetalleCorte = new JTable(new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Compañía", "C. Costos", "Sección", "Ciclo", "Matrícula", "Nombre", "Num Recibo", "Tipo", "Fec Recibo", "Concepto"}
+        ));
+        JScrollPane scrollDetalle = new JScrollPane(tblDetalleCorte);
+        scrollDetalle.setBounds(10, 175, 880, 310);
+        scrollDetalle.setBorder(BorderFactory.createTitledBorder("Corte de Caja"));
+        dialogo.add(scrollDetalle);
+
+        // --- 6. TOTALES ---
+        JPanel pnlTotales = new JPanel(null);
+        pnlTotales.setBorder(BorderFactory.createTitledBorder("Totales"));
+        pnlTotales.setBounds(10, 495, 880, 70);
+
+        String[] lbls = {"Recibos", "Efectivo", "Cheques", "Dep. Bancario", "Tarjetas", "T. Electronica", "Total"};
+        int xPos = 20;
+        for (int i = 0; i < lbls.length; i++) {
+            JLabel l = new JLabel(lbls[i], SwingUtilities.CENTER);
+            l.setBounds(xPos, 15, 110, 20);
+            JTextField t = new JTextField(i == 0 ? "" : "0.00");
+            t.setBounds(xPos, 35, 110, 25);
+            t.setHorizontalAlignment(JTextField.RIGHT);
+            t.setEditable(false); // Los totales se calculan solos
+            pnlTotales.add(l); pnlTotales.add(t);
+            xPos += 120;
+        }
+        dialogo.add(pnlTotales);
+
+        // --- 7. BOTONES INFERIORES ---
+        JButton btnImprimir = new JButton("Imprimir");
+        btnImprimir.setBounds(330, 580, 110, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(460, 580, 110, 40);
+
+        dialogo.add(btnImprimir);
+        dialogo.add(btnSalir);
+
+        // --- 8. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnFiltra.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Buscando recibos en la base de datos... (Simulación)");
+            // Aquí agregarías lógica para llenar la tabla `tblDetalleCorte` y sumar los totales
+        });
+
+        btnImprimir.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Enviando reporte de Corte de Caja a la impresora...");
+            // Lógica para guardar el corte en BD (INSERT) y generar el PDF
+            dialogo.dispose();
+            cargarTablaCortesCaja(); 
+        });
+
+        // --- 9. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCCaja;
+    private javax.swing.JButton btnDeleteCCaja;
+    private javax.swing.JButton btnEditCCaja;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblCCaja;
     // End of variables declaration//GEN-END:variables
 }

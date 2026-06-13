@@ -3,7 +3,25 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Color;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +34,40 @@ public class Catalogo_Cuentas_Bancarias extends javax.swing.JPanel {
     public Catalogo_Cuentas_Bancarias() {
         initComponents();
     }
+private void cargarTablaCuentas() {
+        DefaultTableModel modelo = (DefaultTableModel) tblCCBancarias.getModel();
+        modelo.setRowCount(0); 
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_cuentas' por tu tabla real
+                String sql = "SELECT compania, cuenta, descripcion, banco, cta_bancaria, cheque, moneda, usuario, fecha_mod, hora_mod FROM tabla_cuentas";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[10]; 
+                    fila[0] = rs.getString("compania");
+                    fila[1] = rs.getString("cuenta");
+                    fila[2] = rs.getString("descripcion");
+                    fila[3] = rs.getString("banco");
+                    fila[4] = rs.getString("cta_bancaria");
+                    fila[5] = rs.getString("cheque");
+                    fila[6] = rs.getString("moneda");
+                    fila[7] = rs.getString("usuario");
+                    fila[8] = rs.getString("fecha_mod");
+                    fila[9] = rs.getString("hora_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -47,6 +98,7 @@ public class Catalogo_Cuentas_Bancarias extends javax.swing.JPanel {
         btnEditCCBancarias.setText("Editar");
         btnEditCCBancarias.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditCCBancarias.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCCBancarias.addActionListener(this::btnEditCCBancariasActionPerformed);
 
         btnAddCCBancarias.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnAddCCBancarias.setForeground(new java.awt.Color(26, 61, 99));
@@ -106,13 +158,190 @@ public class Catalogo_Cuentas_Bancarias extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCCBancariasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCCBancariasActionPerformed
-        // TODO add your handling code here:
+       mostrarDialogoCuentaBancaria(false);
     }//GEN-LAST:event_btnAddCCBancariasActionPerformed
 
     private void btnDeleteCCBancariasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCCBancariasActionPerformed
-        // TODO add your handling code here:
+       int fila = tblCCBancarias.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una cuenta para eliminar.");
+            return;
+        }
+
+        // Suponiendo que la Clave está en la columna 1
+        String cuenta = tblCCBancarias.getValueAt(fila, 1).toString(); 
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar la cuenta " + cuenta + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por el nombre de tu tabla
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM tabla_cuentas WHERE cuenta = ?");
+                    ps.setString(1, cuenta);
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Cuenta eliminada.");
+                        cargarTablaCuentas();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteCCBancariasActionPerformed
 
+    private void btnEditCCBancariasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCCBancariasActionPerformed
+      if (tblCCBancarias.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una cuenta para editar.");
+            return;
+        }
+        mostrarDialogoCuentaBancaria(true);
+    }//GEN-LAST:event_btnEditCCBancariasActionPerformed
+private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Cuenta Bancaria" : "Cuentas Bancarias";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(550, 520);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. SECCIÓN SUPERIOR ---
+        JLabel lblCia = new JLabel("Compañía");
+        lblCia.setBounds(20, 15, 100, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        cmbCia.setBounds(130, 15, 70, 25);
+        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
+        lblCiaDesc.setBounds(210, 15, 250, 25);
+
+        JLabel lblCtaContable = new JLabel("Cuenta Contable");
+        lblCtaContable.setBounds(20, 45, 100, 25);
+        // Usamos JComboBox porque en tu imagen de Modificar se ve como un combo
+        JComboBox<String> cmbCtaContable = new JComboBox<>(new String[]{"12-1010201-013", ""});
+        cmbCtaContable.setEditable(true); // Permite escribir si se desea
+        cmbCtaContable.setBounds(130, 45, 130, 25);
+        JLabel lblCtaDesc = new JLabel("NO. CUENTA - 0185131286");
+        lblCtaDesc.setBounds(270, 45, 250, 25);
+
+        if (modoEdicion) {
+            cmbCia.setEnabled(false);
+            cmbCtaContable.setEnabled(false);
+        }
+
+        dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
+        dialogo.add(lblCtaContable); dialogo.add(cmbCtaContable); dialogo.add(lblCtaDesc);
+
+        // --- 2. PESTAÑAS (TABS) ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(15, 90, 500, 330);
+
+        JPanel pnlGenerales = new JPanel(null);
+
+        // >> Marco: Información de Cuenta
+        JPanel pnlInfo = new JPanel(null);
+        pnlInfo.setBorder(BorderFactory.createTitledBorder("Información de Cuenta"));
+        pnlInfo.setBounds(10, 10, 475, 180);
+
+        JLabel lblBanco = new JLabel("Banco");
+        lblBanco.setBounds(20, 25, 100, 25);
+        JComboBox<String> cmbBanco = new JComboBox<>(new String[]{"BCM", "BNM", "SAN"});
+        cmbBanco.setBounds(130, 25, 70, 25);
+        JLabel lblBancoDesc = new JLabel("BBVA BANCOMER");
+        lblBancoDesc.setBounds(210, 25, 200, 25);
+
+        JLabel lblCtaBan = new JLabel("Cuenta Bancaria");
+        lblCtaBan.setBounds(20, 60, 100, 25);
+        JTextField txtCtaBan = new JTextField();
+        txtCtaBan.setBounds(130, 60, 250, 25);
+
+        JLabel lblSucursal = new JLabel("Sucursal Bancaria");
+        lblSucursal.setBounds(20, 95, 120, 25);
+        JTextField txtSucursal = new JTextField();
+        txtSucursal.setBounds(130, 95, 250, 25);
+
+        JLabel lblCheque = new JLabel("Cheque Siguiente");
+        lblCheque.setBounds(20, 135, 110, 25);
+        JTextField txtCheque = new JTextField();
+        txtCheque.setBounds(130, 135, 80, 25);
+
+        JLabel lblMoneda = new JLabel("Moneda");
+        lblMoneda.setBounds(310, 135, 60, 25);
+        JComboBox<String> cmbMoneda = new JComboBox<>(new String[]{"MXP", "USD"});
+        cmbMoneda.setBounds(370, 135, 80, 25);
+
+        pnlInfo.add(lblBanco); pnlInfo.add(cmbBanco); pnlInfo.add(lblBancoDesc);
+        pnlInfo.add(lblCtaBan); pnlInfo.add(txtCtaBan);
+        pnlInfo.add(lblSucursal); pnlInfo.add(txtSucursal);
+        pnlInfo.add(lblCheque); pnlInfo.add(txtCheque);
+        pnlInfo.add(lblMoneda); pnlInfo.add(cmbMoneda);
+
+        // >> Marco: Formato
+        JPanel pnlFormato = new JPanel(null);
+        pnlFormato.setBorder(BorderFactory.createTitledBorder("Formato"));
+        pnlFormato.setBounds(10, 200, 475, 80);
+
+        JLabel lblFormato = new JLabel("Formato de Cheque");
+        lblFormato.setBounds(20, 30, 120, 25);
+        JComboBox<String> cmbFormato = new JComboBox<>(new String[]{"01", "02"});
+        cmbFormato.setBounds(140, 30, 60, 25);
+        JLabel lblFormatoDesc = new JLabel("CHEQUE - POLIZA C/CTAS Y FIRMAS");
+        lblFormatoDesc.setBounds(210, 30, 250, 25);
+
+        pnlFormato.add(lblFormato); pnlFormato.add(cmbFormato); pnlFormato.add(lblFormatoDesc);
+
+        pnlGenerales.add(pnlInfo);
+        pnlGenerales.add(pnlFormato);
+
+        pestanas.addTab("Datos Generales", pnlGenerales);
+        pestanas.addTab("Contratos y/o Convenios", new JPanel()); // Pestaña vacía
+
+        dialogo.add(pestanas);
+
+        // --- 3. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(150, 430, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(280, 430, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = tblCCBancarias.getSelectedRow();
+            // Asegúrate de que los índices coinciden con tu tabla
+            // 0: Compañia, 1: Cuenta Contable, 2: Desc, 3: Banco, 4: Cuenta Bancaria, 5: Cheque, 6: Moneda
+            cmbCia.setSelectedItem(tblCCBancarias.getValueAt(fila, 0).toString());
+            cmbCtaContable.setSelectedItem(tblCCBancarias.getValueAt(fila, 1).toString());
+            cmbBanco.setSelectedItem(tblCCBancarias.getValueAt(fila, 3).toString());
+            txtCtaBan.setText(tblCCBancarias.getValueAt(fila, 4).toString());
+            txtCheque.setText(tblCCBancarias.getValueAt(fila, 5).toString());
+            cmbMoneda.setSelectedItem(tblCCBancarias.getValueAt(fila, 6).toString());
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String cuentaBan = txtCtaBan.getText().trim();
+            if (cuentaBan.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La cuenta bancaria es obligatoria.");
+                return;
+            }
+
+            // Aquí va tu código SQL INSERT o UPDATE
+            JOptionPane.showMessageDialog(dialogo, "Cuenta Bancaria guardada (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaCuentas(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCCBancarias;

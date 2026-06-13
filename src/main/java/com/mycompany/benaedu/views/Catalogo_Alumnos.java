@@ -3,7 +3,26 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +35,45 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
     public Catalogo_Alumnos() {
         initComponents();
     }
+private void cargarTablaAlumnos() {
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Matrícula", "Nombre", "Ap Paterno", "Ap Materno", "C. Costo", "Usuario", "Fec Ult Act"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        jTable2.setModel(modelo);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_alumnos' por tu tabla real
+                String sql = "SELECT matricula, nombre, ap_paterno, ap_materno, centro_costos, usuario, fecha_mod FROM tabla_alumnos";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; 
+                    fila[0] = rs.getString("matricula");
+                    fila[1] = rs.getString("nombre");
+                    fila[2] = rs.getString("ap_paterno");
+                    fila[3] = rs.getString("ap_materno");
+                    fila[4] = rs.getString("centro_costos");
+                    fila[5] = rs.getString("usuario");
+                    fila[6] = rs.getString("fecha_mod");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +83,361 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        jPanel1 = new javax.swing.JPanel();
+        btnAddCTAlumno = new javax.swing.JButton();
+        btnEditCTAlumno = new javax.swing.JButton();
+        btnDeleteCTAlumno = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jTable2 = new javax.swing.JTable();
+
+        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(jTable1);
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        btnAddCTAlumno.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddCTAlumno.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddCTAlumno.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddCTAlumno.setText("Añadir");
+        btnAddCTAlumno.addActionListener(this::btnAddCTAlumnoActionPerformed);
+
+        btnEditCTAlumno.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditCTAlumno.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditCTAlumno.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditCTAlumno.setText("Editar");
+        btnEditCTAlumno.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditCTAlumno.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditCTAlumno.addActionListener(this::btnEditCTAlumnoActionPerformed);
+
+        btnDeleteCTAlumno.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteCTAlumno.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteCTAlumno.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteCTAlumno.setText("Eliminar");
+        btnDeleteCTAlumno.addActionListener(this::btnDeleteCTAlumnoActionPerformed);
+
+        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane2.setViewportView(jTable2);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddCTAlumno)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditCTAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteCTAlumno)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddCTAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditCTAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteCTAlumno, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddCTAlumnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCTAlumnoActionPerformed
+     mostrarDialogoAlumno(false);
+    }//GEN-LAST:event_btnAddCTAlumnoActionPerformed
+
+    private void btnEditCTAlumnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCTAlumnoActionPerformed
+     if (jTable2.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un alumno para editar.");
+            return;
+        }
+        mostrarDialogoAlumno(true);
+    }//GEN-LAST:event_btnEditCTAlumnoActionPerformed
+
+    private void btnDeleteCTAlumnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCTAlumnoActionPerformed
+        int fila = jTable2.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un alumno para eliminar.");
+            return;
+        }
+
+        String matricula = jTable2.getValueAt(fila, 0).toString();
+        String nombre = jTable2.getValueAt(fila, 1).toString() + " " + jTable2.getValueAt(fila, 2).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar al alumno: " + nombre + "?\nEsto podría borrar todo su historial.", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real
+                    String sql = "DELETE FROM tabla_alumnos WHERE matricula = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, matricula);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Alumno eliminado.");
+                        cargarTablaAlumnos();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteCTAlumnoActionPerformed
+private void mostrarDialogoAlumno(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Alumno" : "Agregar Alumnos";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(800, 680); // Ventana muy grande para que quepa todo
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // ==========================================
+        // 1. SECCIÓN SUPERIOR (Cabecera)
+        // ==========================================
+        JPanel pnlTop = new JPanel(null);
+        pnlTop.setBorder(BorderFactory.createEtchedBorder());
+        pnlTop.setBounds(15, 10, 755, 110);
+
+        JLabel lblCia = new JLabel("Compañía"); lblCia.setBounds(15, 15, 80, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"}); cmbCia.setBounds(95, 15, 60, 25);
+        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C."); lblCiaDesc.setBounds(165, 15, 250, 25);
+
+        JLabel lblCC = new JLabel("Centro Costos"); lblCC.setBounds(15, 45, 90, 25);
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", ""}); cmbCC.setBounds(105, 45, 80, 25);
+
+        JLabel lblMat = new JLabel("Matrícula"); lblMat.setBounds(15, 75, 80, 25);
+        JTextField txtMat = new JTextField(); txtMat.setBounds(95, 75, 100, 25);
+
+        JLabel lblMatOf = new JLabel("Matrícula Oficial"); lblMatOf.setBounds(210, 75, 100, 25);
+        JTextField txtMatOf = new JTextField(); txtMatOf.setBounds(315, 75, 120, 25);
+
+        JLabel lblTipoAl = new JLabel("Tipo Alum"); lblTipoAl.setBounds(450, 75, 70, 25);
+        JComboBox<String> cmbTipoAl = new JComboBox<>(new String[]{""}); cmbTipoAl.setBounds(520, 75, 90, 25);
+
+        // Cuadro de foto (Simulación)
+        JPanel pnlFoto = new JPanel();
+        pnlFoto.setBorder(BorderFactory.createLineBorder(java.awt.Color.GRAY));
+        pnlFoto.setBounds(630, 10, 100, 90);
+        pnlFoto.add(new JLabel("Foto"));
+
+        if (modoEdicion) txtMat.setEditable(false);
+
+        pnlTop.add(lblCia); pnlTop.add(cmbCia); pnlTop.add(lblCiaDesc);
+        pnlTop.add(lblCC); pnlTop.add(cmbCC);
+        pnlTop.add(lblMat); pnlTop.add(txtMat);
+        pnlTop.add(lblMatOf); pnlTop.add(txtMatOf);
+        pnlTop.add(lblTipoAl); pnlTop.add(cmbTipoAl);
+        pnlTop.add(pnlFoto);
+        dialogo.add(pnlTop);
+
+        // ==========================================
+        // 2. PESTAÑAS (TABS) PRINCIPALES
+        // ==========================================
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(15, 130, 755, 430);
+
+        // ------------------------------------------
+        // TAB 1: ESCOLAR
+        // ------------------------------------------
+        JPanel pnlEscolar = new JPanel(null);
+
+        JPanel pnlDatosAl = new JPanel(null);
+        pnlDatosAl.setBorder(BorderFactory.createTitledBorder("Datos del Alumno"));
+        pnlDatosAl.setBounds(10, 10, 560, 110);
+        pnlDatosAl.add(new JLabel("Nombre")).setBounds(20, 20, 100, 20);
+        pnlDatosAl.add(new JTextField()).setBounds(130, 20, 400, 20);
+        pnlDatosAl.add(new JLabel("Apellido Paterno")).setBounds(20, 50, 100, 20);
+        pnlDatosAl.add(new JTextField()).setBounds(130, 50, 400, 20);
+        pnlDatosAl.add(new JLabel("Apellido Materno")).setBounds(20, 80, 100, 20);
+        pnlDatosAl.add(new JTextField()).setBounds(130, 80, 400, 20);
+
+        JPanel pnlSexo = new JPanel(null);
+        pnlSexo.setBorder(BorderFactory.createTitledBorder("Sexo"));
+        pnlSexo.setBounds(580, 10, 150, 75);
+        JRadioButton rbM = new JRadioButton("Masculino"); rbM.setBounds(10, 20, 100, 20);
+        JRadioButton rbF = new JRadioButton("Femenino"); rbF.setBounds(10, 45, 100, 20);
+        ButtonGroup bgSexo = new ButtonGroup(); bgSexo.add(rbM); bgSexo.add(rbF);
+        pnlSexo.add(rbM); pnlSexo.add(rbF);
+
+        JPanel pnlBeca = new JPanel(null);
+        pnlBeca.setBorder(BorderFactory.createTitledBorder("Información de Beca"));
+        pnlBeca.setBounds(10, 130, 560, 60);
+        pnlBeca.add(new JLabel("Beca/Convenio")).setBounds(20, 20, 100, 25);
+        pnlBeca.add(new JComboBox<>(new String[]{""})).setBounds(130, 20, 100, 25);
+        pnlBeca.add(new JLabel("Tipo")).setBounds(430, 10, 40, 20);
+        pnlBeca.add(new JRadioButton("Beca")).setBounds(470, 10, 70, 20);
+        pnlBeca.add(new JRadioButton("Convenio")).setBounds(470, 30, 80, 20);
+
+        JPanel pnlEscolaridad = new JPanel(null);
+        pnlEscolaridad.setBorder(BorderFactory.createTitledBorder("Escolaridad"));
+        pnlEscolaridad.setBounds(580, 95, 150, 155);
+        pnlEscolaridad.add(new JLabel("Turno")).setBounds(10, 20, 40, 20);
+        pnlEscolaridad.add(new JComboBox<>(new String[]{""})).setBounds(60, 20, 70, 20);
+        pnlEscolaridad.add(new JLabel("Grado")).setBounds(10, 55, 40, 20);
+        pnlEscolaridad.add(new JComboBox<>(new String[]{""})).setBounds(60, 55, 70, 20);
+        pnlEscolaridad.add(new JLabel("Grupo")).setBounds(10, 90, 40, 20);
+        pnlEscolaridad.add(new JTextField()).setBounds(60, 90, 70, 20);
+        pnlEscolaridad.add(new JLabel("# Lista")).setBounds(10, 125, 40, 20);
+        pnlEscolaridad.add(new JTextField()).setBounds(60, 125, 70, 20);
+
+        JPanel pnlEstatus = new JPanel(null);
+        pnlEstatus.setBorder(BorderFactory.createTitledBorder("Estatus de Alumno"));
+        pnlEstatus.setBounds(10, 200, 560, 60);
+        pnlEstatus.add(new JLabel("Estatus Alumno")).setBounds(20, 20, 100, 25);
+        pnlEstatus.add(new JComboBox<>(new String[]{""})).setBounds(130, 20, 100, 25);
+        pnlEstatus.add(new JLabel("Fecha Alta")).setBounds(360, 20, 80, 25);
+        pnlEstatus.add(new JTextField("04/06/2026")).setBounds(450, 20, 80, 25);
+
+        JPanel pnlBaja = new JPanel(null);
+        pnlBaja.setBorder(BorderFactory.createTitledBorder("Información de Baja"));
+        pnlBaja.setBounds(10, 270, 720, 90);
+        pnlBaja.add(new JLabel("Registró Baja")).setBounds(20, 20, 100, 25);
+        pnlBaja.add(new JTextField()).setBounds(130, 20, 100, 25);
+        pnlBaja.add(new JLabel("Fecha Baja")).setBounds(450, 20, 80, 25);
+        pnlBaja.add(new JTextField()).setBounds(530, 20, 100, 25);
+        pnlBaja.add(new JLabel("Motivo de Baja")).setBounds(20, 55, 100, 25);
+        pnlBaja.add(new JTextField()).setBounds(130, 55, 500, 25);
+
+        pnlEscolar.add(pnlDatosAl); pnlEscolar.add(pnlSexo); pnlEscolar.add(pnlBeca);
+        pnlEscolar.add(pnlEscolaridad); pnlEscolar.add(pnlEstatus); pnlEscolar.add(pnlBaja);
+
+        // ------------------------------------------
+        // TAB 2: INFORMACIÓN PERSONAL
+        // ------------------------------------------
+        JPanel pnlInfoPers = new JPanel(null);
+        // (Agrega los campos de "Lugar de Nacimiento" y "Domicilio Particular" aquí según tu imagen)
+
+        // ------------------------------------------
+        // TAB 3: FAMILIARES
+        // ------------------------------------------
+        JPanel pnlFamiliares = new JPanel(null);
+        // (Agrega los combos de familia y botón "Agrega Familia" aquí)
+
+        // ------------------------------------------
+        // TAB 4: INF. FISCAL BANCARIA (Sub-pestañas laterales)
+        // ------------------------------------------
+        JPanel pnlFiscBanc = new JPanel(null);
+        JTabbedPane tbLateral = new JTabbedPane(JTabbedPane.RIGHT); // Pestañas del lado derecho
+        tbLateral.setBounds(10, 10, 730, 380);
+
+        JPanel pnlSubFiscal = new JPanel(null);
+        pnlSubFiscal.setBorder(BorderFactory.createEtchedBorder());
+        pnlSubFiscal.add(new JLabel("Razón Social")).setBounds(20, 20, 80, 25);
+        pnlSubFiscal.add(new JTextField()).setBounds(110, 20, 480, 25);
+        // (Agrega el resto de los campos fiscales como RFC, Uso CFDI, etc.)
+
+        JPanel pnlSubBancaria = new JPanel(null);
+        // (Agrega "Cuenta de Depósito" y "Método de Pago" aquí)
+
+        tbLateral.addTab("Fiscal", pnlSubFiscal);
+        tbLateral.addTab("Bancaria", pnlSubBancaria);
+        pnlFiscBanc.add(tbLateral);
+
+        // ------------------------------------------
+        // TAB 5 & 6: MENSAJES Y DIARIO (Tablas)
+        // ------------------------------------------
+        JPanel pnlMensajes = new JPanel(null);
+        JPanel pnlDiario = new JPanel(null);
+
+        // Agregar todas las pestañas principales
+        pestanas.addTab("Escolar", pnlEscolar);
+        pestanas.addTab("Información Personal", pnlInfoPers);
+        pestanas.addTab("Familiares", pnlFamiliares);
+        pestanas.addTab("Inf. Fiscal Bancaria", pnlFiscBanc);
+        pestanas.addTab("Mensajes y Acuerdos", pnlMensajes);
+        pestanas.addTab("Diario Académico", pnlDiario);
+
+        dialogo.add(pestanas);
+
+        // ==========================================
+        // 3. BOTONES INFERIORES
+        // ==========================================
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(270, 580, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(400, 580, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = jTable2.getSelectedRow();
+            txtMat.setText(jTable2.getValueAt(fila, 0).toString());
+            // Lógica para cargar el resto conectándote a la BD según la matrícula
+        }
+
+        // --- 5. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String matricula = txtMat.getText().trim();
+            if (matricula.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La matrícula es obligatoria.");
+                return;
+            }
+
+            // Aquí va tu inmenso código SQL INSERT o UPDATE
+            JOptionPane.showMessageDialog(dialogo, "Alumno guardado (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaAlumnos(); 
+        });
+
+        // --- 6. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddCTAlumno;
+    private javax.swing.JButton btnDeleteCTAlumno;
+    private javax.swing.JButton btnEditCTAlumno;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JTable jTable1;
+    private javax.swing.JTable jTable2;
     // End of variables declaration//GEN-END:variables
 }

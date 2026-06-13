@@ -3,7 +3,25 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +34,46 @@ public class Registro_Depositos extends javax.swing.JPanel {
     public Registro_Depositos() {
         initComponents();
     }
+private void cargarTablaDepositos() {
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Folio Depósito", "Compañía", "Cuenta Cargo", "Banco", "Referencia", "Monto", "Fecha", "Usuario"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        tblRegistroDeposito.setModel(modelo);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_depositos' por tu tabla real
+                String sql = "SELECT id_deposito, compania, cuenta_cargo, banco, referencia, monto, fecha, usuario FROM tabla_depositos";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[8]; 
+                    fila[0] = rs.getString("id_deposito");
+                    fila[1] = rs.getString("compania");
+                    fila[2] = rs.getString("cuenta_cargo");
+                    fila[3] = rs.getString("banco");
+                    fila[4] = rs.getString("referencia");
+                    fila[5] = rs.getString("monto");
+                    fila[6] = rs.getString("fecha");
+                    fila[7] = rs.getString("usuario");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +83,253 @@ public class Registro_Depositos extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblRegistroDeposito = new javax.swing.JTable();
+        btnAddRDeposito = new javax.swing.JButton();
+        btnEditRDeposito = new javax.swing.JButton();
+        btnDeleteRDeposito = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblRegistroDeposito.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblRegistroDeposito);
+
+        btnAddRDeposito.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddRDeposito.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddRDeposito.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddRDeposito.setText("Añadir");
+        btnAddRDeposito.addActionListener(this::btnAddRDepositoActionPerformed);
+
+        btnEditRDeposito.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditRDeposito.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditRDeposito.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditRDeposito.setText("Editar");
+        btnEditRDeposito.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditRDeposito.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditRDeposito.addActionListener(this::btnEditRDepositoActionPerformed);
+
+        btnDeleteRDeposito.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteRDeposito.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteRDeposito.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteRDeposito.setText("Eliminar");
+        btnDeleteRDeposito.addActionListener(this::btnDeleteRDepositoActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddRDeposito)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditRDeposito, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteRDeposito)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddRDeposito, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditRDeposito, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteRDeposito, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddRDepositoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddRDepositoActionPerformed
+        mostrarDialogoRegistroDeposito();
+    }//GEN-LAST:event_btnAddRDepositoActionPerformed
+
+    private void btnEditRDepositoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditRDepositoActionPerformed
+      JOptionPane.showMessageDialog(this, "Un depósito ya registrado no se puede modificar.\nDebe cancelarse y volverse a generar si existe algún error.");
+    
+    }//GEN-LAST:event_btnEditRDepositoActionPerformed
+
+    private void btnDeleteRDepositoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteRDepositoActionPerformed
+       int fila = tblRegistroDeposito.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un depósito del historial para cancelar.");
+            return;
+        }
+
+        String idDeposito = tblRegistroDeposito.getValueAt(fila, 0).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas cancelar el registro del depósito: " + idDeposito + "?", "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por tu tabla real
+                    String sql = "DELETE FROM tabla_depositos WHERE id_deposito = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, idDeposito);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Depósito cancelado correctamente.");
+                        cargarTablaDepositos();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al cancelar: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteRDepositoActionPerformed
+private void mostrarDialogoRegistroDeposito() {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Registro de Depósitos - UNIDAD ESCOLAR BENAVENTE, A.C.", true);
+        dialogo.setSize(850, 700);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. DATOS DE SELECCIÓN ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección"));
+        pnlSel.setBounds(10, 10, 600, 95);
+
+        pnlSel.add(new JLabel("Compañía")).setBounds(15, 20, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(90, 20, 60, 25);
+
+        pnlSel.add(new JLabel("Moneda")).setBounds(400, 20, 60, 25);
+        pnlSel.add(new JTextField("MXP")).setBounds(470, 20, 110, 25);
+
+        pnlSel.add(new JLabel("Fecha Inicial")).setBounds(15, 55, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(90, 55, 90, 25);
+
+        pnlSel.add(new JLabel("Fecha Final")).setBounds(190, 55, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(270, 55, 90, 25);
+
+        pnlSel.add(new JLabel("Forma de Pago")).setBounds(370, 55, 100, 25);
+        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(470, 55, 110, 25);
+
+        dialogo.add(pnlSel);
+
+        // --- 2. TIPO RECIBO Y BOTÓN FILTRAR ---
+        JPanel pnlTipoRecibo = new JPanel(null);
+        pnlTipoRecibo.setBorder(BorderFactory.createTitledBorder("Tipo Recibo"));
+        pnlTipoRecibo.setBounds(620, 10, 200, 55);
+        
+        JRadioButton rbOficial = new JRadioButton("Oficial", true);
+        rbOficial.setBounds(10, 20, 80, 20);
+        JRadioButton rbPart = new JRadioButton("Particular");
+        rbPart.setBounds(100, 20, 90, 20);
+        ButtonGroup bgRecibo = new ButtonGroup(); bgRecibo.add(rbOficial); bgRecibo.add(rbPart);
+        pnlTipoRecibo.add(rbOficial); pnlTipoRecibo.add(rbPart);
+        dialogo.add(pnlTipoRecibo);
+
+        JButton btnFiltra = new JButton("Filtra Información");
+        btnFiltra.setBounds(620, 75, 200, 30);
+        dialogo.add(btnFiltra);
+
+        // --- 3. INFORMACIÓN CONTABLE ---
+        JPanel pnlInfoCont = new JPanel(null);
+        pnlInfoCont.setBorder(BorderFactory.createTitledBorder("Información Contable"));
+        pnlInfoCont.setBounds(10, 110, 810, 60);
+        
+        pnlInfoCont.add(new JLabel("Compañía Dep")).setBounds(15, 20, 100, 25);
+        pnlInfoCont.add(new JComboBox<>(new String[]{"12"})).setBounds(110, 20, 60, 25);
+        
+        pnlInfoCont.add(new JLabel("Fecha Contable")).setBounds(200, 20, 100, 25);
+        pnlInfoCont.add(new JTextField("04/06/2026")).setBounds(300, 20, 90, 25);
+        
+        dialogo.add(pnlInfoCont);
+
+        // --- 4. DATOS DEL DEPOSITO ---
+        JPanel pnlDatosDep = new JPanel(null);
+        pnlDatosDep.setBorder(BorderFactory.createTitledBorder("Datos del Deposito"));
+        pnlDatosDep.setBounds(10, 175, 810, 90);
+
+        pnlDatosDep.add(new JLabel("Cuenta Cargo")).setBounds(15, 20, 100, 25);
+        pnlDatosDep.add(new JComboBox<>(new String[]{""})).setBounds(110, 20, 200, 25);
+
+        pnlDatosDep.add(new JLabel("Tipo de Cambio")).setBounds(580, 20, 100, 25);
+        pnlDatosDep.add(new JTextField("0.0000")).setBounds(690, 20, 100, 25);
+
+        pnlDatosDep.add(new JLabel("Banco")).setBounds(15, 55, 50, 25);
+        pnlDatosDep.add(new JComboBox<>(new String[]{""})).setBounds(110, 55, 120, 25);
+
+        pnlDatosDep.add(new JLabel("Referencia")).setBounds(250, 55, 70, 25);
+        pnlDatosDep.add(new JTextField()).setBounds(330, 55, 180, 25);
+
+        pnlDatosDep.add(new JLabel("Monto a Registrar")).setBounds(520, 55, 120, 25);
+        pnlDatosDep.add(new JTextField("0.00")).setBounds(630, 55, 75, 25);
+        pnlDatosDep.add(new JTextField("0.00")).setBounds(715, 55, 75, 25);
+
+        dialogo.add(pnlDatosDep);
+
+        // --- 5. TABLA DE DEPOSITOS AGRUPADOS ---
+        JTable tblAgrupados = new JTable(new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Compañía", "Ciclo Escolar", "Forma Pago", "Descripción", "Banco", "Descripción", "Fec Pago", "Moneda", "Importe ME"}
+        ));
+        JScrollPane scrollAgrupados = new JScrollPane(tblAgrupados);
+        scrollAgrupados.setBounds(10, 275, 810, 310);
+        scrollAgrupados.setBorder(BorderFactory.createTitledBorder("Depositos Agrupados"));
+        dialogo.add(scrollAgrupados);
+
+        // --- 6. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(280, 600, 110, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(430, 600, 110, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 7. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnFiltra.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Buscando recibos para agrupar... (Simulación)");
+            // Aquí iría la lógica para llenar la tabla `tblAgrupados`
+        });
+
+        btnAceptar.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Depósito registrado y contabilizado con éxito (Simulación).");
+            dialogo.dispose();
+            cargarTablaDepositos(); 
+        });
+
+        // --- 8. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddRDeposito;
+    private javax.swing.JButton btnDeleteRDeposito;
+    private javax.swing.JButton btnEditRDeposito;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblRegistroDeposito;
     // End of variables declaration//GEN-END:variables
 }

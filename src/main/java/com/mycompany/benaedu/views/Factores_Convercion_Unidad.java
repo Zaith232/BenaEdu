@@ -3,7 +3,21 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -15,6 +29,39 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
      */
     public Factores_Convercion_Unidad() {
         initComponents();
+    }
+    
+    private void cargarTablaFactores() {
+        DefaultTableModel modelo = (DefaultTableModel) tblFCUnidad.getModel();
+        modelo.setRowCount(0); 
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia 'tabla_factores' por el nombre de tu tabla
+                String sql = "SELECT um_origen, um_destino, articulo, factor, usuario, fecha_mod, hora_mod FROM tabla_factores";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; 
+                    fila[0] = rs.getString("um_origen");
+                    fila[1] = rs.getString("um_destino");
+                    fila[2] = rs.getString("articulo");
+                    fila[3] = rs.getString("factor");
+                    fila[4] = rs.getString("usuario");
+                    fila[5] = rs.getString("fecha_mod");
+                    fila[6] = rs.getString("hora_mod");
+
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
     }
 
     /**
@@ -47,6 +94,7 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
         btnEditFCUnidad.setText("Editar");
         btnEditFCUnidad.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditFCUnidad.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditFCUnidad.addActionListener(this::btnEditFCUnidadActionPerformed);
 
         btnAddFCUnidad.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnAddFCUnidad.setForeground(new java.awt.Color(26, 61, 99));
@@ -106,13 +154,146 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddFCUnidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFCUnidadActionPerformed
-        // TODO add your handling code here:
+       mostrarDialogoFactor(false);
     }//GEN-LAST:event_btnAddFCUnidadActionPerformed
 
     private void btnDeleteFCUnidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteFCUnidadActionPerformed
-        // TODO add your handling code here:
+        int fila = tblFCUnidad.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un registro para eliminar.");
+            return;
+        }
+
+        // Extraemos las llaves (Origen, Destino y Producto)
+        String origen = tblFCUnidad.getValueAt(fila, 0).toString();
+        String destino = tblFCUnidad.getValueAt(fila, 1).toString();
+        String articulo = tblFCUnidad.getValueAt(fila, 2).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, 
+            "¿Seguro que deseas eliminar la conversión de " + origen + " a " + destino + " para el artículo " + articulo + "?", 
+            "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Cambia 'tabla_factores' por el nombre de tu tabla
+                    // Se usan 3 llaves en el WHERE porque así se identifica un factor único
+                    String sql = "DELETE FROM tabla_factores WHERE um_origen = ? AND um_destino = ? AND articulo = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, origen);
+                    ps.setString(2, destino);
+                    ps.setString(3, articulo);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Registro eliminado.");
+                        cargarTablaFactores();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteFCUnidadActionPerformed
 
+    private void btnEditFCUnidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditFCUnidadActionPerformed
+       if (tblFCUnidad.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una conversión para editar.");
+            return;
+        }
+        mostrarDialogoFactor(true);
+    }//GEN-LAST:event_btnEditFCUnidadActionPerformed
+private void mostrarDialogoFactor(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Conversión de Unidad de medida" : "Agregar Conversión de Unidad de Medida";
+
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(480, 300);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. MARCO PRINCIPAL ---
+        JPanel pnlCentral = new JPanel(null);
+        pnlCentral.setBorder(BorderFactory.createEtchedBorder());
+        pnlCentral.setBounds(15, 15, 435, 170);
+
+        JLabel lblOrigen = new JLabel("Unidad Medida Origen");
+        lblOrigen.setBounds(20, 20, 140, 25);
+        JComboBox<String> cmbOrigen = new JComboBox<>(new String[]{"PZA", "LT", "KG", "ACT", "CJA"});
+        cmbOrigen.setBounds(160, 20, 80, 25);
+        JLabel lblDescOrigen = new JLabel("Piezas"); // Esto se llenaría dinámicamente en un sistema real
+        lblDescOrigen.setBounds(250, 20, 100, 25);
+        if (modoEdicion) cmbOrigen.setEnabled(false); // Llave
+
+        JLabel lblDestino = new JLabel("Unidad Medida Destino");
+        lblDestino.setBounds(20, 55, 140, 25);
+        JComboBox<String> cmbDestino = new JComboBox<>(new String[]{"CJA", "PZA", "KG", "LT", "ACT"});
+        cmbDestino.setBounds(160, 55, 80, 25);
+        JLabel lblDescDestino = new JLabel("Caja");
+        lblDescDestino.setBounds(250, 55, 100, 25);
+        if (modoEdicion) cmbDestino.setEnabled(false); // Llave
+
+        JLabel lblProducto = new JLabel("Producto");
+        lblProducto.setBounds(20, 90, 140, 25);
+        // Aunque en tu imagen parece un combo, usualmente permite escribir el ID. Usaremos un JTextField simulando la cajita.
+        JTextField txtProducto = new JTextField();
+        txtProducto.setBounds(160, 90, 150, 25);
+        if (modoEdicion) txtProducto.setEditable(false); // Llave
+
+        JLabel lblFactor = new JLabel("Factor de Conversión");
+        lblFactor.setBounds(20, 130, 140, 25);
+        JTextField txtFactor = new JTextField();
+        txtFactor.setBounds(160, 130, 80, 25);
+
+        pnlCentral.add(lblOrigen); pnlCentral.add(cmbOrigen); pnlCentral.add(lblDescOrigen);
+        pnlCentral.add(lblDestino); pnlCentral.add(cmbDestino); pnlCentral.add(lblDescDestino);
+        pnlCentral.add(lblProducto); pnlCentral.add(txtProducto);
+        pnlCentral.add(lblFactor); pnlCentral.add(txtFactor);
+
+        dialogo.add(pnlCentral);
+
+        // --- 2. BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(120, 200, 100, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(240, 200, 100, 40);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- 3. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        if (modoEdicion) {
+            int fila = tblFCUnidad.getSelectedRow();
+            
+            cmbOrigen.setSelectedItem(tblFCUnidad.getValueAt(fila, 0).toString());
+            cmbDestino.setSelectedItem(tblFCUnidad.getValueAt(fila, 1).toString());
+            txtProducto.setText(tblFCUnidad.getValueAt(fila, 2).toString());
+            txtFactor.setText(tblFCUnidad.getValueAt(fila, 3).toString());
+        }
+
+        // --- 4. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String factor = txtFactor.getText().trim();
+            if (factor.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El factor de conversión es obligatorio.");
+                return;
+            }
+
+            // Aquí va tu código SQL INSERT o UPDATE
+            JOptionPane.showMessageDialog(dialogo, "Factor de conversión guardado (Simulación).");
+            
+            dialogo.dispose();
+            cargarTablaFactores(); 
+        });
+
+        // --- 5. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddFCUnidad;

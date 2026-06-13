@@ -3,7 +3,27 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 /**
  *
  * @author b17za
@@ -16,7 +36,45 @@ public class Impresion_Facturas extends javax.swing.JPanel {
     public Impresion_Facturas() {
         initComponents();
     }
+private void cargarTablaFacturas() {
+        DefaultTableModel modelo = new DefaultTableModel(
+            new Object[][] {}, 
+            new String[] {"Factura", "Matrícula", "Nombre", "Fecha", "Total", "Estatus", "Usuario"}
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; 
+            }
+        };
+        tblImpresionFactura.setModel(modelo);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                // ATENCIÓN: Cambia por tu tabla real de facturas
+                String sql = "SELECT id_factura, matricula, nombre, fecha, total, estatus, usuario FROM tabla_facturas";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[7]; 
+                    fila[0] = rs.getString("id_factura");
+                    fila[1] = rs.getString("matricula");
+                    fila[2] = rs.getString("nombre");
+                    fila[3] = rs.getString("fecha");
+                    fila[4] = rs.getString("total");
+                    fila[5] = rs.getString("estatus");
+                    fila[6] = rs.getString("usuario");
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -26,19 +84,288 @@ public class Impresion_Facturas extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jPanel1 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblImpresionFactura = new javax.swing.JTable();
+        btnAddIFactura = new javax.swing.JButton();
+        btnEditIFactura = new javax.swing.JButton();
+        btnDeleteIFactura = new javax.swing.JButton();
+
+        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
+
+        tblImpresionFactura.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Title 1", "Title 2", "Title 3", "Title 4"
+            }
+        ));
+        jScrollPane1.setViewportView(tblImpresionFactura);
+
+        btnAddIFactura.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddIFactura.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddIFactura.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddIFactura.setText("Añadir");
+        btnAddIFactura.addActionListener(this::btnAddIFacturaActionPerformed);
+
+        btnEditIFactura.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditIFactura.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditIFactura.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditIFactura.setText("Editar");
+        btnEditIFactura.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditIFactura.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditIFactura.addActionListener(this::btnEditIFacturaActionPerformed);
+
+        btnDeleteIFactura.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeleteIFactura.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeleteIFactura.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeleteIFactura.setText("Eliminar");
+        btnDeleteIFactura.addActionListener(this::btnDeleteIFacturaActionPerformed);
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(btnAddIFactura)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnEditIFactura, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnDeleteIFactura)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnAddIFactura, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditIFactura, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeleteIFactura, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 24, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 750, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 430, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnAddIFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddIFacturaActionPerformed
+     mostrarDialogoFacturacion();
+    }//GEN-LAST:event_btnAddIFacturaActionPerformed
+
+    private void btnEditIFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditIFacturaActionPerformed
+      JOptionPane.showMessageDialog(this, "Las facturas timbradas no pueden modificarse.\nSi requieres hacer cambios, debes cancelarla y generar una nueva.");
+    }//GEN-LAST:event_btnEditIFacturaActionPerformed
+
+    private void btnDeleteIFacturaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteIFacturaActionPerformed
+      int fila = tblImpresionFactura.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona una factura del historial para cancelar.");
+            return;
+        }
+
+        String idFactura = tblImpresionFactura.getValueAt(fila, 0).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas cancelar la factura: " + idFactura + "?", "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // ATENCIÓN: Cambia por el nombre real de tu tabla de facturas
+                    String sql = "UPDATE tabla_facturas SET estatus = 'CANCELADA' WHERE id_factura = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, idFactura);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Factura cancelada correctamente.");
+                        cargarTablaFacturas();
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al cancelar la factura: " + e.getMessage());
+            }
+        }
+    }//GEN-LAST:event_btnDeleteIFacturaActionPerformed
+private void mostrarDialogoFacturacion() {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Impresión de Facturas", true);
+        dialogo.setSize(950, 750);
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        // --- 1. DATOS DE SELECCIÓN ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección"));
+        pnlSel.setBounds(10, 10, 680, 90);
+
+        pnlSel.add(new JLabel("Compañía")).setBounds(15, 20, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(85, 20, 60, 25);
+        pnlSel.add(new JLabel("Matrícula")).setBounds(15, 55, 70, 25);
+        pnlSel.add(new JTextField()).setBounds(85, 55, 100, 25);
+
+        pnlSel.add(new JLabel("C. Costos")).setBounds(200, 20, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"12100"})).setBounds(270, 20, 80, 25);
+        pnlSel.add(new JLabel("Fecha Inicial")).setBounds(200, 55, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(280, 55, 90, 25);
+
+        pnlSel.add(new JLabel("Moneda")).setBounds(400, 20, 70, 25);
+        pnlSel.add(new JComboBox<>(new String[]{"MXP"})).setBounds(470, 20, 80, 25);
+        pnlSel.add(new JLabel("Fecha Final")).setBounds(400, 55, 80, 25);
+        pnlSel.add(new JTextField("04/06/2026")).setBounds(480, 55, 90, 25);
+
+        dialogo.add(pnlSel);
+
+        // Botón Filtra y Total a Facturar
+        JButton btnFiltra = new JButton("Filtra Información");
+        btnFiltra.setBounds(710, 25, 200, 30);
+        dialogo.add(btnFiltra);
+
+        JPanel pnlTotal = new JPanel(null);
+        pnlTotal.setBorder(BorderFactory.createTitledBorder("Total a facturar"));
+        pnlTotal.setBounds(710, 60, 200, 50);
+        JTextField txtTotal = new JTextField("0.00");
+        txtTotal.setHorizontalAlignment(JTextField.RIGHT);
+        txtTotal.setBounds(20, 15, 160, 25);
+        txtTotal.setEditable(false);
+        pnlTotal.add(txtTotal);
+        dialogo.add(pnlTotal);
+
+        // --- 2. INFORMACIÓN DE FACTURA ---
+        JPanel pnlInfoFac = new JPanel(null);
+        pnlInfoFac.setBorder(BorderFactory.createTitledBorder("Información de Factura"));
+        pnlInfoFac.setBounds(10, 110, 900, 60);
+        pnlInfoFac.add(new JLabel("Fecha Factura")).setBounds(15, 20, 90, 25);
+        pnlInfoFac.add(new JTextField("04/06/2026")).setBounds(105, 20, 90, 25);
+        pnlInfoFac.add(new JLabel("Numero Factura")).setBounds(220, 20, 100, 25);
+        pnlInfoFac.add(new JTextField()).setBounds(320, 20, 100, 25);
+        pnlInfoFac.add(new JComboBox<>(new String[]{"FE"})).setBounds(440, 20, 60, 25);
+        pnlInfoFac.add(new JCheckBox("Factura Detallada", true)).setBounds(520, 20, 150, 25);
+        dialogo.add(pnlInfoFac);
+
+        // --- 3. PESTAÑAS (TABS) FISCAL ---
+        JTabbedPane pestanas = new JTabbedPane();
+        pestanas.setBounds(10, 180, 900, 270);
+
+        JPanel pnlFiscal = new JPanel(null);
+        
+        // Campos dentro de la pestaña fiscal
+        pnlFiscal.add(new JLabel("Nombre")).setBounds(20, 20, 80, 25);
+        pnlFiscal.add(new JTextField()).setBounds(100, 20, 750, 25);
+        
+        pnlFiscal.add(new JLabel("Calle")).setBounds(20, 55, 80, 25);
+        pnlFiscal.add(new JTextField()).setBounds(100, 55, 450, 25);
+        pnlFiscal.add(new JLabel("No. Ext")).setBounds(570, 55, 50, 25);
+        pnlFiscal.add(new JTextField()).setBounds(630, 55, 220, 25);
+
+        pnlFiscal.add(new JLabel("Colonia")).setBounds(20, 90, 80, 25);
+        pnlFiscal.add(new JTextField()).setBounds(100, 90, 450, 25);
+        pnlFiscal.add(new JLabel("No. Int")).setBounds(570, 90, 50, 25);
+        pnlFiscal.add(new JTextField()).setBounds(630, 90, 220, 25);
+
+        pnlFiscal.add(new JLabel("Población")).setBounds(20, 125, 80, 25);
+        pnlFiscal.add(new JComboBox<>(new String[]{""})).setBounds(100, 125, 120, 25);
+        pnlFiscal.add(new JLabel("Estado")).setBounds(240, 125, 50, 25);
+        pnlFiscal.add(new JComboBox<>(new String[]{""})).setBounds(290, 125, 100, 25);
+        pnlFiscal.add(new JLabel("País")).setBounds(410, 125, 40, 25);
+        pnlFiscal.add(new JComboBox<>(new String[]{""})).setBounds(450, 125, 80, 25);
+        pnlFiscal.add(new JLabel("Código Postal")).setBounds(550, 125, 90, 25);
+        pnlFiscal.add(new JTextField()).setBounds(650, 125, 200, 25);
+
+        pnlFiscal.add(new JLabel("R.F.C.")).setBounds(20, 160, 80, 25);
+        pnlFiscal.add(new JTextField()).setBounds(100, 160, 200, 25);
+        pnlFiscal.add(new JLabel("Teléfono")).setBounds(460, 160, 70, 25);
+        pnlFiscal.add(new JTextField()).setBounds(540, 160, 310, 25);
+
+        pnlFiscal.add(new JLabel("CURP")).setBounds(20, 195, 80, 25);
+        pnlFiscal.add(new JTextField()).setBounds(100, 195, 200, 25);
+        pnlFiscal.add(new JLabel("Correo Electrónico")).setBounds(380, 195, 150, 25);
+        pnlFiscal.add(new JTextField()).setBounds(540, 195, 310, 25);
+
+        // Opciones de método y botón interno
+        pnlFiscal.add(new JLabel("Método")).setBounds(20, 230, 60, 25);
+        pnlFiscal.add(new JComboBox<>(new String[]{""})).setBounds(80, 230, 70, 25);
+        pnlFiscal.add(new JLabel("Banco")).setBounds(170, 230, 50, 25);
+        pnlFiscal.add(new JComboBox<>(new String[]{""})).setBounds(220, 230, 70, 25);
+        pnlFiscal.add(new JLabel("Cuenta")).setBounds(310, 230, 50, 25);
+        pnlFiscal.add(new JTextField()).setBounds(360, 230, 80, 25);
+
+        pnlFiscal.add(new JLabel("Utilizar Método de")).setBounds(460, 230, 120, 25);
+        JRadioButton rbRecibo = new JRadioButton("Recibo", true); rbRecibo.setBounds(580, 230, 70, 25);
+        JRadioButton rbAlum = new JRadioButton("Alumno"); rbAlum.setBounds(650, 230, 80, 25);
+        ButtonGroup bgMetodo = new ButtonGroup(); bgMetodo.add(rbRecibo); bgMetodo.add(rbAlum);
+        pnlFiscal.add(rbRecibo); pnlFiscal.add(rbAlum);
+
+        JButton btnAceptarInterno = new JButton("Aceptar");
+        btnAceptarInterno.setBounds(750, 225, 100, 30);
+        pnlFiscal.add(btnAceptarInterno);
+
+        pestanas.addTab("Información Fiscal", pnlFiscal);
+        pestanas.addTab("Concepto en Factura", new JPanel()); // Pestaña vacía
+
+        dialogo.add(pestanas);
+
+        // --- 4. TABLA DE RECIBOS SIN FACTURAR ---
+        JTable tblRecibos = new JTable(new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Compañía", "C. Costos", "Descripción", "Ciclo Escolar", "Matrícula", "Num Recibo", "Tipo", "Fec Recibo", "Moneda", "Importe MN"}
+        ));
+        JScrollPane scrollRecibos = new JScrollPane(tblRecibos);
+        scrollRecibos.setBounds(10, 460, 900, 180);
+        scrollRecibos.setBorder(BorderFactory.createTitledBorder("Recibos Sin Facturar"));
+        dialogo.add(scrollRecibos);
+
+        // --- 5. BOTONES INFERIORES ---
+        JButton btnGenerar = new JButton("Aceptar");
+        btnGenerar.setBounds(340, 655, 110, 40);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(470, 655, 110, 40);
+
+        dialogo.add(btnGenerar);
+        dialogo.add(btnSalir);
+
+        // --- 6. EVENTOS ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnFiltra.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Filtrando recibos pendientes... (Simulación)");
+            // Aquí agregarías la lógica para llenar `tblRecibos`
+        });
+
+        btnGenerar.addActionListener(e -> {
+            JOptionPane.showMessageDialog(dialogo, "Generando e imprimiendo factura... (Simulación)");
+            dialogo.dispose();
+            cargarTablaFacturas(); 
+        });
+
+        // --- 7. MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddIFactura;
+    private javax.swing.JButton btnDeleteIFactura;
+    private javax.swing.JButton btnEditIFactura;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblImpresionFactura;
     // End of variables declaration//GEN-END:variables
 }

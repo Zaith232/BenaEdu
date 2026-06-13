@@ -94,7 +94,6 @@
                           <Component id="btnInfoMaestra" max="32767" attributes="0"/>
                           <Component id="lblLogo" alignment="0" min="-2" pref="258" max="-2" attributes="0"/>
                           <Component id="btnEscolar" alignment="0" max="32767" attributes="0"/>
-                          <Component id="btnAcademico" alignment="0" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                   </Group>
@@ -111,8 +110,6 @@
                       <Component id="btnTransacciones" min="-2" pref="50" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="btnEscolar" min="-2" pref="50" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="btnAcademico" min="-2" pref="50" max="-2" attributes="0"/>
                       <EmptySpace max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -164,7 +161,7 @@
                 <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
                   <Image iconType="3" name="/transaccion.png"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Transacciones"/>
+                <Property name="text" type="java.lang.String" value="Contabilidad"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
                     <EmptyBorder bottom="1" left="10" right="1" top="1"/>
@@ -193,34 +190,6 @@
                   <Image iconType="3" name="/escolar2.png"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="Escolar"/>
-                <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
-                  <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
-                    <EmptyBorder bottom="1" left="10" right="1" top="1"/>
-                  </Border>
-                </Property>
-                <Property name="borderPainted" type="boolean" value="false"/>
-                <Property name="cursor" type="java.awt.Cursor" editor="org.netbeans.modules.form.editors2.CursorEditor">
-                  <Color id="Hand Cursor"/>
-                </Property>
-                <Property name="horizontalAlignment" type="int" value="2"/>
-                <Property name="iconTextGap" type="int" value="10"/>
-              </Properties>
-            </Component>
-            <Component class="javax.swing.JButton" name="btnAcademico">
-              <Properties>
-                <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="e5" green="cf" red="b3" type="rgb"/>
-                </Property>
-                <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-                  <Font name="Segoe UI" size="14" style="1"/>
-                </Property>
-                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="63" green="3d" red="1a" type="rgb"/>
-                </Property>
-                <Property name="icon" type="javax.swing.Icon" editor="org.netbeans.modules.form.editors2.IconEditor">
-                  <Image iconType="3" name="/academico2.png"/>
-                </Property>
-                <Property name="text" type="java.lang.String" value="Academico"/>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
                     <EmptyBorder bottom="1" left="10" right="1" top="1"/>
