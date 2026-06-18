@@ -30,8 +30,9 @@ public class Ciclos_Escolares extends javax.swing.JPanel {
      */
     public Ciclos_Escolares() {
         initComponents();
+        cargarTablaCiclos();
     }
-private void cargarTablaCiclos() {
+    private void cargarTablaCiclos() {
         DefaultTableModel modelo = (DefaultTableModel) tblCEscolar.getModel();
         modelo.setRowCount(0); 
 
@@ -40,28 +41,54 @@ private void cargarTablaCiclos() {
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_ciclos' por tu tabla real
-                String sql = "SELECT compania, centro_costos, ciclo, descripcion, fecha_ini, fecha_fin, usuario, fecha_mod, hora_mod FROM tabla_ciclos";
+                // Consulta con los nombres reales de la tabla tescesc
+                String sql = "SELECT CIA, CC, CESC, CDSC, FINI, FFIN, USER, FEAC, HOAC FROM tescesc";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[9]; 
-                    fila[0] = rs.getString("compania");
-                    fila[1] = rs.getString("centro_costos");
-                    fila[2] = rs.getString("ciclo");
-                    fila[3] = rs.getString("descripcion");
-                    fila[4] = rs.getString("fecha_ini");
-                    fila[5] = rs.getString("fecha_fin");
-                    fila[6] = rs.getString("usuario");
-                    fila[7] = rs.getString("fecha_mod");
-                    fila[8] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("CIA");
+                    fila[1] = rs.getString("CC");
+                    fila[2] = rs.getString("CESC");
+                    fila[3] = rs.getString("CDSC");
+                    fila[4] = rs.getString("FINI");
+                    fila[5] = rs.getString("FFIN");
+                    fila[6] = rs.getString("USER");
+                    fila[7] = rs.getString("FEAC");
+                    fila[8] = rs.getString("HOAC");
+
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
+                
+                // ¡Llamamos a la magia para ajustar los anchos!
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Ciclos Escolares: " + e.getMessage());
+        }
+    }
+
+    // --- MÉTODO PARA AUTO-AJUSTAR ANCHO DE COLUMNAS ---
+    private void adaptarTamañoColumnas() {
+        tblCEscolar.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        
+        for (int i = 0; i < tblCEscolar.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblCEscolar.getColumnModel().getColumn(i);
+            int anchoPreferido = 50; 
+            
+            java.awt.Component compCabecera = tblCEscolar.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblCEscolar, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+            
+            for (int r = 0; r < tblCEscolar.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblCEscolar.getCellRenderer(r, i);
+                java.awt.Component c = tblCEscolar.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            
+            columna.setPreferredWidth(anchoPreferido); 
         }
     }
     /**
@@ -90,7 +117,7 @@ private void cargarTablaCiclos() {
                 {null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Compañia", "Centro_Costos", "Ciclo_Escolar", "Descripción", "Fech. Inicial", "Fech. Final", "Usuario", "Fech. Ult. Act", "Hora. Ult. Act"
+                "Compañia", "Centro Costos", "Ciclo Escolar", "Descripción", "Fech. Inicial", "Fech. Final", "Usuario", "Fech. Ult. Act", "Hora. Ult. Act"
             }
         ));
         jScrollPane1.setViewportView(tblCEscolar);
@@ -158,7 +185,7 @@ private void cargarTablaCiclos() {
     }//GEN-LAST:event_btnAddCEscolarActionPerformed
 
     private void btnDeleteCEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCEscolarActionPerformed
-       int fila = tblCEscolar.getSelectedRow();
+      int fila = tblCEscolar.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un ciclo escolar para eliminar.");
             return;
@@ -169,23 +196,25 @@ private void cargarTablaCiclos() {
         String ciclo = tblCEscolar.getValueAt(fila, 2).toString();
         String desc = tblCEscolar.getValueAt(fila, 3).toString();
         
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el ciclo " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar el ciclo:\n" + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // ATENCIÓN: Cambia por tu tabla real. Se usan 3 llaves (Cia, CC, Ciclo)
-                    String sql = "DELETE FROM tabla_ciclos WHERE compania = ? AND centro_costos = ? AND ciclo = ?";
+                    // Borramos utilizando las 3 llaves primarias
+                    String sql = "DELETE FROM tescesc WHERE CIA = ? AND CC = ? AND CESC = ?";
                     PreparedStatement ps = con.prepareStatement(sql);
                     ps.setString(1, compania);
                     ps.setString(2, cc);
                     ps.setString(3, ciclo);
                     
                     if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Ciclo escolar eliminado.");
-                        cargarTablaCiclos();
+                        JOptionPane.showMessageDialog(this, "Ciclo escolar eliminado correctamente.");
+                        cargarTablaCiclos(); // Refrescamos la tabla
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -214,16 +243,16 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblCia = new JLabel("Compañía");
         lblCia.setBounds(20, 15, 80, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12", "13"});
         cmbCia.setBounds(110, 15, 60, 25);
         JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
         lblCiaDesc.setBounds(180, 15, 250, 25);
 
         JLabel lblCC = new JLabel("Centro Costos");
         lblCC.setBounds(20, 45, 90, 25);
-        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", ""});
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", "12200", "12300", "12400"}); // Opciones de tu BD
         cmbCC.setBounds(110, 45, 80, 25);
-        JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE (JARDIN)");
+        JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE");
         lblCCDesc.setBounds(200, 45, 250, 25);
 
         JLabel lblCiclo = new JLabel("Ciclo");
@@ -236,10 +265,11 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         JTextField txtDesc = new JTextField();
         txtDesc.setBounds(110, 105, 380, 25);
 
+        // Bloqueamos llaves primarias en edición
         if (modoEdicion) {
             cmbCia.setEnabled(false);
             cmbCC.setEnabled(false);
-            txtCiclo.setEditable(false); // Llaves primarias bloqueadas al editar
+            txtCiclo.setEditable(false); 
         }
 
         dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
@@ -260,12 +290,12 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
 
         JLabel lblFecIni = new JLabel("Fecha Inicial");
         lblFecIni.setBounds(120, 20, 80, 25);
-        JTextField txtFecIni = new JTextField("04/06/2026"); // Simula el date picker
+        JTextField txtFecIni = new JTextField(); 
         txtFecIni.setBounds(200, 20, 80, 25);
 
         JLabel lblFecFin = new JLabel("Fecha Final");
         lblFecFin.setBounds(300, 20, 80, 25);
-        JTextField txtFecFin = new JTextField("04/06/2026");
+        JTextField txtFecFin = new JTextField();
         txtFecFin.setBounds(370, 20, 80, 25);
 
         JLabel lblRef = new JLabel("Código utilizado en Referencias Bancarias");
@@ -284,12 +314,12 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
 
         JLabel lblFecLim = new JLabel("Fecha Límite Anualidad");
         lblFecLim.setBounds(20, 20, 140, 25);
-        JTextField txtFecLim = new JTextField("04/06/2026");
+        JTextField txtFecLim = new JTextField();
         txtFecLim.setBounds(160, 20, 80, 25);
 
         JLabel lblDescAnu = new JLabel("% Descuento Anualidad");
         lblDescAnu.setBounds(260, 20, 140, 25);
-        JTextField txtDescAnu = new JTextField("0.00");
+        JTextField txtDescAnu = new JTextField("0");
         txtDescAnu.setBounds(400, 20, 50, 25);
 
         pnlAnualidad.add(lblFecLim); pnlAnualidad.add(txtFecLim);
@@ -315,7 +345,7 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         pnlGenerales.add(pnlPoliticas); pnlGenerales.add(pnlPlan);
 
         pestanas.addTab("Datos Generales", pnlGenerales);
-        pestanas.addTab("Incorporación", new JPanel()); // Pestaña vacía por ahora
+        pestanas.addTab("Incorporación", new JPanel()); // Pestaña vacía
         dialogo.add(pestanas);
 
         // --- 3. BOTONES INFERIORES ---
@@ -330,31 +360,104 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
             int fila = tblCEscolar.getSelectedRow();
-            // Asegúrate de que los índices coinciden con tblCEscolar
-            cmbCia.setSelectedItem(tblCEscolar.getValueAt(fila, 0).toString());
-            cmbCC.setSelectedItem(tblCEscolar.getValueAt(fila, 1).toString());
-            txtCiclo.setText(tblCEscolar.getValueAt(fila, 2).toString());
-            txtDesc.setText(tblCEscolar.getValueAt(fila, 3).toString());
-            txtFecIni.setText(tblCEscolar.getValueAt(fila, 4).toString());
-            txtFecFin.setText(tblCEscolar.getValueAt(fila, 5).toString());
-            // Llenarías el resto (Descuento, Fecha límite, Código bancario...)
+            String cia = tblCEscolar.getValueAt(fila, 0).toString();
+            String cc = tblCEscolar.getValueAt(fila, 1).toString();
+            String ciclo = tblCEscolar.getValueAt(fila, 2).toString();
+
+            cmbCia.setSelectedItem(cia);
+            cmbCC.setSelectedItem(cc);
+            txtCiclo.setText(ciclo);
+            txtDesc.setText(tblCEscolar.getValueAt(fila, 3) != null ? tblCEscolar.getValueAt(fila, 3).toString() : "");
+            txtFecIni.setText(tblCEscolar.getValueAt(fila, 4) != null ? tblCEscolar.getValueAt(fila, 4).toString() : "");
+            txtFecFin.setText(tblCEscolar.getValueAt(fila, 5) != null ? tblCEscolar.getValueAt(fila, 5).toString() : "");
+
+            // Buscamos los datos extra directo en la BD
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement("SELECT CODREF, FLIMA, PDSCA FROM tescesc WHERE CIA = ? AND CC = ? AND CESC = ?");
+                    ps.setString(1, cia);
+                    ps.setString(2, cc);
+                    ps.setString(3, ciclo);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        txtRef.setText(rs.getString("CODREF") != null ? rs.getString("CODREF") : "");
+                        txtFecLim.setText(rs.getString("FLIMA") != null ? rs.getString("FLIMA") : "");
+                        txtDescAnu.setText(rs.getString("PDSCA") != null ? rs.getString("PDSCA") : "0");
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                // Ignorar si no se pudieron cargar los datos adicionales
+            }
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
+            String cia = cmbCia.getSelectedItem().toString();
+            String cc = cmbCC.getSelectedItem().toString();
             String ciclo = txtCiclo.getText().trim();
-            if (ciclo.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El ciclo no puede estar vacío.");
+            String desc = txtDesc.getText().trim();
+            String fecIni = txtFecIni.getText().trim();
+            String fecFin = txtFecFin.getText().trim();
+            String ref = txtRef.getText().trim();
+            String fecLim = txtFecLim.getText().trim();
+            String descAnu = txtDescAnu.getText().trim().isEmpty() ? "0" : txtDescAnu.getText().trim();
+
+            if (ciclo.isEmpty() || desc.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El ciclo y la descripción son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Lógica SQL (INSERT / UPDATE)
-            JOptionPane.showMessageDialog(dialogo, "Ciclo escolar guardado (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaCiclos(); // Refresca la vista principal
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // UPDATE 
+                        String sql = "UPDATE tescesc SET CDSC=?, FINI=?, FFIN=?, CODREF=?, FLIMA=?, PDSCA=? WHERE CIA=? AND CC=? AND CESC=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, desc);
+                        ps.setString(2, fecIni);
+                        ps.setString(3, fecFin);
+                        ps.setString(4, ref);
+                        ps.setString(5, fecLim);
+                        ps.setString(6, descAnu);
+                        ps.setString(7, cia);
+                        ps.setString(8, cc);
+                        ps.setString(9, ciclo);
+                    } else {
+                        // INSERT
+                        String sql = "INSERT INTO tescesc (CIA, CC, CESC, CDSC, FINI, FFIN, CODREF, FLIMA, PDSCA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, cia);
+                        ps.setString(2, cc);
+                        ps.setString(3, ciclo);
+                        ps.setString(4, desc);
+                        ps.setString(5, fecIni);
+                        ps.setString(6, fecFin);
+                        ps.setString(7, ref);
+                        ps.setString(8, fecLim);
+                        ps.setString(9, descAnu);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Ciclo Escolar guardado con éxito.");
+                        dialogo.dispose();
+                        cargarTablaCiclos(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---

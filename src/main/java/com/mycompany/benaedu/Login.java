@@ -239,12 +239,72 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_btnCreateUserActionPerformed
 
     private void btnForgotPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnForgotPasswordActionPerformed
-        this.dispose(); // Cierra la ventana actual
-    FlatMTMaterialLighterIJTheme.setup();
-    RecuperarContraseña recuperarContraseña = new RecuperarContraseña();
-    recuperarContraseña.setSize(893, 540);
-    recuperarContraseña.setLocationRelativeTo(null);
-    recuperarContraseña.setVisible(true);
+     // 1. Pedir contraseña mediante una ventana emergente
+        javax.swing.JPasswordField pwdField = new javax.swing.JPasswordField();
+        int opcion = JOptionPane.showConfirmDialog(
+            this,
+            pwdField,
+            "Ingrese la contraseña de un Administrador para continuar",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (opcion == JOptionPane.OK_OPTION) {
+            String claveIngresada = new String(pwdField.getPassword()).trim();
+
+            if (claveIngresada.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "La contraseña no puede estar vacía.");
+                return;
+            }
+
+            try {
+                // 2. Conectar a la base de datos usando tu clase ConDB
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                
+                if (con == null) {
+                    JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
+                    return;
+                }
+
+                // 3. Consultar las contraseñas de todos los administradores
+                PreparedStatement ps = con.prepareStatement("SELECT contrasena FROM users WHERE rol = 'Administrador'");
+                ResultSet rs = ps.executeQuery();
+
+                boolean adminValido = false;
+
+                // 4. Comparar la clave ingresada contra los hashes de la BD usando BCrypt
+                while (rs.next()) {
+                    String hashAdmin = rs.getString("contrasena");
+                    
+                    if (BCrypt.checkpw(claveIngresada, hashAdmin)) {
+                        adminValido = true;
+                        break; // Si coincide con algún admin, detenemos el ciclo
+                    }
+                }
+
+                // 5. Decidir qué hacer según el resultado
+                if (adminValido) {
+                    // Contraseña correcta -> Abrir la pantalla de recuperación
+                    this.dispose(); // Cierra el login actual
+                    FlatMTMaterialLighterIJTheme.setup();
+                    RecuperarContraseña recuperarContraseña = new RecuperarContraseña();
+                    recuperarContraseña.setSize(893, 540);
+                    recuperarContraseña.setLocationRelativeTo(null);
+                    recuperarContraseña.setVisible(true);
+                } else {
+                    // Contraseña incorrecta
+                    JOptionPane.showMessageDialog(this, "Contraseña incorrecta o no pertenece a un administrador.", "Acceso Denegado", JOptionPane.ERROR_MESSAGE);
+                }
+
+                rs.close();
+                ps.close();
+                db.Cerrar();
+
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error en la base de datos: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnForgotPasswordActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed

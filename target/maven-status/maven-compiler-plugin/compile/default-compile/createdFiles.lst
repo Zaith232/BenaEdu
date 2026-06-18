@@ -97,12 +97,12 @@ com\mycompany\benaedu\add\DialogoCompania.class
 com\mycompany\benaedu\views\Catalogo_Alumnos.class
 com\mycompany\benaedu\Login.class
 com\mycompany\benaedu\views\Auxiliar_Movimientos$1.class
+com\mycompany\benaedu\views\Catalogo_Cuentas.class
 com\mycompany\benaedu\GestionarUsuario.class
 com\mycompany\benaedu\views\Impresion_Facturas$1.class
 com\mycompany\benaedu\views\Tipos_Impuestos.class
 com\mycompany\benaedu\Dashboard$1.class
 com\mycompany\benaedu\views\Resumen_Inscripciones$1.class
-com\mycompany\benaedu\views\Cuentas_Bancarias.class
 com\mycompany\benaedu\views\Poliza_Diario$1.class
 com\mycompany\benaedu\views\Companias.class
 com\mycompany\benaedu\views\Cierre_Mes.class

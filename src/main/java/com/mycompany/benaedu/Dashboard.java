@@ -191,7 +191,7 @@ public class Dashboard extends javax.swing.JFrame {
         m50.addMouseListener(evtOcultar); m60.addMouseListener(evtOcultar); m70.addMouseListener(evtOcultar); m80.addMouseListener(evtOcultar);
 
         // Acciones
-        iCtas.addActionListener(e -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción...")); // FALTANTE
+        iCtas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(), "Cátalogo de Cuentas")); 
         iPolizas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Captura_Polizas(), "Captura de Pólizas"));
         iAux.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Auxiliar_Movimientos(), "Auxiliar de Movimientos"));
         iPolDia.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Poliza_Diario(), "Póliza de Diario"));
@@ -414,7 +414,7 @@ public class Dashboard extends javax.swing.JFrame {
         opcionesSistema.put("Convertir Unidad de Medida", () -> mostrarPanel(new com.mycompany.benaedu.views.Factores_Convercion_Unidad(), "Convertir Unidad de Medida"));
 
         // --- CONTABILIDAD ---
-        opcionesSistema.put("Catálogo de Cuentas", () -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción..."));
+        opcionesSistema.put("Catálogo de Cuentas", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(),"Catálogo de Cuentas"));
         opcionesSistema.put("Captura de Pólizas", () -> mostrarPanel(new com.mycompany.benaedu.views.Captura_Polizas(), "Captura de Pólizas"));
         opcionesSistema.put("Auxiliar de Movimientos", () -> mostrarPanel(new com.mycompany.benaedu.views.Auxiliar_Movimientos(), "Auxiliar de Movimientos"));
         opcionesSistema.put("Póliza de Diario", () -> mostrarPanel(new com.mycompany.benaedu.views.Poliza_Diario(), "Póliza de Diario"));
@@ -539,34 +539,33 @@ public class Dashboard extends javax.swing.JFrame {
         }
     });
 }
- private void buscarOpciones(String texto) {
-
+private void buscarOpciones(String texto) {
+    // 1. Ocultamos y limpiamos el menú para reconstruirlo desde cero y evitar huecos
+    menuResultadosBusqueda.setVisible(false);
     menuResultadosBusqueda.removeAll();
     indiceSeleccionadoBusqueda = -1;
 
     texto = texto.trim();
 
     if (texto.isEmpty()) {
-        menuResultadosBusqueda.setVisible(false);
-        return;
+        return; // Si no hay texto, se queda oculto
     }
 
     String textoBusqueda = texto.toLowerCase();
     int coincidencias = 0;
 
     for (java.util.Map.Entry<String, Runnable> opcion : opcionesSistema.entrySet()) {
-
         String nombreOpcion = opcion.getKey();
 
         if (nombreOpcion.toLowerCase().contains(textoBusqueda)) {
-
             javax.swing.JMenuItem itemResultado = new javax.swing.JMenuItem(nombreOpcion);
-
             itemResultado.setFocusable(false);
+            
+            // Le damos un pequeño margen para que no se vea amontonado
+            itemResultado.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
             itemResultado.addActionListener(e -> {
                 opcion.getValue().run();
-
                 txtSearch.setText("");
                 menuResultadosBusqueda.setVisible(false);
                 indiceSeleccionadoBusqueda = -1;
@@ -578,17 +577,25 @@ public class Dashboard extends javax.swing.JFrame {
 
             menuResultadosBusqueda.add(itemResultado);
             coincidencias++;
+            
+            // TRUCO 1: Limitamos a 8 resultados máximo para que el menú no crezca 
+            // tanto que Java decida voltearlo hacia arriba tapando tu buscador.
+            if (coincidencias >= 8) {
+                break; 
+            }
         }
     }
 
     if (coincidencias > 0) {
+        // TRUCO 2: pack() obliga al menú a encogerse al tamaño exacto de sus items.
+        // Esto elimina todo el espacio en blanco gigante que tenías.
+        menuResultadosBusqueda.pack(); 
+        
+        // TRUCO 3: Obligamos al menú a tener el mismo ancho exacto que la barra de búsqueda txtSearch
+        menuResultadosBusqueda.setPopupSize(txtSearch.getWidth(), menuResultadosBusqueda.getPreferredSize().height);
 
-        if (!menuResultadosBusqueda.isVisible()) {
-            menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight());
-        }
-
-        menuResultadosBusqueda.revalidate();
-        menuResultadosBusqueda.repaint();
+        // Mostramos el menú 2 pixeles por debajo del buscador para que no lo tape
+        menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight() + 2);
 
         javax.swing.SwingUtilities.invokeLater(() -> {
             txtSearch.requestFocusInWindow();
