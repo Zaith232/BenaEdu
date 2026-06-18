@@ -33,6 +33,7 @@ public class Catalogo_Cuentas_Bancarias extends javax.swing.JPanel {
      */
     public Catalogo_Cuentas_Bancarias() {
         initComponents();
+        cargarTablaCuentas();
     }
 private void cargarTablaCuentas() {
         DefaultTableModel modelo = (DefaultTableModel) tblCCBancarias.getModel();
@@ -43,23 +44,23 @@ private void cargarTablaCuentas() {
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_cuentas' por tu tabla real
-                String sql = "SELECT compania, cuenta, descripcion, banco, cta_bancaria, cheque, moneda, usuario, fecha_mod, hora_mod FROM tabla_cuentas";
+                // Consulta a la tabla tmcban
+                String sql = "SELECT CIA, CCTA, CBCO, CBAN, CSIG, CMON, USER, FEAC, HOAC FROM tmcban";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[10]; 
-                    fila[0] = rs.getString("compania");
-                    fila[1] = rs.getString("cuenta");
-                    fila[2] = rs.getString("descripcion");
-                    fila[3] = rs.getString("banco");
-                    fila[4] = rs.getString("cta_bancaria");
-                    fila[5] = rs.getString("cheque");
-                    fila[6] = rs.getString("moneda");
-                    fila[7] = rs.getString("usuario");
-                    fila[8] = rs.getString("fecha_mod");
-                    fila[9] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("CIA");
+                    fila[1] = rs.getString("CCTA");
+                    fila[2] = "NO. CUENTA - " + rs.getString("CBAN"); // Simulamos la descripción
+                    fila[3] = rs.getString("CBCO");
+                    fila[4] = rs.getString("CBAN");
+                    fila[5] = rs.getString("CSIG");
+                    fila[6] = rs.getString("CMON");
+                    fila[7] = rs.getString("USER");
+                    fila[8] = rs.getString("FEAC");
+                    fila[9] = rs.getString("HOAC");
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
@@ -162,27 +163,34 @@ private void cargarTablaCuentas() {
     }//GEN-LAST:event_btnAddCCBancariasActionPerformed
 
     private void btnDeleteCCBancariasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCCBancariasActionPerformed
-       int fila = tblCCBancarias.getSelectedRow();
+   int fila = tblCCBancarias.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona una cuenta para eliminar.");
             return;
         }
 
-        // Suponiendo que la Clave está en la columna 1
-        String cuenta = tblCCBancarias.getValueAt(fila, 1).toString(); 
-        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar la cuenta " + cuenta + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        String cia = tblCCBancarias.getValueAt(fila, 0).toString(); 
+        String cuentaContable = tblCCBancarias.getValueAt(fila, 1).toString(); 
+        
+        int resp = JOptionPane.showConfirmDialog(this, 
+                "¿Seguro que deseas eliminar la cuenta " + cuentaContable + " de la compañía " + cia + "?", 
+                "Confirmar", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // ATENCIÓN: Cambia por el nombre de tu tabla
-                    PreparedStatement ps = con.prepareStatement("DELETE FROM tabla_cuentas WHERE cuenta = ?");
-                    ps.setString(1, cuenta);
+                    // Borramos utilizando las 2 llaves primarias
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM tmcban WHERE CIA = ? AND CCTA = ?");
+                    ps.setString(1, cia);
+                    ps.setString(2, cuentaContable);
+                    
                     if (ps.executeUpdate() > 0) {
                         JOptionPane.showMessageDialog(this, "Cuenta eliminada.");
-                        cargarTablaCuentas();
+                        cargarTablaCuentas(); // Refrescamos la tabla
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -211,20 +219,20 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblCia = new JLabel("Compañía");
         lblCia.setBounds(20, 15, 100, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12", "13"});
         cmbCia.setBounds(130, 15, 70, 25);
         JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
         lblCiaDesc.setBounds(210, 15, 250, 25);
 
         JLabel lblCtaContable = new JLabel("Cuenta Contable");
         lblCtaContable.setBounds(20, 45, 100, 25);
-        // Usamos JComboBox porque en tu imagen de Modificar se ve como un combo
-        JComboBox<String> cmbCtaContable = new JComboBox<>(new String[]{"12-1010201-013", ""});
-        cmbCtaContable.setEditable(true); // Permite escribir si se desea
+        JComboBox<String> cmbCtaContable = new JComboBox<>(new String[]{"12-1010201-013", "12-1010201-014", ""});
+        cmbCtaContable.setEditable(true); 
         cmbCtaContable.setBounds(130, 45, 130, 25);
-        JLabel lblCtaDesc = new JLabel("NO. CUENTA - 0185131286");
+        JLabel lblCtaDesc = new JLabel("");
         lblCtaDesc.setBounds(270, 45, 250, 25);
 
+        // Bloqueamos llaves primarias en edición
         if (modoEdicion) {
             cmbCia.setEnabled(false);
             cmbCtaContable.setEnabled(false);
@@ -246,9 +254,9 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
 
         JLabel lblBanco = new JLabel("Banco");
         lblBanco.setBounds(20, 25, 100, 25);
-        JComboBox<String> cmbBanco = new JComboBox<>(new String[]{"BCM", "BNM", "SAN"});
+        JComboBox<String> cmbBanco = new JComboBox<>(new String[]{"BCM", "AFI", "SAN"});
         cmbBanco.setBounds(130, 25, 70, 25);
-        JLabel lblBancoDesc = new JLabel("BBVA BANCOMER");
+        JLabel lblBancoDesc = new JLabel("BANCO");
         lblBancoDesc.setBounds(210, 25, 200, 25);
 
         JLabel lblCtaBan = new JLabel("Cuenta Bancaria");
@@ -263,7 +271,7 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
 
         JLabel lblCheque = new JLabel("Cheque Siguiente");
         lblCheque.setBounds(20, 135, 110, 25);
-        JTextField txtCheque = new JTextField();
+        JTextField txtCheque = new JTextField("0");
         txtCheque.setBounds(130, 135, 80, 25);
 
         JLabel lblMoneda = new JLabel("Moneda");
@@ -286,7 +294,7 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         lblFormato.setBounds(20, 30, 120, 25);
         JComboBox<String> cmbFormato = new JComboBox<>(new String[]{"01", "02"});
         cmbFormato.setBounds(140, 30, 60, 25);
-        JLabel lblFormatoDesc = new JLabel("CHEQUE - POLIZA C/CTAS Y FIRMAS");
+        JLabel lblFormatoDesc = new JLabel("CHEQUE");
         lblFormatoDesc.setBounds(210, 30, 250, 25);
 
         pnlFormato.add(lblFormato); pnlFormato.add(cmbFormato); pnlFormato.add(lblFormatoDesc);
@@ -295,7 +303,7 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         pnlGenerales.add(pnlFormato);
 
         pestanas.addTab("Datos Generales", pnlGenerales);
-        pestanas.addTab("Contratos y/o Convenios", new JPanel()); // Pestaña vacía
+        pestanas.addTab("Contratos y/o Convenios", new JPanel()); 
 
         dialogo.add(pestanas);
 
@@ -311,31 +319,99 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
             int fila = tblCCBancarias.getSelectedRow();
-            // Asegúrate de que los índices coinciden con tu tabla
-            // 0: Compañia, 1: Cuenta Contable, 2: Desc, 3: Banco, 4: Cuenta Bancaria, 5: Cheque, 6: Moneda
-            cmbCia.setSelectedItem(tblCCBancarias.getValueAt(fila, 0).toString());
-            cmbCtaContable.setSelectedItem(tblCCBancarias.getValueAt(fila, 1).toString());
-            cmbBanco.setSelectedItem(tblCCBancarias.getValueAt(fila, 3).toString());
-            txtCtaBan.setText(tblCCBancarias.getValueAt(fila, 4).toString());
-            txtCheque.setText(tblCCBancarias.getValueAt(fila, 5).toString());
-            cmbMoneda.setSelectedItem(tblCCBancarias.getValueAt(fila, 6).toString());
+            
+            String cia = tblCCBancarias.getValueAt(fila, 0) != null ? tblCCBancarias.getValueAt(fila, 0).toString() : "";
+            String ctaContable = tblCCBancarias.getValueAt(fila, 1) != null ? tblCCBancarias.getValueAt(fila, 1).toString() : "";
+            
+            cmbCia.setSelectedItem(cia);
+            cmbCtaContable.setSelectedItem(ctaContable);
+            cmbBanco.setSelectedItem(tblCCBancarias.getValueAt(fila, 3) != null ? tblCCBancarias.getValueAt(fila, 3).toString() : "");
+            txtCtaBan.setText(tblCCBancarias.getValueAt(fila, 4) != null ? tblCCBancarias.getValueAt(fila, 4).toString() : "");
+            txtCheque.setText(tblCCBancarias.getValueAt(fila, 5) != null ? tblCCBancarias.getValueAt(fila, 5).toString() : "0");
+            cmbMoneda.setSelectedItem(tblCCBancarias.getValueAt(fila, 6) != null ? tblCCBancarias.getValueAt(fila, 6).toString() : "");
+
+            // Buscamos los datos extra (Sucursal y Formato) directo en la BD
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement("SELECT SBAN, TFIC FROM tmcban WHERE CIA = ? AND CCTA = ?");
+                    ps.setString(1, cia);
+                    ps.setString(2, ctaContable);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        txtSucursal.setText(rs.getString("SBAN") != null ? rs.getString("SBAN") : "");
+                        cmbFormato.setSelectedItem(rs.getString("TFIC") != null ? rs.getString("TFIC") : "");
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                // Ignorar si no se pudieron cargar los datos adicionales
+            }
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
-            String cuentaBan = txtCtaBan.getText().trim();
-            if (cuentaBan.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "La cuenta bancaria es obligatoria.");
+            String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+            String ctaContable = cmbCtaContable.getSelectedItem() != null ? cmbCtaContable.getSelectedItem().toString() : "";
+            String banco = cmbBanco.getSelectedItem() != null ? cmbBanco.getSelectedItem().toString() : "";
+            String ctaBan = txtCtaBan.getText().trim();
+            String sucursal = txtSucursal.getText().trim();
+            String cheque = txtCheque.getText().trim().isEmpty() ? "0" : txtCheque.getText().trim();
+            String moneda = cmbMoneda.getSelectedItem() != null ? cmbMoneda.getSelectedItem().toString() : "";
+            String formato = cmbFormato.getSelectedItem() != null ? cmbFormato.getSelectedItem().toString() : "";
+
+            if (cia.isEmpty() || ctaContable.isEmpty() || ctaBan.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La Compañía, Cuenta Contable y Cuenta Bancaria son obligatorias.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va tu código SQL INSERT o UPDATE
-            JOptionPane.showMessageDialog(dialogo, "Cuenta Bancaria guardada (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaCuentas(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // UPDATE 
+                        String sql = "UPDATE tmcban SET CBCO=?, CBAN=?, SBAN=?, CSIG=?, CMON=?, TFIC=? WHERE CIA=? AND CCTA=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, banco);
+                        ps.setString(2, ctaBan);
+                        ps.setString(3, sucursal);
+                        ps.setString(4, cheque);
+                        ps.setString(5, moneda);
+                        ps.setString(6, formato);
+                        ps.setString(7, cia);
+                        ps.setString(8, ctaContable);
+                    } else {
+                        // INSERT
+                        String sql = "INSERT INTO tmcban (CIA, CCTA, CBCO, CBAN, SBAN, CSIG, CMON, TFIC) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, cia);
+                        ps.setString(2, ctaContable);
+                        ps.setString(3, banco);
+                        ps.setString(4, ctaBan);
+                        ps.setString(5, sucursal);
+                        ps.setString(6, cheque);
+                        ps.setString(7, moneda);
+                        ps.setString(8, formato);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Cuenta Bancaria guardada con éxito.");
+                        dialogo.dispose();
+                        cargarTablaCuentas(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---

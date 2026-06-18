@@ -31,29 +31,29 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
         initComponents();
     }
     
-    private void cargarTablaFactores() {
+   private void cargarTablaFactores() {
         DefaultTableModel modelo = (DefaultTableModel) tblFCUnidad.getModel();
         modelo.setRowCount(0); 
-
+ 
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_factores' por el nombre de tu tabla
-                String sql = "SELECT um_origen, um_destino, articulo, factor, usuario, fecha_mod, hora_mod FROM tabla_factores";
+                // Consulta con los nombres reales de la tabla tgcum
+                String sql = "SELECT UMO, UMD, CART, FCONV, USER, FEAC, HOAC FROM tgcum";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[7]; 
-                    fila[0] = rs.getString("um_origen");
-                    fila[1] = rs.getString("um_destino");
-                    fila[2] = rs.getString("articulo");
-                    fila[3] = rs.getString("factor");
-                    fila[4] = rs.getString("usuario");
-                    fila[5] = rs.getString("fecha_mod");
-                    fila[6] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("UMO");
+                    fila[1] = rs.getString("UMD");
+                    fila[2] = rs.getString("CART");
+                    fila[3] = rs.getString("FCONV");
+                    fila[4] = rs.getString("USER");
+                    fila[5] = rs.getString("FEAC");
+                    fila[6] = rs.getString("HOAC");
 
                     modelo.addRow(fila);
                 }
@@ -62,7 +62,7 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
         }
-    }
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -158,37 +158,37 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAddFCUnidadActionPerformed
 
     private void btnDeleteFCUnidadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteFCUnidadActionPerformed
-        int fila = tblFCUnidad.getSelectedRow();
+      int fila = tblFCUnidad.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un registro para eliminar.");
             return;
         }
 
-        // Extraemos las llaves (Origen, Destino y Producto)
         String origen = tblFCUnidad.getValueAt(fila, 0).toString();
         String destino = tblFCUnidad.getValueAt(fila, 1).toString();
         String articulo = tblFCUnidad.getValueAt(fila, 2).toString();
         
         int resp = JOptionPane.showConfirmDialog(this, 
             "¿Seguro que deseas eliminar la conversión de " + origen + " a " + destino + " para el artículo " + articulo + "?", 
-            "Confirmar", JOptionPane.YES_NO_OPTION);
+            "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // Cambia 'tabla_factores' por el nombre de tu tabla
-                    // Se usan 3 llaves en el WHERE porque así se identifica un factor único
-                    String sql = "DELETE FROM tabla_factores WHERE um_origen = ? AND um_destino = ? AND articulo = ?";
+                    // Borramos utilizando las 3 llaves primarias
+                    String sql = "DELETE FROM tgcum WHERE UMO = ? AND UMD = ? AND CART = ?";
                     PreparedStatement ps = con.prepareStatement(sql);
                     ps.setString(1, origen);
                     ps.setString(2, destino);
                     ps.setString(3, articulo);
                     
                     if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Registro eliminado.");
+                        JOptionPane.showMessageDialog(this, "Registro eliminado correctamente.");
                         cargarTablaFactores();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -207,7 +207,7 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
     }//GEN-LAST:event_btnEditFCUnidadActionPerformed
 private void mostrarDialogoFactor(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
-        String tituloVentana = modoEdicion ? "Modificar Conversión de Unidad de medida" : "Agregar Conversión de Unidad de Medida";
+        String tituloVentana = modoEdicion ? "Modificar Conversión de Unidad de Medida" : "Agregar Conversión de Unidad de Medida";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
         dialogo.setSize(480, 300);
@@ -223,9 +223,8 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
         lblOrigen.setBounds(20, 20, 140, 25);
         JComboBox<String> cmbOrigen = new JComboBox<>(new String[]{"PZA", "LT", "KG", "ACT", "CJA"});
         cmbOrigen.setBounds(160, 20, 80, 25);
-        JLabel lblDescOrigen = new JLabel("Piezas"); // Esto se llenaría dinámicamente en un sistema real
+        JLabel lblDescOrigen = new JLabel("Piezas"); 
         lblDescOrigen.setBounds(250, 20, 100, 25);
-        if (modoEdicion) cmbOrigen.setEnabled(false); // Llave
 
         JLabel lblDestino = new JLabel("Unidad Medida Destino");
         lblDestino.setBounds(20, 55, 140, 25);
@@ -233,14 +232,18 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
         cmbDestino.setBounds(160, 55, 80, 25);
         JLabel lblDescDestino = new JLabel("Caja");
         lblDescDestino.setBounds(250, 55, 100, 25);
-        if (modoEdicion) cmbDestino.setEnabled(false); // Llave
 
-        JLabel lblProducto = new JLabel("Producto");
+        JLabel lblProducto = new JLabel("Artículo");
         lblProducto.setBounds(20, 90, 140, 25);
-        // Aunque en tu imagen parece un combo, usualmente permite escribir el ID. Usaremos un JTextField simulando la cajita.
         JTextField txtProducto = new JTextField();
         txtProducto.setBounds(160, 90, 150, 25);
-        if (modoEdicion) txtProducto.setEditable(false); // Llave
+
+        // Si es edición, no permitimos cambiar las llaves, solo el factor
+        if (modoEdicion) { 
+            cmbOrigen.setEnabled(false); 
+            cmbDestino.setEnabled(false); 
+            txtProducto.setEditable(false); 
+        }
 
         JLabel lblFactor = new JLabel("Factor de Conversión");
         lblFactor.setBounds(20, 130, 140, 25);
@@ -267,27 +270,62 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
         if (modoEdicion) {
             int fila = tblFCUnidad.getSelectedRow();
             
-            cmbOrigen.setSelectedItem(tblFCUnidad.getValueAt(fila, 0).toString());
-            cmbDestino.setSelectedItem(tblFCUnidad.getValueAt(fila, 1).toString());
-            txtProducto.setText(tblFCUnidad.getValueAt(fila, 2).toString());
-            txtFactor.setText(tblFCUnidad.getValueAt(fila, 3).toString());
+            cmbOrigen.setSelectedItem(tblFCUnidad.getValueAt(fila, 0) != null ? tblFCUnidad.getValueAt(fila, 0).toString() : "");
+            cmbDestino.setSelectedItem(tblFCUnidad.getValueAt(fila, 1) != null ? tblFCUnidad.getValueAt(fila, 1).toString() : "");
+            txtProducto.setText(tblFCUnidad.getValueAt(fila, 2) != null ? tblFCUnidad.getValueAt(fila, 2).toString() : "");
+            txtFactor.setText(tblFCUnidad.getValueAt(fila, 3) != null ? tblFCUnidad.getValueAt(fila, 3).toString() : "0");
         }
 
         // --- 4. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
+            String origen = cmbOrigen.getSelectedItem() != null ? cmbOrigen.getSelectedItem().toString() : "";
+            String destino = cmbDestino.getSelectedItem() != null ? cmbDestino.getSelectedItem().toString() : "";
+            String articulo = txtProducto.getText().trim();
             String factor = txtFactor.getText().trim();
-            if (factor.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El factor de conversión es obligatorio.");
+
+            if (articulo.isEmpty() || factor.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El artículo y el factor son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va tu código SQL INSERT o UPDATE
-            JOptionPane.showMessageDialog(dialogo, "Factor de conversión guardado (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaFactores(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // UPDATE (Actualizamos solo el Factor basándonos en las 3 llaves)
+                        String sql = "UPDATE tgcum SET FCONV = ? WHERE UMO = ? AND UMD = ? AND CART = ?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, factor);
+                        ps.setString(2, origen);
+                        ps.setString(3, destino);
+                        ps.setString(4, articulo);
+                    } else {
+                        // INSERT (Nuevo registro)
+                        String sql = "INSERT INTO tgcum (UMO, UMD, CART, FCONV) VALUES (?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, origen);
+                        ps.setString(2, destino);
+                        ps.setString(3, articulo);
+                        ps.setString(4, factor);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito.");
+                        dialogo.dispose();
+                        cargarTablaFactores(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error de base de datos: " + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 5. MOSTRAR ---

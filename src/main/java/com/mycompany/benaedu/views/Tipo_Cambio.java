@@ -31,7 +31,7 @@ public class Tipo_Cambio extends javax.swing.JPanel {
         initComponents();
     }
 
-    private void cargarTablaTCMensual() {
+   private void cargarTablaTCMensual() {
         DefaultTableModel modelo = (DefaultTableModel) tblTCambioMensual.getModel();
         modelo.setRowCount(0); 
 
@@ -40,23 +40,23 @@ public class Tipo_Cambio extends javax.swing.JPanel {
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_tc_mensual' por el nombre de tu tabla real
-                String sql = "SELECT anio, mon_origen, mon_destino, periodo, tc_inicial, tc_final, tc_promedio, usuario, fecha_mod, hora_mod FROM tabla_tc_mensual";
+                // Consulta con los nombres reales de la tabla tgtcm
+                String sql = "SELECT AF, CMON, CDMD, NPER, TCI, TCC, TCP, USER, FEAC, HOAC FROM tgtcm";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[10]; 
-                    fila[0] = rs.getString("anio");
-                    fila[1] = rs.getString("mon_origen");
-                    fila[2] = rs.getString("mon_destino");
-                    fila[3] = rs.getString("periodo");
-                    fila[4] = rs.getString("tc_inicial");
-                    fila[5] = rs.getString("tc_final");
-                    fila[6] = rs.getString("tc_promedio");
-                    fila[7] = rs.getString("usuario");
-                    fila[8] = rs.getString("fecha_mod");
-                    fila[9] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("AF");
+                    fila[1] = rs.getString("CMON");
+                    fila[2] = rs.getString("CDMD");
+                    fila[3] = rs.getString("NPER");
+                    fila[4] = rs.getString("TCI");
+                    fila[5] = rs.getString("TCC"); // Final/Cierre
+                    fila[6] = rs.getString("TCP"); // Promedio
+                    fila[7] = rs.getString("USER");
+                    fila[8] = rs.getString("FEAC");
+                    fila[9] = rs.getString("HOAC");
 
                     modelo.addRow(fila);
                 }
@@ -160,11 +160,44 @@ public class Tipo_Cambio extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAddTCambioMensualActionPerformed
 
     private void btnDeleteTCambioMensualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteTCambioMensualActionPerformed
-        if (tblTCambioMensual.getSelectedRow() == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un registro para editar.");
+      int fila = tblTCambioMensual.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un registro para eliminar.");
             return;
         }
-        mostrarDialogoTCMensual(true);
+
+        String anio = tblTCambioMensual.getValueAt(fila, 0).toString();
+        String origen = tblTCambioMensual.getValueAt(fila, 1).toString();
+        String destino = tblTCambioMensual.getValueAt(fila, 2).toString();
+        String periodo = tblTCambioMensual.getValueAt(fila, 3).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar el tipo de cambio " + origen + "-" + destino + " del periodo " + periodo + " de " + anio + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Borramos utilizando las 4 llaves primarias
+                    String sql = "DELETE FROM tgtcm WHERE AF = ? AND NPER = ? AND CMON = ? AND CDMD = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, anio);
+                    ps.setString(2, periodo);
+                    ps.setString(3, origen);
+                    ps.setString(4, destino);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Registro eliminado correctamente.");
+                        cargarTablaTCMensual();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteTCambioMensualActionPerformed
 
     private void btnEditTCambioMensualActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditTCambioMensualActionPerformed
@@ -204,7 +237,7 @@ public class Tipo_Cambio extends javax.swing.JPanel {
 
 private void mostrarDialogoTCMensual(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
-        String tituloVentana = modoEdicion ? "Modificar Tipo de Cambio" : "Agregar tipo de cambio mensual";
+        String tituloVentana = modoEdicion ? "Modificar Tipo de Cambio" : "Agregar Tipo de Cambio Mensual";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
         dialogo.setSize(450, 360);
@@ -239,13 +272,19 @@ private void mostrarDialogoTCMensual(boolean modoEdicion) {
         lblEjercicio.setBounds(60, 115, 60, 25);
         JTextField txtEjercicio = new JTextField();
         txtEjercicio.setBounds(120, 115, 60, 25);
-        if (modoEdicion) txtEjercicio.setEditable(false); // Llave primaria
 
         JLabel lblPeriodo = new JLabel("Periodo");
         lblPeriodo.setBounds(210, 115, 60, 25);
         JComboBox<String> cmbPeriodo = new JComboBox<>(new String[]{"01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"});
         cmbPeriodo.setBounds(270, 115, 50, 25);
-        if (modoEdicion) cmbPeriodo.setEnabled(false); // Llave primaria
+
+        // Bloqueamos llaves primarias en modo edición
+        if (modoEdicion) { 
+            txtEjercicio.setEditable(false); 
+            cmbPeriodo.setEnabled(false); 
+            cmbOrigen.setEnabled(false);
+            cmbDestino.setEnabled(false);
+        }
 
         JLabel lblTcInicial = new JLabel("Tipo de Cambio Inicial");
         lblTcInicial.setBounds(60, 160, 150, 25);
@@ -281,15 +320,14 @@ private void mostrarDialogoTCMensual(boolean modoEdicion) {
         if (modoEdicion) {
             int fila = tblTCambioMensual.getSelectedRow();
             
-            // Ojo: Ajusta estos índices según las columnas de tu tabla tblTCambioMensual
-            txtEjercicio.setText(tblTCambioMensual.getValueAt(fila, 0).toString());
-            cmbOrigen.setSelectedItem(tblTCambioMensual.getValueAt(fila, 1).toString());
-            cmbDestino.setSelectedItem(tblTCambioMensual.getValueAt(fila, 2).toString());
-            cmbPeriodo.setSelectedItem(tblTCambioMensual.getValueAt(fila, 3).toString());
+            txtEjercicio.setText(tblTCambioMensual.getValueAt(fila, 0) != null ? tblTCambioMensual.getValueAt(fila, 0).toString() : "");
+            cmbOrigen.setSelectedItem(tblTCambioMensual.getValueAt(fila, 1) != null ? tblTCambioMensual.getValueAt(fila, 1).toString() : "");
+            cmbDestino.setSelectedItem(tblTCambioMensual.getValueAt(fila, 2) != null ? tblTCambioMensual.getValueAt(fila, 2).toString() : "");
+            cmbPeriodo.setSelectedItem(tblTCambioMensual.getValueAt(fila, 3) != null ? tblTCambioMensual.getValueAt(fila, 3).toString() : "");
             
-            txtTcInicial.setText(tblTCambioMensual.getValueAt(fila, 4).toString());
-            txtTcCierre.setText(tblTCambioMensual.getValueAt(fila, 5).toString()); // Columna Final
-            txtTcPromedio.setText(tblTCambioMensual.getValueAt(fila, 6).toString()); 
+            txtTcInicial.setText(tblTCambioMensual.getValueAt(fila, 4) != null ? tblTCambioMensual.getValueAt(fila, 4).toString() : "0.0000");
+            txtTcCierre.setText(tblTCambioMensual.getValueAt(fila, 5) != null ? tblTCambioMensual.getValueAt(fila, 5).toString() : "0.0000");
+            txtTcPromedio.setText(tblTCambioMensual.getValueAt(fila, 6) != null ? tblTCambioMensual.getValueAt(fila, 6).toString() : "0.0000"); 
         }
 
         // --- 5. EVENTOS ---
@@ -297,16 +335,61 @@ private void mostrarDialogoTCMensual(boolean modoEdicion) {
 
         btnAceptar.addActionListener(e -> {
             String ejercicio = txtEjercicio.getText().trim();
-            if (ejercicio.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El campo de Ejercicio es obligatorio.");
+            String periodo = cmbPeriodo.getSelectedItem() != null ? cmbPeriodo.getSelectedItem().toString() : "";
+            String origen = cmbOrigen.getSelectedItem() != null ? cmbOrigen.getSelectedItem().toString() : "";
+            String destino = cmbDestino.getSelectedItem() != null ? cmbDestino.getSelectedItem().toString() : "";
+            
+            String tcInicial = txtTcInicial.getText().trim().isEmpty() ? "0" : txtTcInicial.getText().trim();
+            String tcPromedio = txtTcPromedio.getText().trim().isEmpty() ? "0" : txtTcPromedio.getText().trim();
+            String tcCierre = txtTcCierre.getText().trim().isEmpty() ? "0" : txtTcCierre.getText().trim();
+
+            if (ejercicio.isEmpty() || periodo.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El campo de Ejercicio y Periodo son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va la lógica SQL (INSERT INTO o UPDATE)
-            JOptionPane.showMessageDialog(dialogo, "Tipo de cambio mensual guardado (Simulación)");
-            
-            dialogo.dispose();
-            cargarTablaTCMensual(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // UPDATE
+                        String sql = "UPDATE tgtcm SET TCI = ?, TCP = ?, TCC = ? WHERE AF = ? AND NPER = ? AND CMON = ? AND CDMD = ?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, tcInicial);
+                        ps.setString(2, tcPromedio);
+                        ps.setString(3, tcCierre);
+                        ps.setString(4, ejercicio);
+                        ps.setString(5, periodo);
+                        ps.setString(6, origen);
+                        ps.setString(7, destino);
+                    } else {
+                        // INSERT
+                        String sql = "INSERT INTO tgtcm (AF, NPER, CMON, CDMD, TCI, TCP, TCC) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, ejercicio);
+                        ps.setString(2, periodo);
+                        ps.setString(3, origen);
+                        ps.setString(4, destino);
+                        ps.setString(5, tcInicial);
+                        ps.setString(6, tcPromedio);
+                        ps.setString(7, tcCierre);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito.");
+                        dialogo.dispose();
+                        cargarTablaTCMensual(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error al guardar en la base de datos: " + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---

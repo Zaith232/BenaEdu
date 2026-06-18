@@ -279,7 +279,7 @@ public class Dashboard extends javax.swing.JFrame {
         iConEsc.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
         iPlanes.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(), "Planes de Pago"));
         
-        iCtasBan.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cuentas_Bancarias(), "Cuentas Bancarias"));
+        iCtasBan.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas_Bancarias(), "Cuentas Bancarias"));
         iTiposAl.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Tipo_Alumno(), "Catalogo Tipos de Alumno"));
         iCajeros.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cajeros(), "Catalogo de Cajeros"));
         iAlumnos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(), "Catalogo de Alumnos"));
@@ -436,7 +436,7 @@ public class Dashboard extends javax.swing.JFrame {
         opcionesSistema.put("Registro de Becas y Convenios", () -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Becas(), "Registro de Becas y Convenios"));
         opcionesSistema.put("Conceptos Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
         opcionesSistema.put("Planes de Pago", () -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(), "Planes de Pago"));
-        opcionesSistema.put("Cuentas Bancarias", () -> mostrarPanel(new com.mycompany.benaedu.views.Cuentas_Bancarias(), "Cuentas Bancarias"));
+        opcionesSistema.put("Cuentas Bancarias", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas_Bancarias(), "Cuentas Bancarias"));
         opcionesSistema.put("Catalogo Tipos de Alumno", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Tipo_Alumno(), "Catalogo Tipos de Alumno"));
         opcionesSistema.put("Catalogo de Cajeros", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cajeros(), "Catalogo de Cajeros"));
         opcionesSistema.put("Catalogo de Alumnos", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(), "Catalogo de Alumnos"));

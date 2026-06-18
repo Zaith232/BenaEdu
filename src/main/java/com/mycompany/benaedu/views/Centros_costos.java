@@ -30,48 +30,50 @@ public class Centros_costos extends javax.swing.JPanel {
      */
     public Centros_costos() {
         initComponents();
+        cargarTablaCentroCostos();
     }
     
-    private void cargarTablaCentroCostos() {
+   private void cargarTablaCentroCostos() {
         DefaultTableModel modelo = (DefaultTableModel) tblCentroCostos.getModel();
-        modelo.setRowCount(0); 
+        modelo.setRowCount(0); // Limpia la tabla antes de cargar nuevos datos
 
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_centro_costos' por el nombre real de tu tabla
-                String sql = "SELECT cia, clave, nombre, clas1, clas2, clas3, clas4, clas5, clas6, clas7, clas8, clas9, clas10 FROM tabla_centro_costos";
+                // Consulta adaptada a los nombres exactos de tu tabla 'tgcc'
+                String sql = "SELECT CIA, CVE, DES1, CLS01, CLS02, CLS03, CLS04, CLS05, CLS06, CLS07, CLS08, CLS09, CLS10, USER, FEAC, HOAC FROM tgcc";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[16]; 
-                    fila[0] = rs.getString("cia");
-                    fila[1] = rs.getString("clave");
-                    fila[2] = rs.getString("nombre");
-                    fila[3] = rs.getString("clas1");
-                    fila[4] = rs.getString("clas2");
-                    fila[5] = rs.getString("clas3");
-                    fila[6] = rs.getString("clas4");
-                    fila[7] = rs.getString("clas5");
-                    fila[8] = rs.getString("clas6");
-                    fila[9] = rs.getString("clas7");
-                    fila[10] = rs.getString("clas8");
-                    fila[11] = rs.getString("clas9");
-                    fila[12] = rs.getString("clas10");
-                    // Los campos de usuario, fecha y hora los puedes llenar si los tienes en la BD
-                    fila[13] = "admin"; 
-                    fila[14] = "2026-06-08"; 
-                    fila[15] = "12:00:00"; 
+                    fila[0] = rs.getString("CIA");
+                    fila[1] = rs.getString("CVE");
+                    fila[2] = rs.getString("DES1");
+                    fila[3] = rs.getString("CLS01");
+                    fila[4] = rs.getString("CLS02");
+                    fila[5] = rs.getString("CLS03");
+                    fila[6] = rs.getString("CLS04");
+                    fila[7] = rs.getString("CLS05");
+                    fila[8] = rs.getString("CLS06");
+                    fila[9] = rs.getString("CLS07");
+                    fila[10] = rs.getString("CLS08");
+                    fila[11] = rs.getString("CLS09");
+                    fila[12] = rs.getString("CLS10");
+                    fila[13] = rs.getString("USER"); 
+                    fila[14] = rs.getString("FEAC"); 
+                    fila[15] = rs.getString("HOAC"); 
 
                     modelo.addRow(fila);
                 }
-                rs.close(); ps.close(); db.Cerrar();
+                rs.close(); 
+                ps.close(); 
+                db.Cerrar();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Centros de Costos: " + e.getMessage());
         }
     }
 
@@ -179,18 +181,38 @@ public class Centros_costos extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAddCentroCostosActionPerformed
 
     private void btnDeleteCentroCostosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCentroCostosActionPerformed
-        int fila = tblCentroCostos.getSelectedRow();
+     int fila = tblCentroCostos.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un Centro de Costo para eliminar.");
             return;
         }
 
         String clave = tblCentroCostos.getValueAt(fila, 1).toString();
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar Centro de Costo " + clave + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        String nombre = tblCentroCostos.getValueAt(fila, 2).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar el Centro de Costo:\n" + clave + " - " + nombre + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+        
         if (resp == JOptionPane.YES_OPTION) {
-            // Tu código DELETE FROM tabla WHERE clave = ?
-            JOptionPane.showMessageDialog(this, "Eliminado correctamente.");
-            cargarTablaCentroCostos();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Consulta apuntando a tu tabla tgcc y buscando por clave (CVE)
+                    String sql = "DELETE FROM tgcc WHERE CVE = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, clave);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Centro de Costo eliminado correctamente.");
+                        cargarTablaCentroCostos(); // Refrescamos la tabla
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
         }
     }//GEN-LAST:event_btnDeleteCentroCostosActionPerformed
 
@@ -202,12 +224,12 @@ public class Centros_costos extends javax.swing.JPanel {
         mostrarDialogoCentroCostos(true);
     }//GEN-LAST:event_btnEditCentroCostosActionPerformed
 
-    private void mostrarDialogoCentroCostos(boolean modoEdicion) {
+   private void mostrarDialogoCentroCostos(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         String tituloVentana = modoEdicion ? "Modificar Centro de Costo" : "Agregar Centro de Costo";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
-        dialogo.setSize(550, 600); // Ventana un poco más alta para que quepa todo
+        dialogo.setSize(550, 600); 
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
@@ -221,7 +243,7 @@ public class Centros_costos extends javax.swing.JPanel {
         lblClave.setBounds(20, 40, 70, 25);
         JTextField txtClave = new JTextField();
         txtClave.setBounds(100, 40, 100, 25);
-        if (modoEdicion) txtClave.setEditable(false);
+        if (modoEdicion) txtClave.setEditable(false); // No dejamos cambiar la clave primaria al editar
 
         JLabel lblNombre = new JLabel("Nombre:");
         lblNombre.setBounds(20, 70, 70, 25);
@@ -236,10 +258,8 @@ public class Centros_costos extends javax.swing.JPanel {
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.setBounds(20, 110, 490, 380);
 
-        // >> Pestaña 1: Clasificaciones
         JPanel pnlClasificaciones = new JPanel(null);
         
-        // Marco (Border) interno para agrupar
         JPanel pnlGrupoClas = new JPanel(null);
         pnlGrupoClas.setBorder(BorderFactory.createTitledBorder("Clasificaciones"));
         pnlGrupoClas.setBounds(10, 10, 460, 300);
@@ -250,7 +270,6 @@ public class Centros_costos extends javax.swing.JPanel {
         lblSub2.setBounds(250, 15, 100, 20);
         pnlGrupoClas.add(lblSub1); pnlGrupoClas.add(lblSub2);
 
-        // Dibujamos las 10 clasificaciones automáticamente con un FOR
         String[] nombresClas = {"Tipo", "Rubro", "Clasificación 3", "Clasificación 4", "Clasificación 5", 
                                 "Clasificación 6", "Clasificación 7", "Clasificación 8", "Clasificación 9", "Clasificación 10"};
         JComboBox[] combosClas = new JComboBox[10];
@@ -260,28 +279,27 @@ public class Centros_costos extends javax.swing.JPanel {
             JLabel lblDinamico = new JLabel(nombresClas[i]);
             lblDinamico.setBounds(10, yOffset, 100, 20);
             
-            combosClas[i] = new JComboBox<>(new String[]{"", "Opción A", "Opción B"}); // Aquí pondrías tus opciones reales
+            // Agrega aquí tus opciones reales de la BD, por ahora usamos "ADM", "PRI", etc. basándonos en tu imagen
+            combosClas[i] = new JComboBox<>(new String[]{"", "ADM", "PRI", "JDN", "SEC", "BAC", "UEB", "RESP"}); 
             combosClas[i].setBounds(110, yOffset, 100, 20);
             
-            JLabel lblDescDinamico = new JLabel("..."); // Aquí iría la descripción de la BD
+            JLabel lblDescDinamico = new JLabel("..."); 
             lblDescDinamico.setBounds(250, yOffset, 200, 20);
             
             pnlGrupoClas.add(lblDinamico);
             pnlGrupoClas.add(combosClas[i]);
             pnlGrupoClas.add(lblDescDinamico);
             
-            yOffset += 25; // Bajamos 25 pixeles para el siguiente renglón
+            yOffset += 25; 
         }
         pnlClasificaciones.add(pnlGrupoClas);
 
-        // Ruta de autorización abajo
         JLabel lblRuta = new JLabel("Ruta de Autorización:");
         lblRuta.setBounds(20, 320, 150, 25);
         JComboBox<String> cmbRuta = new JComboBox<>(new String[]{"", "Ruta 1"});
         cmbRuta.setBounds(150, 320, 100, 25);
         pnlClasificaciones.add(lblRuta); pnlClasificaciones.add(cmbRuta);
 
-        // >> Pestaña 2: Información Escolar (Vacía por ahora)
         JPanel pnlInfEscolar = new JPanel(null);
 
         pestanas.addTab("Clasificaciones", pnlClasificaciones);
@@ -300,22 +318,90 @@ public class Centros_costos extends javax.swing.JPanel {
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
             int fila = tblCentroCostos.getSelectedRow();
-            txtClave.setText(tblCentroCostos.getValueAt(fila, 1).toString());
-            txtNombre.setText(tblCentroCostos.getValueAt(fila, 2).toString());
-            // Lógica para llenar los combos según tu base de datos...
+            
+            // 1. Cargamos la Compañía (CIA)
+            String ciaFila = tblCentroCostos.getValueAt(fila, 0) != null ? tblCentroCostos.getValueAt(fila, 0).toString() : "";
+            for (int i = 0; i < cmbCia.getItemCount(); i++) {
+                if (cmbCia.getItemAt(i).startsWith(ciaFila)) {
+                    cmbCia.setSelectedIndex(i);
+                    break;
+                }
+            }
+            
+            // 2. Cargamos Clave y Nombre (CVE, DES1)
+            txtClave.setText(tblCentroCostos.getValueAt(fila, 1) != null ? tblCentroCostos.getValueAt(fila, 1).toString() : "");
+            txtNombre.setText(tblCentroCostos.getValueAt(fila, 2) != null ? tblCentroCostos.getValueAt(fila, 2).toString() : "");
+            
+            // 3. Cargamos los 10 combos (CLS01 - CLS10)
+            for (int i = 0; i < 10; i++) {
+                // Las clasificaciones empiezan en la columna 3 (índice 3)
+                String valorClas = tblCentroCostos.getValueAt(fila, i + 3) != null ? tblCentroCostos.getValueAt(fila, i + 3).toString() : "";
+                combosClas[i].setSelectedItem(valorClas);
+            }
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
-            // Aquí va tu código INSERT o UPDATE usando PreparedStatement igual que en Compañias
-            // String clave = txtClave.getText(); 
-            // String nombre = txtNombre.getText();
+            String ciaSeleccionada = cmbCia.getSelectedItem().toString();
+            String cia = ciaSeleccionada.split(" - ")[0].trim(); // Extraemos "12" o "13"
+            String clave = txtClave.getText().trim();
+            String nombre = txtNombre.getText().trim();
             
-            JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito (Simulación)");
-            dialogo.dispose();
-            cargarTablaCentroCostos(); 
+            if (clave.isEmpty() || nombre.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La Clave y el Nombre son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // ACTUALIZAR (UPDATE)
+                        String sql = "UPDATE tgcc SET CIA = ?, DES1 = ?, CLS01 = ?, CLS02 = ?, CLS03 = ?, CLS04 = ?, CLS05 = ?, CLS06 = ?, CLS07 = ?, CLS08 = ?, CLS09 = ?, CLS10 = ? WHERE CVE = ?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, cia);
+                        ps.setString(2, nombre);
+                        
+                        // Llenar los 10 combos (Parámetros 3 al 12)
+                        for (int i = 0; i < 10; i++) {
+                            String val = combosClas[i].getSelectedItem() != null ? combosClas[i].getSelectedItem().toString() : "";
+                            ps.setString(i + 3, val);
+                        }
+                        
+                        ps.setString(13, clave); // WHERE CVE
+                    } else {
+                        // NUEVO (INSERT)
+                        String sql = "INSERT INTO tgcc (CIA, CVE, DES1, CLS01, CLS02, CLS03, CLS04, CLS05, CLS06, CLS07, CLS08, CLS09, CLS10) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, cia);
+                        ps.setString(2, clave);
+                        ps.setString(3, nombre);
+                        
+                        // Llenar los 10 combos (Parámetros 4 al 13)
+                        for (int i = 0; i < 10; i++) {
+                            String val = combosClas[i].getSelectedItem() != null ? combosClas[i].getSelectedItem().toString() : "";
+                            ps.setString(i + 4, val);
+                        }
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito.");
+                        dialogo.dispose();
+                        cargarTablaCentroCostos(); // Refresca tu tabla automáticamente
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close();
+                    db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error al guardar en la base de datos: " + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---

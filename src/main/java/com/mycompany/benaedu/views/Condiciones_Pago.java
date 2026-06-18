@@ -32,41 +32,41 @@ public class Condiciones_Pago extends javax.swing.JPanel {
         initComponents();
     }
 
-    private void cargarTablaCondicionesPago() {
+  private void cargarTablaCondicionesPago() {
         DefaultTableModel modelo = (DefaultTableModel) tblCPago.getModel();
-        modelo.setRowCount(0); 
+        modelo.setRowCount(0); // Limpiamos antes de cargar
 
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_condiciones_pago' por tu tabla real
-                String sql = "SELECT clave, descripcion, dia_pago1, dia_pago2, dia_pago3, dia_lim1, dia_lim2, dia_lim3, dias_pron, porc_desc, usuario, fecha_mod, hora_mod FROM tabla_condiciones_pago";
+                // Seleccionamos las columnas mapeando la tabla 'tgcpag'
+                String sql = "SELECT CPAG, DCPA, DPP1, DPP2, DPP3, DLI1, DLI2, DLI3, DPPP, DPDP, USER, FEAC, HOAC FROM tgcpag";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[13]; 
-                    fila[0] = rs.getString("clave");
-                    fila[1] = rs.getString("descripcion");
-                    fila[2] = rs.getString("dia_pago1");
-                    fila[3] = rs.getString("dia_pago2");
-                    fila[4] = rs.getString("dia_pago3");
-                    fila[5] = rs.getString("dia_lim1");
-                    fila[6] = rs.getString("dia_lim2");
-                    fila[7] = rs.getString("dia_lim3");
-                    fila[8] = rs.getString("dias_pron");
-                    fila[9] = rs.getString("porc_desc");
-                    fila[10] = rs.getString("usuario");
-                    fila[11] = rs.getString("fecha_mod");
-                    fila[12] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("CPAG");
+                    fila[1] = rs.getString("DCPA");
+                    fila[2] = rs.getString("DPP1");
+                    fila[3] = rs.getString("DPP2");
+                    fila[4] = rs.getString("DPP3");
+                    fila[5] = rs.getString("DLI1");
+                    fila[6] = rs.getString("DLI2");
+                    fila[7] = rs.getString("DLI3");
+                    fila[8] = rs.getString("DPPP");
+                    fila[9] = rs.getString("DPDP");
+                    fila[10] = rs.getString("USER");
+                    fila[11] = rs.getString("FEAC");
+                    fila[12] = rs.getString("HOAC");
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Condiciones de Pago: " + e.getMessage());
         }
     }
     /**
@@ -163,7 +163,7 @@ public class Condiciones_Pago extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAddCPagoActionPerformed
 
     private void btnDeleteCPagoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCPagoActionPerformed
-        int fila = tblCPago.getSelectedRow();
+       int fila = tblCPago.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona una condición de pago para eliminar.");
             return;
@@ -172,19 +172,22 @@ public class Condiciones_Pago extends javax.swing.JPanel {
         String clave = tblCPago.getValueAt(fila, 0).toString();
         String desc = tblCPago.getValueAt(fila, 1).toString();
         
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar condición de pago: " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar la condición de pago:\n" + clave + " - " + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // Cambia por el nombre real de tu tabla
-                    PreparedStatement ps = con.prepareStatement("DELETE FROM tabla_condiciones_pago WHERE clave = ?");
+                    String sql = "DELETE FROM tgcpag WHERE CPAG = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
                     ps.setString(1, clave);
+                    
                     if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Condición eliminada.");
-                        cargarTablaCondicionesPago();
+                        JOptionPane.showMessageDialog(this, "Condición de pago eliminada correctamente.");
+                        cargarTablaCondicionesPago(); // Refrescamos la tabla
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -249,7 +252,7 @@ private void mostrarDialogoCondicionPago(boolean modoEdicion) {
         
         pnlDiasProg.add(lblProgPago); pnlDiasProg.add(lblDiaLim);
 
-        // Cajas de texto para Días Programados
+        // Cajas de texto
         JTextField txtProg1 = new JTextField("0"); txtProg1.setBounds(120, 45, 70, 25);
         JTextField txtProg2 = new JTextField("0"); txtProg2.setBounds(120, 75, 70, 25);
         JTextField txtProg3 = new JTextField("0"); txtProg3.setBounds(120, 105, 70, 25);
@@ -296,9 +299,35 @@ private void mostrarDialogoCondicionPago(boolean modoEdicion) {
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
             int fila = tblCPago.getSelectedRow();
-            txtClave.setText(tblCPago.getValueAt(fila, 0).toString());
-            txtDesc.setText(tblCPago.getValueAt(fila, 1).toString());
-            // Llenarías el resto de los campos basándote en la consulta o extrayéndolos de la tabla si los tienes visibles.
+            String clave = tblCPago.getValueAt(fila, 0) != null ? tblCPago.getValueAt(fila, 0).toString() : "";
+            
+            txtClave.setText(clave);
+            txtDesc.setText(tblCPago.getValueAt(fila, 1) != null ? tblCPago.getValueAt(fila, 1).toString() : "");
+            txtProg1.setText(tblCPago.getValueAt(fila, 2) != null ? tblCPago.getValueAt(fila, 2).toString() : "0");
+            txtProg2.setText(tblCPago.getValueAt(fila, 3) != null ? tblCPago.getValueAt(fila, 3).toString() : "0");
+            txtProg3.setText(tblCPago.getValueAt(fila, 4) != null ? tblCPago.getValueAt(fila, 4).toString() : "0");
+            txtLim1.setText(tblCPago.getValueAt(fila, 5) != null ? tblCPago.getValueAt(fila, 5).toString() : "0");
+            txtLim2.setText(tblCPago.getValueAt(fila, 6) != null ? tblCPago.getValueAt(fila, 6).toString() : "0");
+            txtLim3.setText(tblCPago.getValueAt(fila, 7) != null ? tblCPago.getValueAt(fila, 7).toString() : "0");
+            txtDiasDesc.setText(tblCPago.getValueAt(fila, 8) != null ? tblCPago.getValueAt(fila, 8).toString() : "0");
+            txtPorcDesc.setText(tblCPago.getValueAt(fila, 9) != null ? tblCPago.getValueAt(fila, 9).toString() : "0");
+
+            // Extraemos el campo 'Días Neto' (DVEN) directo de la BD, ya que no se muestra en la tabla
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement("SELECT DVEN FROM tgcpag WHERE CPAG = ?");
+                    ps.setString(1, clave);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        txtDiasNeto.setText(rs.getString("DVEN"));
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                txtDiasNeto.setText("0"); // En caso de error, mostramos 0
+            }
         }
 
         // --- 5. EVENTOS ---
@@ -307,15 +336,72 @@ private void mostrarDialogoCondicionPago(boolean modoEdicion) {
         btnAceptar.addActionListener(e -> {
             String clave = txtClave.getText().trim();
             if (clave.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "La clave no puede estar vacía.");
+                JOptionPane.showMessageDialog(dialogo, "La clave no puede estar vacía.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va tu código SQL INSERT INTO o UPDATE
-            JOptionPane.showMessageDialog(dialogo, "Condición de Pago guardada (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaCondicionesPago(); // Refresca la vista principal
+            // Extraemos la información previniendo que los campos numéricos estén vacíos
+            String desc = txtDesc.getText().trim();
+            String diasNeto = txtDiasNeto.getText().trim().isEmpty() ? "0" : txtDiasNeto.getText().trim();
+            String prog1 = txtProg1.getText().trim().isEmpty() ? "0" : txtProg1.getText().trim();
+            String prog2 = txtProg2.getText().trim().isEmpty() ? "0" : txtProg2.getText().trim();
+            String prog3 = txtProg3.getText().trim().isEmpty() ? "0" : txtProg3.getText().trim();
+            String lim1 = txtLim1.getText().trim().isEmpty() ? "0" : txtLim1.getText().trim();
+            String lim2 = txtLim2.getText().trim().isEmpty() ? "0" : txtLim2.getText().trim();
+            String lim3 = txtLim3.getText().trim().isEmpty() ? "0" : txtLim3.getText().trim();
+            String diasDesc = txtDiasDesc.getText().trim().isEmpty() ? "0" : txtDiasDesc.getText().trim();
+            String porcDesc = txtPorcDesc.getText().trim().isEmpty() ? "0" : txtPorcDesc.getText().trim();
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // UPDATE (Actualizar registro)
+                        String sql = "UPDATE tgcpag SET DCPA=?, DVEN=?, DPP1=?, DPP2=?, DPP3=?, DLI1=?, DLI2=?, DLI3=?, DPPP=?, DPDP=? WHERE CPAG=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, desc);
+                        ps.setString(2, diasNeto);
+                        ps.setString(3, prog1);
+                        ps.setString(4, prog2);
+                        ps.setString(5, prog3);
+                        ps.setString(6, lim1);
+                        ps.setString(7, lim2);
+                        ps.setString(8, lim3);
+                        ps.setString(9, diasDesc);
+                        ps.setString(10, porcDesc);
+                        ps.setString(11, clave);
+                    } else {
+                        // INSERT (Nuevo registro)
+                        String sql = "INSERT INTO tgcpag (CPAG, DCPA, DVEN, DPP1, DPP2, DPP3, DLI1, DLI2, DLI3, DPPP, DPDP) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, clave);
+                        ps.setString(2, desc);
+                        ps.setString(3, diasNeto);
+                        ps.setString(4, prog1);
+                        ps.setString(5, prog2);
+                        ps.setString(6, prog3);
+                        ps.setString(7, lim1);
+                        ps.setString(8, lim2);
+                        ps.setString(9, lim3);
+                        ps.setString(10, diasDesc);
+                        ps.setString(11, porcDesc);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Condición de Pago guardada con éxito.");
+                        dialogo.dispose();
+                        cargarTablaCondicionesPago(); // Refresca tu vista principal automáticamente
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error al guardar en BD: " + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---

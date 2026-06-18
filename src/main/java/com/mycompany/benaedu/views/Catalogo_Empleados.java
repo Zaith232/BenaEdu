@@ -30,41 +30,44 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
      */
     public Catalogo_Empleados() {
         initComponents();
+        cargarTablaEmpleados();
     }
     
-    private void cargarTablaEmpleados() {
+   private void cargarTablaEmpleados() {
         DefaultTableModel modelo = (DefaultTableModel) tblEmpleados.getModel();
-        modelo.setRowCount(0); 
+        modelo.setRowCount(0); // Limpia la tabla antes de cargar nuevos datos
 
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_empleados' por el nombre real de tu tabla en la BD
-                String sql = "SELECT num_emp, nombre, telefono, ciudad, estado, compania, centro, usuario, fecha_mod, hora_mod FROM tabla_empleados";
+                // ATENCIÓN: Cambia 'tu_tabla_empleados' por el nombre real de tu tabla (ej. tgem, empleados, etc.)
+                String sql = "SELECT NEMP, NOME, TEL, CD, EDO, CIA, CC, USER, FEAC, HOAC FROM tgemp";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[10]; 
-                    fila[0] = rs.getString("num_emp");
-                    fila[1] = rs.getString("nombre");
-                    fila[2] = rs.getString("telefono");
-                    fila[3] = rs.getString("ciudad");
-                    fila[4] = rs.getString("estado");
-                    fila[5] = rs.getString("compania");
-                    fila[6] = rs.getString("centro");
-                    fila[7] = rs.getString("usuario");
-                    fila[8] = rs.getString("fecha_mod");
-                    fila[9] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("NEMP");
+                    fila[1] = rs.getString("NOME");
+                    fila[2] = rs.getString("TEL");
+                    fila[3] = rs.getString("CD");
+                    fila[4] = rs.getString("EDO");
+                    fila[5] = rs.getString("CIA");
+                    fila[6] = rs.getString("CC");
+                    fila[7] = rs.getString("USER"); 
+                    fila[8] = rs.getString("FEAC"); 
+                    fila[9] = rs.getString("HOAC"); 
 
                     modelo.addRow(fila);
                 }
-                rs.close(); ps.close(); db.Cerrar();
+                rs.close(); 
+                ps.close(); 
+                db.Cerrar();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Empleados: " + e.getMessage());
         }
     }
     
@@ -165,11 +168,39 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAddEmpleadosActionPerformed
 
     private void btnDeleteEmpleadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteEmpleadosActionPerformed
-        if (tblEmpleados.getSelectedRow() == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un empleado de la tabla para editar.");
+    int fila = tblEmpleados.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un empleado para eliminar.");
             return;
         }
-        mostrarDialogoEmpleado(true);
+
+        String numEmp = tblEmpleados.getValueAt(fila, 0).toString();
+        String nombre = tblEmpleados.getValueAt(fila, 1).toString();
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar al empleado:\n" + nombre + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Consulta adaptada a tu tabla tgemp
+                    String sql = "DELETE FROM tgemp WHERE NEMP = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, numEmp);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Empleado eliminado correctamente.");
+                        cargarTablaEmpleados(); // Refrescamos la tabla
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteEmpleadosActionPerformed
 
     private void btnEditEmpleadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditEmpleadosActionPerformed
@@ -206,7 +237,7 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_btnEditEmpleadosActionPerformed
 
-    private void mostrarDialogoEmpleado(boolean modoEdicion) {
+  private void mostrarDialogoEmpleado(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         String tituloVentana = modoEdicion ? "Modificar Empleado" : "Agregar Empleado";
 
@@ -216,10 +247,9 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         dialogo.setResizable(false);
 
         // --- 1. SECCIÓN SUPERIOR ---
-        // Panel superior para agrupar
         JPanel pnlTop = new JPanel(null);
         pnlTop.setBorder(BorderFactory.createEtchedBorder());
-        pnlTop.setBounds(15, 10, 500, 110);
+        pnlTop.setBounds(15, 10, 365, 140);
 
         JLabel lblNumEmp = new JLabel("Núm. Emp.");
         lblNumEmp.setBounds(15, 10, 80, 20);
@@ -235,27 +265,12 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         JLabel lblTratamiento = new JLabel("Tratamiento");
         lblTratamiento.setBounds(15, 65, 80, 25);
         JComboBox<String> cmbTratamiento = new JComboBox<>(new String[]{"", "Sr.", "Sra.", "Srita.", "Dr.", "Ing."});
-        cmbTratamiento.setBounds(100, 65, 80, 25);
+        cmbTratamiento.setBounds(90, 65, 80, 25);
 
         JLabel lblNombre = new JLabel("Nombre");
-        lblNombre.setBounds(15, 100, 80, 25); // Lo pondremos un poco más abajo por el espacio
+        lblNombre.setBounds(15, 100, 60, 25); 
         JTextField txtNombre = new JTextField();
-        txtNombre.setBounds(100, 100, 270, 25);
-        
-        // Ajustamos la posición real para que quede como en tu foto
-        lblTratamiento.setBounds(15, 65, 80, 25);
-        cmbTratamiento.setBounds(90, 65, 80, 25);
-        
-        lblNombre.setBounds(15, 100, 60, 25);
         txtNombre.setBounds(90, 100, 270, 25);
-        
-        // Simulación de la Foto
-        JLabel lblFoto = new JLabel("Foto No Disponible", javax.swing.SwingConstants.CENTER);
-        lblFoto.setBorder(BorderFactory.createLineBorder(java.awt.Color.GRAY));
-        lblFoto.setBounds(390, 15, 90, 110);
-
-        // Ajustamos el tamaño del panel superior para que quepa el nombre
-        pnlTop.setBounds(15, 10, 365, 140);
         
         pnlTop.add(lblNumEmp); pnlTop.add(txtNumEmp);
         pnlTop.add(lblRfcTop); pnlTop.add(txtRfcTop);
@@ -263,6 +278,10 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         pnlTop.add(lblNombre); pnlTop.add(txtNombre);
         
         dialogo.add(pnlTop);
+
+        JLabel lblFoto = new JLabel("Foto No Disponible", javax.swing.SwingConstants.CENTER);
+        lblFoto.setBorder(BorderFactory.createLineBorder(java.awt.Color.GRAY));
+        lblFoto.setBounds(390, 15, 90, 110);
         dialogo.add(lblFoto);
 
         // --- 2. PESTAÑAS (TABS) ---
@@ -284,23 +303,23 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
 
         JLabel lblPob = new JLabel("Población");
         lblPob.setBounds(20, 100, 70, 25);
-        JComboBox<String> cmbPob = new JComboBox<>(new String[]{"TEH", "PUE"});
+        JComboBox<String> cmbPob = new JComboBox<>(new String[]{"", "TEH", "PUE", "CDMX"}); // Agrega tus opciones de ciudad
         cmbPob.setBounds(90, 100, 70, 25);
-        JTextField txtPobDesc = new JTextField("TEHUACAN");
+        JTextField txtPobDesc = new JTextField();
         txtPobDesc.setBounds(170, 100, 150, 25);
 
         JLabel lblEdo = new JLabel("Estado");
         lblEdo.setBounds(20, 140, 70, 25);
-        JComboBox<String> cmbEdo = new JComboBox<>(new String[]{"PUE", "VER"});
+        JComboBox<String> cmbEdo = new JComboBox<>(new String[]{"", "PUE", "VER", "MEX"}); // Agrega tus opciones de estado
         cmbEdo.setBounds(90, 140, 70, 25);
-        JTextField txtEdoDesc = new JTextField("PUEBLA");
+        JTextField txtEdoDesc = new JTextField();
         txtEdoDesc.setBounds(170, 140, 150, 25);
 
         JLabel lblPais = new JLabel("País");
         lblPais.setBounds(20, 180, 70, 25);
-        JComboBox<String> cmbPais = new JComboBox<>(new String[]{"MEX", "USA"});
+        JComboBox<String> cmbPais = new JComboBox<>(new String[]{"", "MEX", "USA"});
         cmbPais.setBounds(90, 180, 70, 25);
-        JTextField txtPaisDesc = new JTextField("MEXICO");
+        JTextField txtPaisDesc = new JTextField();
         txtPaisDesc.setBounds(170, 180, 150, 25);
 
         JLabel lblCp = new JLabel("Código Postal");
@@ -309,18 +328,14 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         txtCp.setBounds(390, 220, 80, 25);
 
         JLabel lblImss = new JLabel("Núm IMSS");
-        lblImss.setBounds(20, 220, 70, 25);
+        lblImss.setBounds(20, 250, 70, 25);
         JTextField txtImss = new JTextField();
-        txtImss.setBounds(90, 220, 120, 25);
+        txtImss.setBounds(90, 250, 120, 25);
 
         JLabel lblCurp = new JLabel("C.U.R.P.");
-        lblCurp.setBounds(220, 220, 60, 25);
+        lblCurp.setBounds(230, 250, 50, 25);
         JTextField txtCurp = new JTextField();
-        txtCurp.setBounds(280, 220, 190, 25);
-
-        // Reajustamos posiciones Y para que quepa el CURP y el Telefono bien
-        lblImss.setBounds(20, 250, 70, 25); txtImss.setBounds(90, 250, 120, 25);
-        lblCurp.setBounds(230, 250, 50, 25); txtCurp.setBounds(280, 250, 190, 25);
+        txtCurp.setBounds(280, 250, 190, 25);
 
         JLabel lblTel = new JLabel("Teléfono");
         lblTel.setBounds(20, 280, 60, 25);
@@ -339,7 +354,6 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         pnlGenerales.add(lblCurp); pnlGenerales.add(txtCurp);
         pnlGenerales.add(lblTel); pnlGenerales.add(cmbTelTipo); pnlGenerales.add(txtTel);
 
-        // >> Pestaña 2: Información Adicional (Vacía por ahora)
         JPanel pnlAdicional = new JPanel(null);
 
         pestanas.addTab("Datos Generales", pnlGenerales);
@@ -355,22 +369,77 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         dialogo.add(btnAceptar);
         dialogo.add(btnSalir);
 
-        // --- 4. SI ES MODO EDICIÓN, CARGAMOS DATOS BÁSICOS ---
+        // --- 4. CARGAR DATOS SI ES EDICIÓN ---
         if (modoEdicion) {
             int fila = tblEmpleados.getSelectedRow();
-            txtNumEmp.setText(tblEmpleados.getValueAt(fila, 0).toString());
-            txtNombre.setText(tblEmpleados.getValueAt(fila, 1).toString());
-            // Lógica para conectarse a BD y llenar el resto de campos (RFC, IMSS, etc) ...
+            // Evitamos errores de NullPointerException si la celda está vacía
+            txtNumEmp.setText(tblEmpleados.getValueAt(fila, 0) != null ? tblEmpleados.getValueAt(fila, 0).toString() : "");
+            txtNombre.setText(tblEmpleados.getValueAt(fila, 1) != null ? tblEmpleados.getValueAt(fila, 1).toString() : "");
+            txtTel.setText(tblEmpleados.getValueAt(fila, 2) != null ? tblEmpleados.getValueAt(fila, 2).toString() : "");
+            
+            // Asignar combos basándose en el texto de la tabla
+            String ciudad = tblEmpleados.getValueAt(fila, 3) != null ? tblEmpleados.getValueAt(fila, 3).toString() : "";
+            cmbPob.setSelectedItem(ciudad);
+            
+            String estado = tblEmpleados.getValueAt(fila, 4) != null ? tblEmpleados.getValueAt(fila, 4).toString() : "";
+            cmbEdo.setSelectedItem(estado);
         }
 
-        // --- 5. EVENTOS DE BOTONES ---
+        // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
-            // Aquí iría tu lógica SQL: INSERT INTO o UPDATE
-            JOptionPane.showMessageDialog(dialogo, "Operación de empleado guardada con éxito.");
-            dialogo.dispose();
-            cargarTablaEmpleados(); // Refresca la tabla principal
+            String numEmp = txtNumEmp.getText().trim();
+            String nombre = txtNombre.getText().trim();
+            String telefono = txtTel.getText().trim();
+            String ciudad = cmbPob.getSelectedItem() != null ? cmbPob.getSelectedItem().toString() : "";
+            String estado = cmbEdo.getSelectedItem() != null ? cmbEdo.getSelectedItem().toString() : "";
+
+            // Validación mínima
+            if (numEmp.isEmpty() || nombre.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El Número de Empleado y Nombre son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // ACTUALIZAR (UPDATE)
+                        String sql = "UPDATE tgemp SET NOME = ?, TEL = ?, CD = ?, EDO = ? WHERE NEMP = ?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, nombre);
+                        ps.setString(2, telefono);
+                        ps.setString(3, ciudad);
+                        ps.setString(4, estado);
+                        ps.setString(5, numEmp);
+                    } else {
+                        // NUEVO (INSERT)
+                        String sql = "INSERT INTO tgemp (NEMP, NOME, TEL, CD, EDO) VALUES (?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, numEmp);
+                        ps.setString(2, nombre);
+                        ps.setString(3, telefono);
+                        ps.setString(4, ciudad);
+                        ps.setString(5, estado);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito.");
+                        dialogo.dispose();
+                        cargarTablaEmpleados(); // Refresca la tabla principal automáticamente
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close();
+                    db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error al guardar en base de datos: " + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---
