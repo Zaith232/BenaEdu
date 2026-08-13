@@ -153,7 +153,15 @@ private void cargarTablaCuentas() {
             new String [] {
                 "Compañia", "Cuenta", "Descripcion", "Nivel", "Tipo", "SubTipo", "MayDet", "Clasif. 1", "Clasif. 2", "Clasif. 3", "Clasif. 4", "Clasif. 5", "Clasif. 6", "Centro de Cuenta", "SubCuenta", "Usuario", "Fecha Mod.", "Hora Mod."
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblCCuentas);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -250,176 +258,292 @@ private void mostrarDialogoCuenta(boolean modoEdicion) {
         String tituloVentana = modoEdicion ? "Modificar Cuenta" : "Agregar Cuenta";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
-        dialogo.setSize(560, 520);
+        dialogo.setSize(580, 520);
         dialogo.setLayout(null);
         dialogo.setResizable(false);
+
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(220);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(320, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA LOS BUSCADORES ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        // Arrays de datos desde la BD para TCONT y CTA01-CTA10
+        Object[][] dTCont = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TCONT' ORDER BY CVE");
+        Object[][] dCta01 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA01' ORDER BY CVE");
+        Object[][] dCta02 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA02' ORDER BY CVE");
+        Object[][] dCta03 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA03' ORDER BY CVE");
+        Object[][] dCta04 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA04' ORDER BY CVE");
+        Object[][] dCta05 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA05' ORDER BY CVE");
+        Object[][] dCta06 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA06' ORDER BY CVE");
+        Object[][] dCta07 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA07' ORDER BY CVE");
+        Object[][] dCta08 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA08' ORDER BY CVE");
+        Object[][] dCta09 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA09' ORDER BY CVE");
+        Object[][] dCta10 = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CTA10' ORDER BY CVE");
 
         // --- 1. PANEL SUPERIOR ---
         JPanel pnlTop = new JPanel(null);
         pnlTop.setBorder(BorderFactory.createEtchedBorder());
-        pnlTop.setBounds(10, 10, 525, 170);
+        pnlTop.setBounds(10, 10, 545, 190);
 
-        JLabel lblCve = new JLabel("Cve. Cuenta");
-        lblCve.setBounds(20, 15, 80, 25);
-        JTextField txtCve = new JTextField();
-        txtCve.setBounds(120, 15, 80, 25);
-        txtCve.setEditable(false); // Generalmente es autogenerado por la BD (ICTA)
+        JLabel lblCve = new JLabel("Cve. Cuenta"); lblCve.setBounds(20, 15, 80, 25);
+        JTextField txtCve = new JTextField(); txtCve.setBounds(120, 15, 80, 25); 
 
-        JLabel lblCia = new JLabel("Compañía");
-        lblCia.setBounds(20, 45, 80, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12", "13"});
-        cmbCia.setBounds(120, 45, 60, 25);
+        JLabel lblCia = new JLabel("Compañía"); lblCia.setBounds(20, 45, 80, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12", "13"}); cmbCia.setBounds(120, 45, 80, 25);
 
-        JLabel lblEstructura = new JLabel("Centro Costo             Cuenta                SubCuenta");
+        JLabel lblEstructura = new JLabel("Centro Costo             Cuenta                  SubCuenta");
         lblEstructura.setBounds(120, 70, 300, 20);
         
-        JLabel lblCuenta = new JLabel("Cuenta");
-        lblCuenta.setBounds(20, 90, 80, 25);
-        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12", "13"});
-        cmbCC.setBounds(120, 90, 60, 25);
+        JLabel lblCuenta = new JLabel("Cuenta"); lblCuenta.setBounds(20, 90, 80, 25);
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12", "13"}); cmbCC.setBounds(120, 90, 60, 25);
         JLabel lblGuion1 = new JLabel("-"); lblGuion1.setBounds(185, 90, 10, 25);
-        JTextField txtCtaObj = new JTextField();
-        txtCtaObj.setBounds(195, 90, 80, 25);
+        JTextField txtCtaObj = new JTextField(); txtCtaObj.setBounds(195, 90, 80, 25);
         JLabel lblGuion2 = new JLabel("-"); lblGuion2.setBounds(280, 90, 10, 25);
-        JTextField txtSubCta = new JTextField("000");
-        txtSubCta.setBounds(290, 90, 50, 25);
+        JTextField txtSubCta = new JTextField("000"); txtSubCta.setBounds(290, 90, 50, 25);
 
-        // Bloqueamos llaves primarias en edición
         if (modoEdicion) {
-            cmbCia.setEnabled(false);
-            cmbCC.setEnabled(false);
-            txtCtaObj.setEditable(false);
-            txtSubCta.setEditable(false);
+            cmbCia.setEnabled(false); cmbCC.setEnabled(false);
+            txtCtaObj.setEditable(false); txtSubCta.setEditable(false);
         }
 
-        JLabel lblTCont = new JLabel("Tipo de Contab.");
-        lblTCont.setBounds(20, 120, 100, 25);
-        JComboBox<String> cmbTCont = new JComboBox<>(new String[]{"MN", "USD"});
-        cmbTCont.setBounds(120, 120, 60, 25);
+        // Buscador Tipo Contab (TCONT)
+        JLabel lblTCont = new JLabel("Tipo de Contab."); lblTCont.setBounds(20, 120, 100, 25);
+        JTextField txtTCont = new JTextField(); txtTCont.setBounds(120, 120, 50, 25);
+        JButton btnTCont = new JButton("▼");
+        btnTCont.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnTCont.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnTCont.setBounds(170, 120, 20, 25);
+        JTextField txtTContDesc = new JTextField(); txtTContDesc.setBounds(195, 120, 205, 25); txtTContDesc.setEditable(false); txtTContDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtTCont, txtTContDesc, btnTCont, dTCont);
 
-        JLabel lblDesc = new JLabel("Descripción");
-        lblDesc.setBounds(20, 150, 80, 25);
-        JTextField txtDesc = new JTextField();
-        txtDesc.setBounds(120, 150, 380, 25);
+        JLabel lblDesc = new JLabel("Descripción"); lblDesc.setBounds(20, 150, 80, 25);
+        JTextField txtDesc = new JTextField(); txtDesc.setBounds(120, 150, 380, 25);
 
-        // Se hace un poco más grande el panel para que quepa la descripción
-        pnlTop.setBounds(10, 10, 525, 190);
-        lblDesc.setBounds(20, 150, 80, 25);
-        txtDesc.setBounds(120, 150, 380, 25);
-
-        pnlTop.add(lblCve); pnlTop.add(txtCve);
-        pnlTop.add(lblCia); pnlTop.add(cmbCia);
-        pnlTop.add(lblEstructura);
-        pnlTop.add(lblCuenta); pnlTop.add(cmbCC); pnlTop.add(lblGuion1); pnlTop.add(txtCtaObj); pnlTop.add(lblGuion2); pnlTop.add(txtSubCta);
-        pnlTop.add(lblTCont); pnlTop.add(cmbTCont);
+        pnlTop.add(lblCve); pnlTop.add(txtCve); pnlTop.add(lblCia); pnlTop.add(cmbCia);
+        pnlTop.add(lblEstructura); pnlTop.add(lblCuenta); pnlTop.add(cmbCC); pnlTop.add(lblGuion1); 
+        pnlTop.add(txtCtaObj); pnlTop.add(lblGuion2); pnlTop.add(txtSubCta);
+        pnlTop.add(lblTCont); pnlTop.add(txtTCont); pnlTop.add(btnTCont); pnlTop.add(txtTContDesc); 
         pnlTop.add(lblDesc); pnlTop.add(txtDesc);
         dialogo.add(pnlTop);
 
         // --- 2. PESTAÑAS (TABS) ---
         JTabbedPane pestanas = new JTabbedPane();
-        pestanas.setBounds(10, 210, 525, 190);
+        pestanas.setBounds(10, 210, 545, 200);
 
         // >> Pestaña Niveles
         JPanel pnlNiveles = new JPanel(null);
+        JPanel pnlRadios = new JPanel(null); pnlRadios.setBounds(120, 10, 380, 70); pnlRadios.setBackground(new java.awt.Color(230, 230, 230));
+        JLabel lblNivel = new JLabel("Nivel"); lblNivel.setBounds(20, 20, 50, 25); pnlNiveles.add(lblNivel);
 
-        // Marco interno niveles
-        JPanel pnlRadios = new JPanel(null);
-        pnlRadios.setBounds(120, 10, 380, 70);
-        pnlRadios.setBackground(new java.awt.Color(200, 200, 200)); // Simula el fondo gris de tu imagen
-
-        JLabel lblNivel = new JLabel("Nivel");
-        lblNivel.setBounds(20, 20, 50, 25);
-        pnlNiveles.add(lblNivel);
-
-        ButtonGroup bgNivel = new ButtonGroup();
-        JRadioButton[] rNivel = new JRadioButton[9];
+        ButtonGroup bgNivel = new ButtonGroup(); JRadioButton[] rNivel = new JRadioButton[9];
         int xPos = 10;
         for (int i = 0; i < 9; i++) {
-            rNivel[i] = new JRadioButton(String.valueOf(i + 1));
-            rNivel[i].setBounds(xPos, 10, 35, 20);
-            rNivel[i].setOpaque(false);
-            bgNivel.add(rNivel[i]);
-            pnlRadios.add(rNivel[i]);
-            xPos += 40;
+            rNivel[i] = new JRadioButton(String.valueOf(i + 1)); rNivel[i].setBounds(xPos, 10, 35, 20);
+            rNivel[i].setOpaque(false); bgNivel.add(rNivel[i]); pnlRadios.add(rNivel[i]); xPos += 40;
         }
-        rNivel[4].setSelected(true); // Default Nivel 5
+        rNivel[4].setSelected(true); 
 
         ButtonGroup bgMayDet = new ButtonGroup();
-        JRadioButton rbMayor = new JRadioButton("Cuenta de Mayor");
-        rbMayor.setBounds(30, 40, 130, 20); rbMayor.setOpaque(false);
-        JRadioButton rbDetalle = new JRadioButton("Cuenta Detalle", true);
-        rbDetalle.setBounds(200, 40, 130, 20); rbDetalle.setOpaque(false);
-        bgMayDet.add(rbMayor); bgMayDet.add(rbDetalle);
-        pnlRadios.add(rbMayor); pnlRadios.add(rbDetalle);
-
+        JRadioButton rbMayor = new JRadioButton("Cuenta de Mayor"); rbMayor.setBounds(30, 40, 130, 20); rbMayor.setOpaque(false);
+        JRadioButton rbDetalle = new JRadioButton("Cuenta Detalle", true); rbDetalle.setBounds(200, 40, 130, 20); rbDetalle.setOpaque(false);
+        bgMayDet.add(rbMayor); bgMayDet.add(rbDetalle); pnlRadios.add(rbMayor); pnlRadios.add(rbDetalle);
         pnlNiveles.add(pnlRadios);
 
-        JLabel lblClasGen = new JLabel("Clasif. General");
-        lblClasGen.setBounds(20, 95, 90, 25);
-        JComboBox<String> cmbClasGen = new JComboBox<>(new String[]{"100 Activo", "200 Pasivo", "300 Capital"});
-        cmbClasGen.setBounds(120, 95, 120, 25);
+        JLabel lblClasGen = new JLabel("Clasif. General"); lblClasGen.setBounds(20, 95, 90, 25);
+        JComboBox<String> cmbClasGen = new JComboBox<>(new String[]{"100 Activo", "200 Pasivo", "300 Capital"}); cmbClasGen.setBounds(120, 95, 120, 25);
+        JLabel lblClasDet = new JLabel("Clasif. Detallada"); lblClasDet.setBounds(20, 125, 90, 25);
+        JComboBox<String> cmbClasDet = new JComboBox<>(new String[]{"010", "020", "030", "040"}); cmbClasDet.setBounds(120, 125, 120, 25);
+        pnlNiveles.add(lblClasGen); pnlNiveles.add(cmbClasGen); pnlNiveles.add(lblClasDet); pnlNiveles.add(cmbClasDet);
 
-        JLabel lblClasDet = new JLabel("Clasif. Detallada");
-        lblClasDet.setBounds(20, 125, 90, 25);
-        JComboBox<String> cmbClasDet = new JComboBox<>(new String[]{"010", "020", "030", "040"});
-        cmbClasDet.setBounds(120, 125, 120, 25);
+        // >> Pestaña Fiscal
+        JPanel pnlFiscal = new JPanel(null);
+        JPanel pnlInnerFiscal = new JPanel(null); pnlInnerFiscal.setBorder(BorderFactory.createTitledBorder("Fiscal")); pnlInnerFiscal.setBounds(10, 10, 520, 150);
+        JLabel lblNat = new JLabel("Naturaleza"); lblNat.setBounds(20, 25, 100, 25);
+        JComboBox<String> cmbNaturaleza = new JComboBox<>(new String[]{"D", "A"}); cmbNaturaleza.setBounds(130, 25, 80, 25);
+        JLabel lblCodAgr = new JLabel("Codigo Agrupador"); lblCodAgr.setBounds(20, 60, 110, 25);
+        JComboBox<String> cmbCodAgrupador = new JComboBox<>(new String[]{""}); cmbCodAgrupador.setBounds(130, 60, 120, 25); cmbCodAgrupador.setEditable(true);
+        pnlInnerFiscal.add(lblNat); pnlInnerFiscal.add(cmbNaturaleza); pnlInnerFiscal.add(lblCodAgr); pnlInnerFiscal.add(cmbCodAgrupador);
+        pnlFiscal.add(pnlInnerFiscal);
 
-        pnlNiveles.add(lblClasGen); pnlNiveles.add(cmbClasGen);
-        pnlNiveles.add(lblClasDet); pnlNiveles.add(cmbClasDet);
+        // >> Pestaña Clasificaciones I (CTA01 a CTA05)
+        JPanel pnlClas1 = new JPanel(null);
+        JPanel pnlInnerClas1 = new JPanel(null); pnlInnerClas1.setBorder(BorderFactory.createTitledBorder("Clasificaciones")); pnlInnerClas1.setBounds(10, 10, 520, 150);
+        JLabel lblSub1 = new JLabel("Clasificaciones"); lblSub1.setBounds(130, 15, 100, 20);
+        JLabel lblSub2 = new JLabel("Descripción"); lblSub2.setBounds(240, 15, 100, 20);
+        pnlInnerClas1.add(lblSub1); pnlInnerClas1.add(lblSub2);
+
+        String[] nomClas1 = {"Tipo", "Rubro", "Clasificación 3", "Clasificación 4", "Clasificación 5"};
+        Object[][][] matricesC1 = {dCta01, dCta02, dCta03, dCta04, dCta05};
+        JTextField[] txtC1 = new JTextField[5];
+        JTextField[] txtC1Desc = new JTextField[5];
+        
+        int yC1 = 35;
+        for (int i = 0; i < 5; i++) {
+            JLabel l = new JLabel(nomClas1[i]); l.setBounds(20, yC1, 100, 20);
+            txtC1[i] = new JTextField(); txtC1[i].setBounds(130, yC1, 60, 20); 
+            JButton btn = new JButton("▼"); btn.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btn.setMargin(new java.awt.Insets(0, 0, 0, 0)); btn.setBounds(190, yC1, 20, 20);
+            txtC1Desc[i] = new JTextField(); txtC1Desc[i].setBounds(215, yC1, 260, 20); txtC1Desc[i].setEditable(false); txtC1Desc[i].setBackground(new java.awt.Color(240,240,240));
+            buscador.configurar(txtC1[i], txtC1Desc[i], btn, matricesC1[i]);
+            
+            pnlInnerClas1.add(l); pnlInnerClas1.add(txtC1[i]); pnlInnerClas1.add(btn); pnlInnerClas1.add(txtC1Desc[i]);
+            yC1 += 22;
+        }
+        pnlClas1.add(pnlInnerClas1);
+
+        // >> Pestaña Clasificaciones II (CTA06 a CTA10)
+        JPanel pnlClas2 = new JPanel(null);
+        JPanel pnlInnerClas2 = new JPanel(null); pnlInnerClas2.setBorder(BorderFactory.createTitledBorder("Clasificaciones")); pnlInnerClas2.setBounds(10, 10, 520, 150);
+        JLabel lblSub3 = new JLabel("Clasificaciones"); lblSub3.setBounds(130, 15, 100, 20);
+        JLabel lblSub4 = new JLabel("Descripción"); lblSub4.setBounds(240, 15, 100, 20);
+        pnlInnerClas2.add(lblSub3); pnlInnerClas2.add(lblSub4);
+
+        String[] nomClas2 = {"Clasificación 6", "Clasificación 7", "Clasificación 8", "Clasificación 9", "Clasificación 10"};
+        Object[][][] matricesC2 = {dCta06, dCta07, dCta08, dCta09, dCta10};
+        JTextField[] txtC2 = new JTextField[5];
+        JTextField[] txtC2Desc = new JTextField[5];
+        
+        int yC2 = 35;
+        for (int i = 0; i < 5; i++) {
+            JLabel l = new JLabel(nomClas2[i]); l.setBounds(20, yC2, 100, 20);
+            txtC2[i] = new JTextField(); txtC2[i].setBounds(130, yC2, 60, 20); 
+            JButton btn = new JButton("▼"); btn.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btn.setMargin(new java.awt.Insets(0, 0, 0, 0)); btn.setBounds(190, yC2, 20, 20);
+            txtC2Desc[i] = new JTextField(); txtC2Desc[i].setBounds(215, yC2, 260, 20); txtC2Desc[i].setEditable(false); txtC2Desc[i].setBackground(new java.awt.Color(240,240,240));
+            buscador.configurar(txtC2[i], txtC2Desc[i], btn, matricesC2[i]);
+            
+            pnlInnerClas2.add(l); pnlInnerClas2.add(txtC2[i]); pnlInnerClas2.add(btn); pnlInnerClas2.add(txtC2Desc[i]);
+            yC2 += 22;
+        }
+        pnlClas2.add(pnlInnerClas2);
 
         pestanas.addTab("Niveles", pnlNiveles);
-        pestanas.addTab("Fiscal", new JPanel());
-        pestanas.addTab("Clasificaciones I", new JPanel());
-        pestanas.addTab("Clasificaciones II", new JPanel());
+        pestanas.addTab("Fiscal", pnlFiscal);
+        pestanas.addTab("Clasificaciones I", pnlClas1);
+        pestanas.addTab("Clasificaciones II", pnlClas2);
         dialogo.add(pestanas);
 
         // --- 3. BOTONES INFERIORES ---
-        JButton btnAceptar = new JButton("Aceptar");
-        btnAceptar.setBounds(150, 420, 100, 40);
-        JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(280, 420, 100, 40);
-
-        dialogo.add(btnAceptar);
-        dialogo.add(btnSalir);
+        JButton btnAceptar = new JButton("Aceptar"); btnAceptar.setBounds(170, 430, 100, 40);
+        JButton btnSalir = new JButton("Salir"); btnSalir.setBounds(300, 430, 100, 40);
+        dialogo.add(btnAceptar); dialogo.add(btnSalir);
 
         // --- 4. SI ES EDICIÓN, LLENAMOS LOS DATOS ---
-        // Guardaremos la CCTA original para poder hacer el UPDATE en caso de que cambien algo
         final String cctaOriginal; 
         
         if (modoEdicion) {
+            txtCve.setEditable(false);
             int fila = tblCCuentas.getSelectedRow();
-            
             String cia = tblCCuentas.getValueAt(fila, 0) != null ? tblCCuentas.getValueAt(fila, 0).toString() : "";
-            cctaOriginal = tblCCuentas.getValueAt(fila, 1) != null ? tblCCuentas.getValueAt(fila, 1).toString() : ""; // 12-1040101-000
+            cctaOriginal = tblCCuentas.getValueAt(fila, 1) != null ? tblCCuentas.getValueAt(fila, 1).toString() : ""; 
             
             cmbCia.setSelectedItem(cia);
             txtDesc.setText(tblCCuentas.getValueAt(fila, 2) != null ? tblCCuentas.getValueAt(fila, 2).toString() : "");
             
             // Nivel
             String nivelStr = tblCCuentas.getValueAt(fila, 3) != null ? tblCCuentas.getValueAt(fila, 3).toString() : "5";
-            try {
-                int n = Integer.parseInt(nivelStr);
-                if (n >= 1 && n <= 9) rNivel[n - 1].setSelected(true);
-            } catch (Exception e) {}
+            try { int n = Integer.parseInt(nivelStr); if (n >= 1 && n <= 9) rNivel[n - 1].setSelected(true); } catch (Exception e) {}
 
-            // Clasificaciones
             cmbClasGen.setSelectedItem(tblCCuentas.getValueAt(fila, 4) != null ? tblCCuentas.getValueAt(fila, 4).toString() : "");
             cmbClasDet.setSelectedItem(tblCCuentas.getValueAt(fila, 5) != null ? tblCCuentas.getValueAt(fila, 5).toString() : "");
             
-            // Mayor/Detalle
             String mayDet = tblCCuentas.getValueAt(fila, 6) != null ? tblCCuentas.getValueAt(fila, 6).toString() : "D";
-            if (mayDet.equalsIgnoreCase("M")) rbMayor.setSelected(true);
-            else rbDetalle.setSelected(true);
+            if (mayDet.equalsIgnoreCase("M")) rbMayor.setSelected(true); else rbDetalle.setSelected(true);
 
-            // Centros y cuentas
-            cmbCC.setSelectedItem(tblCCuentas.getValueAt(fila, 7) != null ? tblCCuentas.getValueAt(fila, 7).toString() : "");
-            txtSubCta.setText(tblCCuentas.getValueAt(fila, 8) != null ? tblCCuentas.getValueAt(fila, 8).toString() : "000");
+            cmbCC.setSelectedItem(tblCCuentas.getValueAt(fila, 13) != null ? tblCCuentas.getValueAt(fila, 13).toString() : ""); // Columna Centro
+            txtSubCta.setText(tblCCuentas.getValueAt(fila, 14) != null ? tblCCuentas.getValueAt(fila, 14).toString() : "000"); // Columna Aux
 
-            // Extraemos CTAOBJ de CCTA (Ej. "12-1040101-000" -> "1040101")
             String[] partesCcta = cctaOriginal.split("-");
-            if (partesCcta.length >= 2) {
-                txtCtaObj.setText(partesCcta[1]);
-            }
+            if (partesCcta.length >= 2) txtCtaObj.setText(partesCcta[1]);
+            
+            // Consultar datos extendidos desde BD
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement("SELECT NATCTA, CODAGR, TCONT, CC01, CC02, CC03, CC04, CC05, CC06, CC07, CC08, CC09, CC10 FROM tmctas WHERE CIA=? AND CCTA=?");
+                    ps.setString(1, cia);
+                    ps.setString(2, cctaOriginal);
+                    ResultSet rs = ps.executeQuery();
+                    if(rs.next()){
+                        cmbNaturaleza.setSelectedItem(rs.getString("NATCTA") != null ? rs.getString("NATCTA") : "D");
+                        cmbCodAgrupador.setSelectedItem(rs.getString("CODAGR") != null ? rs.getString("CODAGR") : "");
+                        txtTCont.setText(rs.getString("TCONT") != null ? rs.getString("TCONT") : "");
+                        
+                        for(int i=0; i<5; i++) txtC1[i].setText(rs.getString("CC0"+(i+1)) != null ? rs.getString("CC0"+(i+1)) : "");
+                        
+                        txtC2[0].setText(rs.getString("CC06") != null ? rs.getString("CC06") : "");
+                        txtC2[1].setText(rs.getString("CC07") != null ? rs.getString("CC07") : "");
+                        txtC2[2].setText(rs.getString("CC08") != null ? rs.getString("CC08") : "");
+                        txtC2[3].setText(rs.getString("CC09") != null ? rs.getString("CC09") : "");
+                        txtC2[4].setText(rs.getString("CC10") != null ? rs.getString("CC10") : "");
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {}
+            
         } else {
             cctaOriginal = "";
         }
@@ -433,26 +557,23 @@ private void mostrarDialogoCuenta(boolean modoEdicion) {
             String ctaObj = txtCtaObj.getText().trim();
             String subCta = txtSubCta.getText().trim();
             String desc = txtDesc.getText().trim();
-            String tCont = cmbTCont.getSelectedItem().toString();
+            String tCont = txtTCont.getText().trim();
             
             String clasGen = cmbClasGen.getSelectedItem() != null ? cmbClasGen.getSelectedItem().toString() : "";
             String clasDet = cmbClasDet.getSelectedItem() != null ? cmbClasDet.getSelectedItem().toString() : "";
             String mayDet = rbMayor.isSelected() ? "M" : "D";
             
             String nivel = "1";
-            for (int i = 0; i < 9; i++) {
-                if (rNivel[i].isSelected()) {
-                    nivel = String.valueOf(i + 1);
-                    break;
-                }
-            }
+            for (int i = 0; i < 9; i++) { if (rNivel[i].isSelected()) { nivel = String.valueOf(i + 1); break; } }
+            
+            String nat = cmbNaturaleza.getSelectedItem().toString();
+            String codAgr = cmbCodAgrupador.getSelectedItem() != null ? cmbCodAgrupador.getSelectedItem().toString() : "";
 
             if (ctaObj.isEmpty() || desc.isEmpty()) {
                 JOptionPane.showMessageDialog(dialogo, "La cuenta y la descripción son obligatorias.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Armamos los strings combinados que requiere la BD
             String cctaGenerada = cia + "-" + ctaObj + "-" + subCta;
             String objAuxGenerado = ctaObj + "-" + subCta;
 
@@ -463,41 +584,24 @@ private void mostrarDialogoCuenta(boolean modoEdicion) {
                     PreparedStatement ps;
                     
                     if (modoEdicion) {
-                        // En UPDATE solo actualizamos los que sabemos que pudieron cambiar
-                        String sql = "UPDATE tmctas SET CDES=?, CNIV=?, TCONT=?, TCTA=?, STIP=?, CMAY=?, CC=?, CTAOBJ=?, AUX=?, OBJAUX=? WHERE CIA=? AND CCTA=?";
+                        String sql = "UPDATE tmctas SET CDES=?, CNIV=?, TCONT=?, TCTA=?, STIP=?, CMAY=?, CC=?, CTAOBJ=?, AUX=?, OBJAUX=?, NATCTA=?, CODAGR=?, CC01=?, CC02=?, CC03=?, CC04=?, CC05=?, CC06=?, CC07=?, CC08=?, CC09=?, CC10=? WHERE CIA=? AND CCTA=?";
                         ps = con.prepareStatement(sql);
-                        ps.setString(1, desc);
-                        ps.setString(2, nivel);
-                        ps.setString(3, tCont);
-                        ps.setString(4, clasGen);
-                        ps.setString(5, clasDet);
-                        ps.setString(6, mayDet);
-                        ps.setString(7, cc);
-                        ps.setString(8, ctaObj);
-                        ps.setString(9, subCta);
-                        ps.setString(10, objAuxGenerado);
-                        ps.setString(11, cia);
-                        ps.setString(12, cctaOriginal); 
+                        ps.setString(1, desc); ps.setString(2, nivel); ps.setString(3, tCont); ps.setString(4, clasGen);
+                        ps.setString(5, clasDet); ps.setString(6, mayDet); ps.setString(7, cc); ps.setString(8, ctaObj);
+                        ps.setString(9, subCta); ps.setString(10, objAuxGenerado); ps.setString(11, nat); ps.setString(12, codAgr);
+                        for(int i=0; i<5; i++) ps.setString(13+i, txtC1[i].getText().trim());
+                        for(int i=0; i<5; i++) ps.setString(18+i, txtC2[i].getText().trim());
+                        ps.setString(23, cia); ps.setString(24, cctaOriginal); 
                     } else {
-                        // INSERT Mapeando ABSOLUTAMENTE TODAS las columnas de tu BD
-                        String sql = "INSERT INTO tmctas ("
-                                + "CIA, CCTA, CDES, CNIV, TCONT, TCTA, STIP, CMAY, CC, CTAOBJ, AUX, OBJAUX, "
-                                + "ICTA, NATCTA, CODAGR, CC01, CC02, CC03, CC04, CC05, CC06, CC07, CC08, CC09, CC10, CTAEXP"
-                                + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)";
+                        String sql = "INSERT INTO tmctas (CIA, CCTA, CDES, CNIV, TCONT, TCTA, STIP, CMAY, CC, CTAOBJ, AUX, OBJAUX, ICTA, NATCTA, CODAGR, CC01, CC02, CC03, CC04, CC05, CC06, CC07, CC08, CC09, CC10, CTAEXP) "
+                                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)";
                         ps = con.prepareStatement(sql);
-                        ps.setString(1, cia);
-                        ps.setString(2, cctaGenerada);
-                        ps.setString(3, desc);
-                        ps.setString(4, nivel);
-                        ps.setString(5, tCont);
-                        ps.setString(6, clasGen);
-                        ps.setString(7, clasDet);
-                        ps.setString(8, mayDet);
-                        ps.setString(9, cc);
-                        ps.setString(10, ctaObj);
-                        ps.setString(11, subCta);
-                        ps.setString(12, objAuxGenerado);
-                        // Los demás ya están definidos como NULL directo en el string de SQL
+                        ps.setString(1, cia); ps.setString(2, cctaGenerada); ps.setString(3, desc); ps.setString(4, nivel);
+                        ps.setString(5, tCont); ps.setString(6, clasGen); ps.setString(7, clasDet); ps.setString(8, mayDet);
+                        ps.setString(9, cc); ps.setString(10, ctaObj); ps.setString(11, subCta); ps.setString(12, objAuxGenerado);
+                        ps.setString(13, nat); ps.setString(14, codAgr);
+                        for(int i=0; i<5; i++) ps.setString(15+i, txtC1[i].getText().trim());
+                        for(int i=0; i<5; i++) ps.setString(20+i, txtC2[i].getText().trim());
                     }
 
                     if (ps.executeUpdate() > 0) {

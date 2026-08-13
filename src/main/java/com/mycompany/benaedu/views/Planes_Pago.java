@@ -33,46 +33,68 @@ public class Planes_Pago extends javax.swing.JPanel {
     public Planes_Pago() {
         initComponents();
     }
-private void cargarTablaPlanes() {
-        // 1. Arreglamos las columnas de la tabla por código
+ private void cargarTablaPlanes() {
         DefaultTableModel modelo = new DefaultTableModel(
             new Object[][] {}, 
-            new String[] {"Compañía", "Centro Costos", "Ciclo", "Plan", "Tipo", "Descripción", "Usuario", "Fecha Mod."}
+            new String[] {"Compañía", "Centro Costos", "Ciclo Escolar", "Tipo Pago", "Cve Plan", "Descripción", "Fec. Vig. Ini.", "Fec. Vig. Fin", "Usuario", "Fech. Ult. Act.", "Hora, Ult. Act."}
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; 
             }
         };
-        jTable1.setModel(modelo);
+        tblPPagos.setModel(modelo);
 
-        // 2. Cargamos los datos
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_planes_pago' por tu tabla real
-                String sql = "SELECT compania, centro_costos, ciclo, plan, tipo, descripcion, usuario, fecha_mod FROM tabla_planes_pago";
+                String sql = "SELECT CIA, CC, CESC, TGPO, CGPO, DGPO, FVINI, FVFIN, USER, FEAC, HOAC FROM tesgpge ORDER BY CIA, CC, CESC, CGPO";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
-                    Object[] fila = new Object[8]; 
-                    fila[0] = rs.getString("compania");
-                    fila[1] = rs.getString("centro_costos");
-                    fila[2] = rs.getString("ciclo");
-                    fila[3] = rs.getString("plan");
-                    fila[4] = rs.getString("tipo");
-                    fila[5] = rs.getString("descripcion");
-                    fila[6] = rs.getString("usuario");
-                    fila[7] = rs.getString("fecha_mod");
+                    Object[] fila = new Object[11]; 
+                    fila[0] = rs.getString("CIA");
+                    fila[1] = rs.getString("CC");
+                    fila[2] = rs.getString("CESC");
+                    fila[3] = rs.getString("TGPO");
+                    fila[4] = rs.getString("CGPO");
+                    fila[5] = rs.getString("DGPO");
+                    fila[6] = rs.getString("FVINI") != null ? rs.getString("FVINI") : "";
+                    fila[7] = rs.getString("FVFIN") != null ? rs.getString("FVFIN") : "";
+                    fila[8] = rs.getString("USER") != null ? rs.getString("USER") : "";
+                    fila[9] = rs.getString("FEAC") != null ? rs.getString("FEAC") : "";
+                    fila[10] = rs.getString("HOAC") != null ? rs.getString("HOAC") : "";
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
+                
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Planes de Pago: " + e.getMessage());
+        }
+    }
+
+    private void adaptarTamañoColumnas() {
+        tblPPagos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        
+        for (int i = 0; i < tblPPagos.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblPPagos.getColumnModel().getColumn(i);
+            int anchoPreferido = 60; 
+            
+            java.awt.Component compCabecera = tblPPagos.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblPPagos, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+            
+            for (int r = 0; r < tblPPagos.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblPPagos.getCellRenderer(r, i);
+                java.awt.Component c = tblPPagos.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            columna.setPreferredWidth(anchoPreferido); 
         }
     }
     /**
@@ -86,45 +108,53 @@ private void cargarTablaPlanes() {
 
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        btnAddGEscolar = new javax.swing.JButton();
-        btnEditGEscolar = new javax.swing.JButton();
-        btnDeleteGEscolar = new javax.swing.JButton();
+        tblPPagos = new javax.swing.JTable();
+        btnAddPPagos = new javax.swing.JButton();
+        btnEditPPagos = new javax.swing.JButton();
+        btnDeletePPagos = new javax.swing.JButton();
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblPPagos.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Compañia", "Centro Costos", "Ciclo Escolar", "Tipo Pago", "Cve Pan", "Descripcion", "Fec. Vig. Ini.", "Fec. Vig. Fin", "Usuario", "Fech. Ult. Act.", "Hora, Ult. Act."
             }
-        ));
-        jScrollPane1.setViewportView(jTable1);
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, true, false, false, false, false, false, false, false
+            };
 
-        btnAddGEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnAddGEscolar.setForeground(new java.awt.Color(26, 61, 99));
-        btnAddGEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
-        btnAddGEscolar.setText("Añadir");
-        btnAddGEscolar.addActionListener(this::btnAddGEscolarActionPerformed);
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(tblPPagos);
 
-        btnEditGEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnEditGEscolar.setForeground(new java.awt.Color(26, 61, 99));
-        btnEditGEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
-        btnEditGEscolar.setText("Editar");
-        btnEditGEscolar.setMaximumSize(new java.awt.Dimension(93, 31));
-        btnEditGEscolar.setMinimumSize(new java.awt.Dimension(93, 31));
-        btnEditGEscolar.addActionListener(this::btnEditGEscolarActionPerformed);
+        btnAddPPagos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnAddPPagos.setForeground(new java.awt.Color(26, 61, 99));
+        btnAddPPagos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/add.png"))); // NOI18N
+        btnAddPPagos.setText("Añadir");
+        btnAddPPagos.addActionListener(this::btnAddPPagosActionPerformed);
 
-        btnDeleteGEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        btnDeleteGEscolar.setForeground(new java.awt.Color(26, 61, 99));
-        btnDeleteGEscolar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
-        btnDeleteGEscolar.setText("Eliminar");
-        btnDeleteGEscolar.addActionListener(this::btnDeleteGEscolarActionPerformed);
+        btnEditPPagos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnEditPPagos.setForeground(new java.awt.Color(26, 61, 99));
+        btnEditPPagos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
+        btnEditPPagos.setText("Editar");
+        btnEditPPagos.setMaximumSize(new java.awt.Dimension(93, 31));
+        btnEditPPagos.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditPPagos.addActionListener(this::btnEditPPagosActionPerformed);
+
+        btnDeletePPagos.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        btnDeletePPagos.setForeground(new java.awt.Color(26, 61, 99));
+        btnDeletePPagos.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
+        btnDeletePPagos.setText("Eliminar");
+        btnDeletePPagos.addActionListener(this::btnDeletePPagosActionPerformed);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -133,11 +163,11 @@ private void cargarTablaPlanes() {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 750, Short.MAX_VALUE)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnAddGEscolar)
+                .addComponent(btnAddPPagos)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnEditGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEditPPagos, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnDeleteGEscolar)
+                .addComponent(btnDeletePPagos)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -146,9 +176,9 @@ private void cargarTablaPlanes() {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnAddGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnEditGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDeleteGEscolar, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnAddPPagos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnEditPPagos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnDeletePPagos, javax.swing.GroupLayout.PREFERRED_SIZE, 44, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 24, Short.MAX_VALUE))
         );
 
@@ -164,191 +194,347 @@ private void cargarTablaPlanes() {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void btnAddGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddGEscolarActionPerformed
+    private void btnAddPPagosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddPPagosActionPerformed
         mostrarDialogoPlanPagos(false);
-    }//GEN-LAST:event_btnAddGEscolarActionPerformed
+    }//GEN-LAST:event_btnAddPPagosActionPerformed
 
-    private void btnEditGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditGEscolarActionPerformed
-       if (jTable1.getSelectedRow() == -1) {
+    private void btnEditPPagosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditPPagosActionPerformed
+       if (tblPPagos.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un plan para editar.");
             return;
         }
         mostrarDialogoPlanPagos(true);
-    }//GEN-LAST:event_btnEditGEscolarActionPerformed
+    }//GEN-LAST:event_btnEditPPagosActionPerformed
 
-    private void btnDeleteGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteGEscolarActionPerformed
-       int fila = jTable1.getSelectedRow();
+    private void btnDeletePPagosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeletePPagosActionPerformed
+    int fila = tblPPagos.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un plan para eliminar.");
             return;
         }
 
-        String compania = jTable1.getValueAt(fila, 0).toString();
-        String cc = jTable1.getValueAt(fila, 1).toString();
-        String ciclo = jTable1.getValueAt(fila, 2).toString();
-        String plan = jTable1.getValueAt(fila, 3).toString();
-        String desc = jTable1.getValueAt(fila, 5).toString();
+        String cia = tblPPagos.getValueAt(fila, 0).toString();
+        String cc = tblPPagos.getValueAt(fila, 1).toString();
+        String ciclo = tblPPagos.getValueAt(fila, 2).toString();
+        String tpoPlan = tblPPagos.getValueAt(fila, 3).toString();
+        String plan = tblPPagos.getValueAt(fila, 4).toString();
+        String desc = tblPPagos.getValueAt(fila, 5).toString();
         
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el plan " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el plan " + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // ATENCIÓN: Cambia por tu tabla real
-                    String sql = "DELETE FROM tabla_planes_pago WHERE compania = ? AND centro_costos = ? AND ciclo = ? AND plan = ?";
+                    con.setAutoCommit(false); // Transacción para eliminar maestro-detalle
+
+                    // 1. Borrar partidas del detalle (tesgpde)
+                    String sqlDet = "DELETE FROM tesgpde WHERE CIA = ? AND CC = ? AND CESC = ? AND TGPO = ? AND CGPO = ?";
+                    PreparedStatement psDet = con.prepareStatement(sqlDet);
+                    psDet.setString(1, cia);
+                    psDet.setString(2, cc);
+                    psDet.setString(3, ciclo);
+                    psDet.setString(4, tpoPlan);
+                    psDet.setString(5, plan);
+                    psDet.executeUpdate();
+                    psDet.close();
+
+                    // 2. Borrar encabezado (tesgpge)
+                    String sql = "DELETE FROM tesgpge WHERE CIA = ? AND CC = ? AND CESC = ? AND TGPO = ? AND CGPO = ?";
                     PreparedStatement ps = con.prepareStatement(sql);
-                    ps.setString(1, compania);
+                    ps.setString(1, cia);
                     ps.setString(2, cc);
                     ps.setString(3, ciclo);
-                    ps.setString(4, plan);
-                    
-                    if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Plan eliminado.");
+                    ps.setString(4, tpoPlan);
+                    ps.setString(5, plan);
+                    int res = ps.executeUpdate();
+                    ps.close();
+
+                    con.commit();
+                    db.Cerrar();
+
+                    if (res > 0) {
+                        JOptionPane.showMessageDialog(this, "Plan y sus partidas eliminados correctamente.");
                         cargarTablaPlanes();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
-                    ps.close(); db.Cerrar();
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
             }
         }
-    }//GEN-LAST:event_btnDeleteGEscolarActionPerformed
+    }//GEN-LAST:event_btnDeletePPagosActionPerformed
 
 private void mostrarDialogoPlanPagos(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         String tituloVentana = modoEdicion ? "Modificar Plan de Pagos" : "Agregar Plan de Pagos";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
-        dialogo.setSize(720, 620); // Ventana ancha para que quepa la tabla interna
+        dialogo.setSize(850, 600);
         dialogo.setLayout(null);
         dialogo.setResizable(false);
+
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    DefaultTableModel mod = new DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    JTable tabla = new JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(250);
+
+                    javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    JScrollPane scroll = new JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(340, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA LOS BUSCADORES ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dCC = cargarDatos.apply("SELECT CVE, DES1 FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE");
+        Object[][] dCiclo = cargarDatos.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC");
+        Object[][] dTipoPlan = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TGPO' ORDER BY CVE");
+        Object[][] dCptos = cargarDatos.apply("SELECT DISTINCT NCPTO, DCPTO FROM tescpto ORDER BY NCPTO");
 
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblCia = new JLabel("Compañía");
         lblCia.setBounds(20, 15, 80, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
-        cmbCia.setBounds(110, 15, 70, 25);
-        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
-        lblCiaDesc.setBounds(190, 15, 250, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(110, 15, 60, 25);
+        JLabel lblCiaDesc = new JLabel();
+        lblCiaDesc.setBounds(180, 15, 250, 25);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rs = con.prepareStatement("SELECT CIA, NCIA FROM tmcias").executeQuery();
+                while(rs.next()){ 
+                    cmbCia.addItem(rs.getString("CIA")); 
+                    lblCiaDesc.setText(rs.getString("NCIA")); 
+                }
+                rs.close(); db.Cerrar();
+            }
+        } catch (Exception ex) {}
+
+        // Buscador Centro de Costos
         JLabel lblCC = new JLabel("Centro Costos");
         lblCC.setBounds(20, 45, 90, 25);
-        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", ""});
-        cmbCC.setBounds(110, 45, 80, 25);
-        JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE (JARDIN DE NIÑOS)");
-        lblCCDesc.setBounds(200, 45, 300, 25);
+        JTextField txtCC = new JTextField();
+        txtCC.setBounds(110, 45, 60, 25);
+        JButton btnCC = new JButton("▼");
+        btnCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCC.setBounds(170, 45, 20, 25);
+        JTextField txtCCDesc = new JTextField();
+        txtCCDesc.setBounds(195, 45, 235, 25);
+        txtCCDesc.setEditable(false); txtCCDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtCC, txtCCDesc, btnCC, dCC);
 
+        // Buscador Ciclo Escolar
         JLabel lblCiclo = new JLabel("Ciclo Escolar");
         lblCiclo.setBounds(20, 75, 90, 25);
-        JComboBox<String> cmbCiclo = new JComboBox<>(new String[]{"0809"});
-        cmbCiclo.setBounds(110, 75, 80, 25);
+        JTextField txtCiclo = new JTextField();
+        txtCiclo.setBounds(110, 75, 60, 25);
+        JButton btnCiclo = new JButton("▼");
+        btnCiclo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCiclo.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCiclo.setBounds(170, 75, 20, 25);
+        JTextField txtCicloDesc = new JTextField();
+        txtCicloDesc.setBounds(195, 75, 235, 25);
+        txtCicloDesc.setEditable(false); txtCicloDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtCiclo, txtCicloDesc, btnCiclo, dCiclo);
 
+        // Plan de Pagos y Buscador Tipo de Plan
         JLabel lblPlan = new JLabel("Plan de Pagos");
         lblPlan.setBounds(20, 105, 90, 25);
         JTextField txtPlan = new JTextField();
         txtPlan.setBounds(110, 105, 80, 25);
 
-        JLabel lblTpoPlan = new JLabel("Tpo Plan");
-        lblTpoPlan.setBounds(330, 105, 60, 25);
-        JComboBox<String> cmbTpoPlan = new JComboBox<>(new String[]{"I"});
-        cmbTpoPlan.setBounds(390, 105, 60, 25);
-        JLabel lblTpoDesc = new JLabel("INSCRIPCIONES");
-        lblTpoDesc.setBounds(460, 105, 150, 25);
+        JLabel lblTipoPlan = new JLabel("Tpo Plan");
+        lblTipoPlan.setBounds(250, 105, 60, 25);
+        JTextField txtTipoPlan = new JTextField();
+        txtTipoPlan.setBounds(315, 105, 50, 25);
+        JButton btnTipoPlan = new JButton("▼");
+        btnTipoPlan.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnTipoPlan.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTipoPlan.setBounds(365, 105, 20, 25);
+        JTextField txtTipoPlanDesc = new JTextField();
+        txtTipoPlanDesc.setBounds(390, 105, 150, 25);
+        txtTipoPlanDesc.setEditable(false); txtTipoPlanDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtTipoPlan, txtTipoPlanDesc, btnTipoPlan, dTipoPlan);
 
         JLabel lblDesc = new JLabel("Descripción");
-        lblDesc.setBounds(20, 135, 80, 25);
+        lblDesc.setBounds(20, 135, 90, 25);
         JTextField txtDesc = new JTextField();
-        txtDesc.setBounds(110, 135, 560, 25);
+        txtDesc.setBounds(110, 135, 430, 25);
 
         if (modoEdicion) {
             cmbCia.setEnabled(false);
-            cmbCC.setEnabled(false);
-            cmbCiclo.setEnabled(false);
-            txtPlan.setEditable(false);
+            txtCC.setEditable(false); btnCC.setEnabled(false);
+            txtCiclo.setEditable(false); btnCiclo.setEnabled(false);
+            txtPlan.setEditable(false); 
         }
 
         dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
-        dialogo.add(lblCC); dialogo.add(cmbCC); dialogo.add(lblCCDesc);
-        dialogo.add(lblCiclo); dialogo.add(cmbCiclo);
+        dialogo.add(lblCC); dialogo.add(txtCC); dialogo.add(btnCC); dialogo.add(txtCCDesc);
+        dialogo.add(lblCiclo); dialogo.add(txtCiclo); dialogo.add(btnCiclo); dialogo.add(txtCicloDesc);
         dialogo.add(lblPlan); dialogo.add(txtPlan);
-        dialogo.add(lblTpoPlan); dialogo.add(cmbTpoPlan); dialogo.add(lblTpoDesc);
+        dialogo.add(lblTipoPlan); dialogo.add(txtTipoPlan); dialogo.add(btnTipoPlan); dialogo.add(txtTipoPlanDesc);
         dialogo.add(lblDesc); dialogo.add(txtDesc);
 
         // --- 2. PESTAÑAS Y MARCOS ---
         JTabbedPane pestanas = new JTabbedPane();
-        pestanas.setBounds(15, 175, 675, 335);
+        pestanas.setBounds(15, 175, 800, 320);
 
         JPanel pnlGenerales = new JPanel(null);
 
-        // >> Marco: Vigencia del Plan de Pagos
+        // Marco: Vigencia del Plan
         JPanel pnlVigencia = new JPanel(null);
         pnlVigencia.setBorder(BorderFactory.createTitledBorder("Vigencia del Plan de Pagos"));
-        pnlVigencia.setBounds(10, 10, 650, 65);
+        pnlVigencia.setBounds(10, 10, 775, 60);
 
-        JLabel lblFecIni = new JLabel("Fecha Inicial");
-        lblFecIni.setBounds(50, 25, 80, 25);
-        JTextField txtFecIni = new JTextField("01/09/2008");
-        txtFecIni.setBounds(130, 25, 90, 25);
+        JLabel lblFecIni = new JLabel("Fecha Inicial"); lblFecIni.setBounds(50, 20, 80, 25);
+        com.toedter.calendar.JDateChooser fecIniVigencia = new com.toedter.calendar.JDateChooser();
+        fecIniVigencia.setDateFormatString("yyyy-MM-dd"); fecIniVigencia.setBounds(140, 20, 110, 25);
 
-        JLabel lblFecFin = new JLabel("Fecha Final");
-        lblFecFin.setBounds(420, 25, 80, 25);
-        JTextField txtFecFin = new JTextField("30/07/2009");
-        txtFecFin.setBounds(490, 25, 90, 25);
+        JLabel lblFecFin = new JLabel("Fecha Final"); lblFecFin.setBounds(500, 20, 80, 25);
+        com.toedter.calendar.JDateChooser fecFinVigencia = new com.toedter.calendar.JDateChooser();
+        fecFinVigencia.setDateFormatString("yyyy-MM-dd"); fecFinVigencia.setBounds(590, 20, 110, 25);
 
-        pnlVigencia.add(lblFecIni); pnlVigencia.add(txtFecIni);
-        pnlVigencia.add(lblFecFin); pnlVigencia.add(txtFecFin);
+        pnlVigencia.add(lblFecIni); pnlVigencia.add(fecIniVigencia);
+        pnlVigencia.add(lblFecFin); pnlVigencia.add(fecFinVigencia);
         pnlGenerales.add(pnlVigencia);
 
-        // >> Sección Inferior: Captura de Detalle y Tabla
+        // Marco: Partidas / Detalle
         JPanel pnlDetalle = new JPanel(null);
         pnlDetalle.setBorder(BorderFactory.createEtchedBorder());
-        pnlDetalle.setBounds(10, 85, 650, 205);
+        pnlDetalle.setBounds(10, 80, 775, 200);
 
         // Títulos de captura
-        JLabel l1 = new JLabel("Sec"); l1.setBounds(10, 5, 30, 20);
-        JLabel l2 = new JLabel("Concepto"); l2.setBounds(50, 5, 70, 20);
-        JLabel l3 = new JLabel("Descripción"); l3.setBounds(130, 5, 80, 20);
-        JLabel l4 = new JLabel("Costo Unitario"); l4.setBounds(310, 5, 90, 20);
-        JLabel l5 = new JLabel("% Dscto"); l5.setBounds(400, 5, 60, 20);
-        JLabel l6 = new JLabel("Fecha Inicial"); l6.setBounds(460, 5, 80, 20);
-        JLabel l7 = new JLabel("Fecha Final"); l7.setBounds(540, 5, 80, 20);
-        pnlDetalle.add(l1); pnlDetalle.add(l2); pnlDetalle.add(l3); pnlDetalle.add(l4);
-        pnlDetalle.add(l5); pnlDetalle.add(l6); pnlDetalle.add(l7);
+        pnlDetalle.add(new JLabel("Sec")).setBounds(10, 10, 30, 20);
+        pnlDetalle.add(new JLabel("Concepto")).setBounds(45, 10, 80, 20);
+        pnlDetalle.add(new JLabel("Descripción")).setBounds(170, 10, 150, 20);
+        pnlDetalle.add(new JLabel("Costo Unitario")).setBounds(365, 10, 90, 20);
+        pnlDetalle.add(new JLabel("% Dscto")).setBounds(465, 10, 60, 20);
+        pnlDetalle.add(new JLabel("Fecha Inicial")).setBounds(535, 10, 80, 20);
+        pnlDetalle.add(new JLabel("Fecha Final")).setBounds(645, 10, 80, 20);
 
-        // Campos de captura
-        JTextField txtSec = new JTextField("14"); txtSec.setBounds(10, 25, 30, 25);
-        JComboBox<String> cmbConcepto = new JComboBox<>(new String[]{""}); cmbConcepto.setBounds(45, 25, 80, 25);
-        JTextField txtDescDet = new JTextField(); txtDescDet.setBounds(130, 25, 175, 25);
-        JTextField txtCosto = new JTextField("0.00"); txtCosto.setBounds(310, 25, 80, 25);
-        JTextField txtPorc = new JTextField("0.00"); txtPorc.setBounds(395, 25, 55, 25);
-        JTextField txtFecIniDet = new JTextField("01/09/2008"); txtFecIniDet.setBounds(455, 25, 75, 25);
-        JTextField txtFecFinDet = new JTextField("30/07/2009"); txtFecFinDet.setBounds(535, 25, 75, 25);
-        JButton btnOk = new JButton("OK"); btnOk.setBounds(615, 25, 30, 25);
+        // Campos de captura 
+        JTextField txtSec = new JTextField("1"); txtSec.setBounds(10, 30, 30, 25);
         
-        pnlDetalle.add(txtSec); pnlDetalle.add(cmbConcepto); pnlDetalle.add(txtDescDet); pnlDetalle.add(txtCosto);
-        pnlDetalle.add(txtPorc); pnlDetalle.add(txtFecIniDet); pnlDetalle.add(txtFecFinDet); pnlDetalle.add(btnOk);
+        JTextField txtCptoCode = new JTextField(); txtCptoCode.setBounds(45, 30, 60, 25);
+        JButton btnCptoCode = new JButton("▼"); btnCptoCode.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCptoCode.setMargin(new java.awt.Insets(0,0,0,0)); btnCptoCode.setBounds(105, 30, 20, 25);
+        
+        JTextField txtDescDet = new JTextField(); txtDescDet.setBounds(130, 30, 225, 25);
+        buscador.configurar(txtCptoCode, txtDescDet, btnCptoCode, dCptos);
+
+        JTextField txtCosto = new JTextField("0.00"); txtCosto.setBounds(365, 30, 90, 25); txtCosto.setHorizontalAlignment(JTextField.RIGHT);
+        JTextField txtDscto = new JTextField("0.00"); txtDscto.setBounds(465, 30, 60, 25); txtDscto.setHorizontalAlignment(JTextField.RIGHT);
+        
+        com.toedter.calendar.JDateChooser txtFecIniDet = new com.toedter.calendar.JDateChooser();
+        txtFecIniDet.setDateFormatString("yyyy-MM-dd"); txtFecIniDet.setBounds(535, 30, 100, 25);
+        
+        com.toedter.calendar.JDateChooser txtFecFinDet = new com.toedter.calendar.JDateChooser();
+        txtFecFinDet.setDateFormatString("yyyy-MM-dd"); txtFecFinDet.setBounds(645, 30, 100, 25);
+        
+        JButton btnOk = new JButton("OK"); btnOk.setBounds(750, 30, 20, 25); btnOk.setMargin(new java.awt.Insets(0,0,0,0));
+        
+        pnlDetalle.add(txtSec); pnlDetalle.add(txtCptoCode); pnlDetalle.add(btnCptoCode); pnlDetalle.add(txtDescDet); pnlDetalle.add(txtCosto); 
+        pnlDetalle.add(txtDscto); pnlDetalle.add(txtFecIniDet); pnlDetalle.add(txtFecFinDet); pnlDetalle.add(btnOk);
 
         // Tabla interna de Detalles
-        JTable tblDetalle = new JTable();
         DefaultTableModel modDetalle = new DefaultTableModel(
             new Object[][]{}, 
-            new String[]{"Sec", "Concepto", "Descripción", "Tipo", "Costo Unitario", "Porc. Descuento", "Fec Vig Ini", "Fec Vig Fin"}
-        );
-        tblDetalle.setModel(modDetalle);
+            new String[]{"Sec", "Concepto", "Descripción", "Costo Unitario", "Porc. Descuento", "Fec Vig Ini", "Fec Vig Fin"}
+        ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
+
+        JTable tblDetalle = new JTable(modDetalle);
         JScrollPane scrollDetalle = new JScrollPane(tblDetalle);
-        scrollDetalle.setBounds(10, 60, 630, 130);
+        scrollDetalle.setBounds(10, 65, 755, 125);
         pnlDetalle.add(scrollDetalle);
 
-        // Lógica del botón "OK" para agregar a la tablita interna visualmente
+        // Evento Agregar Partida al Grid
         btnOk.addActionListener(e -> {
+            String cpto = txtCptoCode.getText().trim();
+            String descrip = txtDescDet.getText().trim();
+            String fi = txtFecIniDet.getDate() != null ? sdf.format(txtFecIniDet.getDate()) : "";
+            String ff = txtFecFinDet.getDate() != null ? sdf.format(txtFecFinDet.getDate()) : "";
+
+            if (cpto.isEmpty() || descrip.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "Seleccione un concepto para agregar.", "Atención", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             modDetalle.addRow(new Object[]{
-                txtSec.getText(), cmbConcepto.getSelectedItem().toString(), txtDescDet.getText(), 
-                "I", txtCosto.getText(), txtPorc.getText(), txtFecIniDet.getText(), txtFecFinDet.getText()
+                txtSec.getText().trim(), cpto, descrip,
+                txtCosto.getText().trim(), txtDscto.getText().trim(), fi, ff
             });
+
             txtSec.setText(String.valueOf(modDetalle.getRowCount() + 1)); 
+            txtCptoCode.setText("");
             txtDescDet.setText("");
+            txtCosto.setText("0.00");
+            txtDscto.setText("0.00");
         });
 
         pnlGenerales.add(pnlDetalle);
@@ -357,39 +543,207 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
 
         // --- 3. BOTONES INFERIORES ---
         JButton btnAceptar = new JButton("Aceptar");
-        btnAceptar.setBounds(230, 525, 100, 40);
+        btnAceptar.setBounds(300, 510, 100, 40);
         JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(360, 525, 100, 40);
+        btnSalir.setBounds(430, 510, 100, 40);
 
         dialogo.add(btnAceptar);
         dialogo.add(btnSalir);
 
-        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        // --- 4. CARGAR DATOS SI ES MODO EDICIÓN ---
         if (modoEdicion) {
-            int fila = jTable1.getSelectedRow();
-            cmbCia.setSelectedItem(jTable1.getValueAt(fila, 0).toString());
-            cmbCC.setSelectedItem(jTable1.getValueAt(fila, 1).toString());
-            cmbCiclo.setSelectedItem(jTable1.getValueAt(fila, 2).toString());
-            txtPlan.setText(jTable1.getValueAt(fila, 3).toString());
-            txtDesc.setText(jTable1.getValueAt(fila, 5).toString());
-            // Aquí simularías cargar los detalles en la tablita interna `modDetalle`
+            int fila = tblPPagos.getSelectedRow();
+            String ciaFila = tblPPagos.getValueAt(fila, 0).toString();
+            String ccFila = tblPPagos.getValueAt(fila, 1).toString();
+            String cicloFila = tblPPagos.getValueAt(fila, 2).toString();
+            String tpoPlanFila = tblPPagos.getValueAt(fila, 3).toString();
+            String planFila = tblPPagos.getValueAt(fila, 4).toString();
+
+            cmbCia.setSelectedItem(ciaFila);
+            txtCC.setText(ccFila);
+            txtCiclo.setText(cicloFila);
+            txtTipoPlan.setText(tpoPlanFila);
+            txtPlan.setText(planFila);
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Cargar Encabezado (tesgpge)
+                    String sqlGe = "SELECT DGPO, FVINI, FVFIN FROM tesgpge WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=?";
+                    PreparedStatement psGe = con.prepareStatement(sqlGe);
+                    psGe.setString(1, ciaFila);
+                    psGe.setString(2, ccFila);
+                    psGe.setString(3, cicloFila);
+                    psGe.setString(4, tpoPlanFila);
+                    psGe.setString(5, planFila);
+                    ResultSet rsGe = psGe.executeQuery();
+
+                    if (rsGe.next()) {
+                        txtDesc.setText(rsGe.getString("DGPO") != null ? rsGe.getString("DGPO") : "");
+                        
+                        try {
+                            if (rsGe.getString("FVINI") != null && !rsGe.getString("FVINI").isEmpty()) {
+                                fecIniVigencia.setDate(sdf.parse(rsGe.getString("FVINI")));
+                            }
+                            if (rsGe.getString("FVFIN") != null && !rsGe.getString("FVFIN").isEmpty()) {
+                                fecFinVigencia.setDate(sdf.parse(rsGe.getString("FVFIN")));
+                            }
+                        } catch(Exception ex) {}
+                    }
+                    rsGe.close(); psGe.close();
+
+                    // Cargar Detalle (tesgpde)
+                    String sqlDe = "SELECT SEC, NCPTO, DCPTO, IMPTE, PDSC, FVINI, FVFIN FROM tesgpde WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=? ORDER BY SEC ASC";
+                    PreparedStatement psDe = con.prepareStatement(sqlDe);
+                    psDe.setString(1, ciaFila);
+                    psDe.setString(2, ccFila);
+                    psDe.setString(3, cicloFila);
+                    psDe.setString(4, tpoPlanFila);
+                    psDe.setString(5, planFila);
+                    ResultSet rsDe = psDe.executeQuery();
+
+                    modDetalle.setRowCount(0);
+                    java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
+
+                    while (rsDe.next()) {
+                        modDetalle.addRow(new Object[]{
+                            rsDe.getInt("SEC"),
+                            rsDe.getString("NCPTO"),
+                            rsDe.getString("DCPTO"),
+                            df.format(rsDe.getDouble("IMPTE")),
+                            df.format(rsDe.getDouble("PDSC")),
+                            rsDe.getString("FVINI") != null ? rsDe.getString("FVINI") : "",
+                            rsDe.getString("FVFIN") != null ? rsDe.getString("FVFIN") : ""
+                        });
+                    }
+                    rsDe.close(); psDe.close();
+                    db.Cerrar();
+
+                    txtSec.setText(String.valueOf(modDetalle.getRowCount() + 1));
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(dialogo, "Error al cargar datos del plan: " + e.getMessage());
+            }
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
+            String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+            String cc = txtCC.getText().trim();
+            String ciclo = txtCiclo.getText().trim();
             String plan = txtPlan.getText().trim();
-            if (plan.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El ID del plan no puede estar vacío.");
+            String desc = txtDesc.getText().trim();
+            String tipoPlan = txtTipoPlan.getText().trim();
+
+            String fvini = fecIniVigencia.getDate() != null ? sdf.format(fecIniVigencia.getDate()) : "";
+            String fvfin = fecFinVigencia.getDate() != null ? sdf.format(fecFinVigencia.getDate()) : "";
+
+            if (plan.isEmpty() || desc.isEmpty() || cc.isEmpty() || ciclo.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El Centro de Costos, Ciclo, Plan y Descripción son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va tu código SQL INSERT o UPDATE para el maestro y sus detalles
-            JOptionPane.showMessageDialog(dialogo, "Plan de pagos guardado (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaPlanes(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    con.setAutoCommit(false); // Iniciar Transacción Maestro-Detalle
+
+                    PreparedStatement psGe;
+
+                    if (modoEdicion) {
+                        String sqlGe = "UPDATE tesgpge SET DGPO=?, TGPO=?, FVINI=?, FVFIN=?, USER='Admin', FEAC=CURDATE(), HOAC=DATE_FORMAT(NOW(), '%r') " +
+                                       "WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=?";
+                        psGe = con.prepareStatement(sqlGe);
+                        psGe.setString(1, desc);
+                        psGe.setString(2, tipoPlan);
+                        psGe.setString(3, fvini);
+                        psGe.setString(4, fvfin);
+                        psGe.setString(5, cia);
+                        psGe.setString(6, cc);
+                        psGe.setString(7, ciclo);
+                        psGe.setString(8, tipoPlan);
+                        psGe.setString(9, plan);
+                        psGe.executeUpdate();
+                        psGe.close();
+
+                        // Limpiar partidas anteriores en edición para sobrescribir
+                        String sqlDelDet = "DELETE FROM tesgpde WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=?";
+                        PreparedStatement psDelDet = con.prepareStatement(sqlDelDet);
+                        psDelDet.setString(1, cia);
+                        psDelDet.setString(2, cc);
+                        psDelDet.setString(3, ciclo);
+                        psDelDet.setString(4, tipoPlan);
+                        psDelDet.setString(5, plan);
+                        psDelDet.executeUpdate();
+                        psDelDet.close();
+
+                    } else {
+                        String sqlGe = "INSERT INTO tesgpge (CIA, CC, CESC, TGPO, CGPO, DGPO, FVINI, FVFIN, USER, FEAC, HOAC) " +
+                                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Admin', CURDATE(), DATE_FORMAT(NOW(), '%r'))";
+                        psGe = con.prepareStatement(sqlGe);
+                        psGe.setString(1, cia);
+                        psGe.setString(2, cc);
+                        psGe.setString(3, ciclo);
+                        psGe.setString(4, tipoPlan);
+                        psGe.setString(5, plan);
+                        psGe.setString(6, desc);
+                        psGe.setString(7, fvini);
+                        psGe.setString(8, fvfin);
+                        psGe.executeUpdate();
+                        psGe.close();
+                    }
+
+                    // Insertar Partidas del Detalle (tesgpde)
+                    String sqlInsDet = "INSERT INTO tesgpde (CIA, CC, CESC, TGPO, CGPO, SEC, NCPTO, DCPTO, IMPTE, PDSC, FVINI, FVFIN) " +
+                                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    PreparedStatement psInsDet = con.prepareStatement(sqlInsDet);
+
+                    for (int i = 0; i < modDetalle.getRowCount(); i++) {
+                        int sec = Integer.parseInt(modDetalle.getValueAt(i, 0).toString());
+                        String ncpto = modDetalle.getValueAt(i, 1).toString();
+                        String dcpto = modDetalle.getValueAt(i, 2).toString();
+                        
+                        double impte = 0.0;
+                        try { impte = Double.parseDouble(modDetalle.getValueAt(i, 3).toString().replace(",", "")); } catch(Exception ex) {}
+
+                        double pdsc = 0.0;
+                        try { pdsc = Double.parseDouble(modDetalle.getValueAt(i, 4).toString().replace(",", "")); } catch(Exception ex) {}
+
+                        String detIni = modDetalle.getValueAt(i, 5).toString();
+                        String detFin = modDetalle.getValueAt(i, 6).toString();
+
+                        psInsDet.setString(1, cia);
+                        psInsDet.setString(2, cc);
+                        psInsDet.setString(3, ciclo);
+                        psInsDet.setString(4, tipoPlan);
+                        psInsDet.setString(5, plan);
+                        psInsDet.setInt(6, sec);
+                        psInsDet.setString(7, ncpto);
+                        psInsDet.setString(8, dcpto);
+                        psInsDet.setDouble(9, impte);
+                        psInsDet.setDouble(10, pdsc);
+                        psInsDet.setString(11, detIni);
+                        psInsDet.setString(12, detFin);
+                        psInsDet.addBatch();
+                    }
+
+                    psInsDet.executeBatch();
+                    psInsDet.close();
+
+                    con.commit();
+                    db.Cerrar();
+
+                    JOptionPane.showMessageDialog(dialogo, "Plan de Pagos y sus partidas guardados con éxito.");
+                    dialogo.dispose();
+                    cargarTablaPlanes(); // Refresca la tabla principal
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---
@@ -397,11 +751,11 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAddGEscolar;
-    private javax.swing.JButton btnDeleteGEscolar;
-    private javax.swing.JButton btnEditGEscolar;
+    private javax.swing.JButton btnAddPPagos;
+    private javax.swing.JButton btnDeletePPagos;
+    private javax.swing.JButton btnEditPPagos;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable tblPPagos;
     // End of variables declaration//GEN-END:variables
 }

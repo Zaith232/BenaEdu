@@ -366,9 +366,9 @@ public class Login extends javax.swing.JFrame {
                     this.dispose(); // Cierra la ventana de Login
                     
                     // Aquí le pasamos el nombre completo (Juan Pérez) en lugar de (juanp123)
-                    Dashboard ventanaDashboard = new Dashboard(nombreCompleto);
-                    ventanaDashboard.setLocationRelativeTo(null); 
-                    ventanaDashboard.setVisible(true); 
+                   Dashboard ventanaDashboard = new Dashboard(nombreCompleto, usuario);
+ventanaDashboard.setLocationRelativeTo(null); 
+ventanaDashboard.setVisible(true);
                     
                 } else {
                     JOptionPane.showMessageDialog(this, "Usuario o contraseña incorrectos.");

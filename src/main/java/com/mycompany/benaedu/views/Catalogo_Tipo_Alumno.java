@@ -29,9 +29,10 @@ public class Catalogo_Tipo_Alumno extends javax.swing.JPanel {
      */
     public Catalogo_Tipo_Alumno() {
         initComponents();
+        cargarTablaTiposAlumno();
     }
 private void cargarTablaTiposAlumno() {
-        // 1. Arreglamos las columnas de la tabla por código
+        // 1. Arreglamos las columnas de la tabla por código para coincidir con la BD
         DefaultTableModel modelo = new DefaultTableModel(
             new Object[][] {}, 
             new String[] {"Compañía", "Tipo Alumno", "Descripción", "C. Costo", "Cuenta", "Usuario", "Fec Ult Act", "Hora Ult Act"}
@@ -41,35 +42,57 @@ private void cargarTablaTiposAlumno() {
                 return false; 
             }
         };
-        jTable2.setModel(modelo);
+        tblCTAlumno.setModel(modelo);
 
-        // 2. Cargamos los datos
+        // 2. Cargamos los datos reales de tesalutp
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_tipos_alumno' por tu tabla real
-                String sql = "SELECT compania, tipo_alumno, descripcion, centro_costo, cuenta, usuario, fecha_mod, hora_mod FROM tabla_tipos_alumno";
+                String sql = "SELECT CIA, TALU, DES, CC, CTA, USER, FEAC, HOAC FROM tesalutp";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
                     Object[] fila = new Object[8]; 
-                    fila[0] = rs.getString("compania");
-                    fila[1] = rs.getString("tipo_alumno");
-                    fila[2] = rs.getString("descripcion");
-                    fila[3] = rs.getString("centro_costo");
-                    fila[4] = rs.getString("cuenta");
-                    fila[5] = rs.getString("usuario");
-                    fila[6] = rs.getString("fecha_mod");
-                    fila[7] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("CIA");
+                    fila[1] = rs.getString("TALU");
+                    fila[2] = rs.getString("DES");
+                    fila[3] = rs.getString("CC");
+                    fila[4] = rs.getString("CTA");
+                    fila[5] = rs.getString("USER");
+                    fila[6] = rs.getString("FEAC");
+                    fila[7] = rs.getString("HOAC");
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
+                
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Tipos de Alumno: " + e.getMessage());
+        }
+    }
+
+    // --- MÉTODO PARA AUTO-AJUSTAR ANCHO DE COLUMNAS ---
+    private void adaptarTamañoColumnas() {
+        tblCTAlumno.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        
+        for (int i = 0; i < tblCTAlumno.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblCTAlumno.getColumnModel().getColumn(i);
+            int anchoPreferido = 50; 
+            
+            java.awt.Component compCabecera = tblCTAlumno.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblCTAlumno, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+            
+            for (int r = 0; r < tblCTAlumno.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblCTAlumno.getCellRenderer(r, i);
+                java.awt.Component c = tblCTAlumno.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            columna.setPreferredWidth(anchoPreferido); 
         }
     }
     /**
@@ -83,25 +106,33 @@ private void cargarTablaTiposAlumno() {
 
         jPanel1 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTable2 = new javax.swing.JTable();
+        tblCTAlumno = new javax.swing.JTable();
         btnAddTAlumno = new javax.swing.JButton();
         btnEditTAlumno = new javax.swing.JButton();
         btnDeleteTAlumno = new javax.swing.JButton();
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
-        jTable2.setModel(new javax.swing.table.DefaultTableModel(
+        tblCTAlumno.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Compañia", "Tipo Alumno", "Descripcion", "C. Costo", "Cuenta", "Usuario", "Fec. Ult. Act.", "Hora. Ult. Act"
             }
-        ));
-        jScrollPane2.setViewportView(jTable2);
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(tblCTAlumno);
 
         btnAddTAlumno.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnAddTAlumno.setForeground(new java.awt.Color(26, 61, 99));
@@ -166,7 +197,7 @@ private void cargarTablaTiposAlumno() {
     }//GEN-LAST:event_btnAddTAlumnoActionPerformed
 
     private void btnEditTAlumnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditTAlumnoActionPerformed
-if (jTable2.getSelectedRow() == -1) {
+if (tblCTAlumno.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un tipo de alumno para editar.");
             return;
         }
@@ -174,32 +205,34 @@ if (jTable2.getSelectedRow() == -1) {
     }//GEN-LAST:event_btnEditTAlumnoActionPerformed
 
     private void btnDeleteTAlumnoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteTAlumnoActionPerformed
-        int fila = jTable2.getSelectedRow();
+      int fila = tblCTAlumno.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un tipo de alumno para eliminar.");
             return;
         }
 
-        String compania = jTable2.getValueAt(fila, 0).toString();
-        String tipoAlumno = jTable2.getValueAt(fila, 1).toString();
-        String desc = jTable2.getValueAt(fila, 2).toString();
+        String cia = tblCTAlumno.getValueAt(fila, 0).toString();
+        String tipoAlumno = tblCTAlumno.getValueAt(fila, 1).toString();
+        String desc = tblCTAlumno.getValueAt(fila, 2).toString();
         
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el tipo de alumno: " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el tipo de alumno: " + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // ATENCIÓN: Cambia por tu tabla real
-                    String sql = "DELETE FROM tabla_tipos_alumno WHERE compania = ? AND tipo_alumno = ?";
+                    // Eliminamos usando las 2 llaves primarias
+                    String sql = "DELETE FROM tesalutp WHERE CIA = ? AND TALU = ?";
                     PreparedStatement ps = con.prepareStatement(sql);
-                    ps.setString(1, compania);
+                    ps.setString(1, cia);
                     ps.setString(2, tipoAlumno);
                     
                     if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Tipo de alumno eliminado.");
+                        JOptionPane.showMessageDialog(this, "Tipo de alumno eliminado correctamente.");
                         cargarTablaTiposAlumno();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -209,7 +242,7 @@ if (jTable2.getSelectedRow() == -1) {
         }
     }//GEN-LAST:event_btnDeleteTAlumnoActionPerformed
 
-private void mostrarDialogoTipoAlumno(boolean modoEdicion) {
+  private void mostrarDialogoTipoAlumno(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         String tituloVentana = modoEdicion ? "Modificar Tipo de Alumno" : "Agregar Tipo de Alumno";
 
@@ -218,13 +251,100 @@ private void mostrarDialogoTipoAlumno(boolean modoEdicion) {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(100);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(250);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(350, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA LOS BUSCADORES ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dCC = cargarDatos.apply("SELECT CVE, DES1 FROM tgcc ORDER BY CVE");
+        Object[][] dCta = cargarDatos.apply("SELECT CCTA, CDES FROM tmctas ORDER BY CCTA");
+
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblCia = new JLabel("Compañía");
         lblCia.setBounds(20, 15, 80, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        JComboBox<String> cmbCia = new JComboBox<>();
         cmbCia.setBounds(90, 15, 60, 25);
-        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
+        JLabel lblCiaDesc = new JLabel();
         lblCiaDesc.setBounds(160, 15, 250, 25);
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rs = con.prepareStatement("SELECT CIA, NCIA FROM tmcias").executeQuery();
+                while(rs.next()){ 
+                    cmbCia.addItem(rs.getString("CIA")); 
+                    lblCiaDesc.setText(rs.getString("NCIA")); 
+                }
+                rs.close(); db.Cerrar();
+            }
+        } catch (Exception ex) {}
 
         dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
 
@@ -243,26 +363,37 @@ private void mostrarDialogoTipoAlumno(boolean modoEdicion) {
         JTextField txtDesc = new JTextField();
         txtDesc.setBounds(120, 50, 300, 25);
 
-        // Etiquetas sobre los combos
+        // Buscador Centro de Costo
         JLabel lblTitCC = new JLabel("Centro de Costo");
         lblTitCC.setBounds(15, 85, 100, 20);
-        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"", "12100", "12200"});
-        cmbCC.setBounds(15, 105, 90, 25);
+        JTextField txtCC = new JTextField();
+        txtCC.setBounds(15, 105, 60, 25);
+        JButton btnCC = new JButton("▼");
+        btnCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCC.setBounds(75, 105, 20, 25);
+        buscador.configurar(txtCC, null, btnCC, dCC);
 
+        // Buscador Cuenta Contable
         JLabel lblTitCta = new JLabel("Cuenta Contable");
         lblTitCta.setBounds(150, 85, 120, 20);
-        JComboBox<String> cmbCta = new JComboBox<>(new String[]{"", "1011000-001", "1011000-002"});
-        cmbCta.setBounds(150, 105, 130, 25);
+        JTextField txtCta = new JTextField();
+        txtCta.setBounds(150, 105, 110, 25);
+        JButton btnCta = new JButton("▼");
+        btnCta.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCta.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCta.setBounds(260, 105, 20, 25);
+        buscador.configurar(txtCta, null, btnCta, dCta);
 
         if (modoEdicion) {
             cmbCia.setEnabled(false);
-            txtTipo.setEditable(false); // Llave primaria
+            txtTipo.setEditable(false); // Llave primaria bloqueada
         }
 
         pnlCentral.add(lblTipo); pnlCentral.add(txtTipo);
         pnlCentral.add(lblDesc); pnlCentral.add(txtDesc);
-        pnlCentral.add(lblTitCC); pnlCentral.add(cmbCC);
-        pnlCentral.add(lblTitCta); pnlCentral.add(cmbCta);
+        pnlCentral.add(lblTitCC); pnlCentral.add(txtCC); pnlCentral.add(btnCC);
+        pnlCentral.add(lblTitCta); pnlCentral.add(txtCta); pnlCentral.add(btnCta);
 
         dialogo.add(pnlCentral);
 
@@ -277,35 +408,84 @@ private void mostrarDialogoTipoAlumno(boolean modoEdicion) {
 
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
-            int fila = jTable2.getSelectedRow();
-            // Asegúrate de que los índices coinciden con la tabla
-            cmbCia.setSelectedItem(jTable2.getValueAt(fila, 0).toString());
-            txtTipo.setText(jTable2.getValueAt(fila, 1).toString());
-            txtDesc.setText(jTable2.getValueAt(fila, 2).toString());
+            int fila = tblCTAlumno.getSelectedRow();
+            String ciaSel = tblCTAlumno.getValueAt(fila, 0).toString();
+            String tipoSel = tblCTAlumno.getValueAt(fila, 1).toString();
             
-            // Si la celda de CC no es nula, la seleccionamos
-            Object valCC = jTable2.getValueAt(fila, 3);
-            if (valCC != null) cmbCC.setSelectedItem(valCC.toString());
+            cmbCia.setSelectedItem(ciaSel);
+            txtTipo.setText(tipoSel);
             
-            Object valCta = jTable2.getValueAt(fila, 4);
-            if (valCta != null) cmbCta.setSelectedItem(valCta.toString());
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement("SELECT DES, CC, CTA FROM tesalutp WHERE CIA=? AND TALU=?");
+                    ps.setString(1, ciaSel);
+                    ps.setString(2, tipoSel);
+                    ResultSet rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        txtDesc.setText(rs.getString("DES") != null ? rs.getString("DES") : "");
+                        txtCC.setText(rs.getString("CC") != null ? rs.getString("CC") : "");
+                        txtCta.setText(rs.getString("CTA") != null ? rs.getString("CTA") : "");
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                // Falla silenciosa en la carga
+            }
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
+            String cia = cmbCia.getSelectedItem().toString();
             String tipo = txtTipo.getText().trim();
-            if (tipo.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El tipo de alumno es obligatorio.");
+            String desc = txtDesc.getText().trim();
+            String cc = txtCC.getText().trim();
+            String cta = txtCta.getText().trim();
+            
+            if (tipo.isEmpty() || desc.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El tipo de alumno y la descripción son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va la lógica SQL (INSERT / UPDATE)
-            JOptionPane.showMessageDialog(dialogo, "Tipo de Alumno guardado (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaTiposAlumno(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    if (modoEdicion) {
+                        String sql = "UPDATE tesalutp SET DES=?, CC=?, CTA=? WHERE CIA=? AND TALU=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, desc);
+                        ps.setString(2, cc);
+                        ps.setString(3, cta);
+                        ps.setString(4, cia);
+                        ps.setString(5, tipo);
+                    } else {
+                        String sql = "INSERT INTO tesalutp (CIA, TALU, DES, CC, CTA) VALUES (?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, cia);
+                        ps.setString(2, tipo);
+                        ps.setString(3, desc);
+                        ps.setString(4, cc);
+                        ps.setString(5, cta);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Tipo de Alumno guardado con éxito.");
+                        dialogo.dispose();
+                        cargarTablaTiposAlumno(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---
@@ -318,6 +498,6 @@ private void mostrarDialogoTipoAlumno(boolean modoEdicion) {
     private javax.swing.JButton btnEditTAlumno;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane2;
-    private javax.swing.JTable jTable2;
+    private javax.swing.JTable tblCTAlumno;
     // End of variables declaration//GEN-END:variables
 }

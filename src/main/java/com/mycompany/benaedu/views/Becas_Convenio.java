@@ -34,47 +34,71 @@ public class Becas_Convenio extends javax.swing.JPanel {
      */
     public Becas_Convenio() {
         initComponents();
+        cargarTablaBecas();
     }
-private void cargarTablaBecas() {
-        // 1. Arreglamos las columnas por código
+   private void cargarTablaBecas() {
+        // 1. Arreglamos las columnas por código para que coincidan con la DB
         DefaultTableModel modelo = new DefaultTableModel(
             new Object[][] {}, 
-            new String[] {"Clave", "Descripción", "Tipo Inst.", "Tipo", "Institución", "Autorizante", "Usuario", "Fecha Mod."}
+            new String[] {"Clave", "Descripción", "Tipo Inst.", "Tipo", "Cve Institución", "Autorizante", "Usuario", "Fecha Mod.", "Hora Mod."}
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; 
             }
         };
-        jTable1.setModel(modelo);
+        tblBConvenio.setModel(modelo);
 
-        // 2. Cargamos los datos
+        // 2. Cargamos los datos de la tabla tesbege
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_becas' por tu tabla real
-                String sql = "SELECT clave, descripcion, tipo_inst, tipo, institucion, autorizante, usuario, fecha_mod FROM tabla_becas";
+                String sql = "SELECT CBECA, DBECA, TINST, TBECA, CINST, NAUT, USER, FEAC, HOAC FROM tesbege";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
-                    Object[] fila = new Object[8]; 
-                    fila[0] = rs.getString("clave");
-                    fila[1] = rs.getString("descripcion");
-                    fila[2] = rs.getString("tipo_inst");
-                    fila[3] = rs.getString("tipo");
-                    fila[4] = rs.getString("institucion");
-                    fila[5] = rs.getString("autorizante");
-                    fila[6] = rs.getString("usuario");
-                    fila[7] = rs.getString("fecha_mod");
+                    Object[] fila = new Object[9]; 
+                    fila[0] = rs.getString("CBECA");
+                    fila[1] = rs.getString("DBECA");
+                    fila[2] = rs.getString("TINST");
+                    fila[3] = rs.getString("TBECA");
+                    fila[4] = rs.getString("CINST");
+                    fila[5] = rs.getString("NAUT");
+                    fila[6] = rs.getString("USER");
+                    fila[7] = rs.getString("FEAC");
+                    fila[8] = rs.getString("HOAC");
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
+                
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Becas: " + e.getMessage());
+        }
+    }
+
+    // --- MÉTODO PARA AUTO-AJUSTAR ANCHO DE COLUMNAS ---
+    private void adaptarTamañoColumnas() {
+        tblBConvenio.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        
+        for (int i = 0; i < tblBConvenio.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblBConvenio.getColumnModel().getColumn(i);
+            int anchoPreferido = 50; 
+            
+            java.awt.Component compCabecera = tblBConvenio.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblBConvenio, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+            
+            for (int r = 0; r < tblBConvenio.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblBConvenio.getCellRenderer(r, i);
+                java.awt.Component c = tblBConvenio.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            columna.setPreferredWidth(anchoPreferido); 
         }
     }
     /**
@@ -88,25 +112,33 @@ private void cargarTablaBecas() {
 
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblBConvenio = new javax.swing.JTable();
         btnAddBConvenio = new javax.swing.JButton();
         btnEditBConvenio = new javax.swing.JButton();
         btnDeleteBConvenio = new javax.swing.JButton();
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblBConvenio.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Clave", "Descripcion", "Tipo", "Tipo Inst.", "Cve Institucion", "Autorizante", "Usuario", "Fecha. Ult. Act.", "Hora. Ult. Act."
             }
-        ));
-        jScrollPane1.setViewportView(jTable1);
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPane1.setViewportView(tblBConvenio);
 
         btnAddBConvenio.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnAddBConvenio.setForeground(new java.awt.Color(26, 61, 99));
@@ -171,7 +203,7 @@ private void cargarTablaBecas() {
     }//GEN-LAST:event_btnAddBConvenioActionPerformed
 
     private void btnEditBConvenioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditBConvenioActionPerformed
-      if (jTable1.getSelectedRow() == -1) {
+     if (tblBConvenio.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un registro para editar.");
             return;
         }
@@ -179,30 +211,31 @@ private void cargarTablaBecas() {
     }//GEN-LAST:event_btnEditBConvenioActionPerformed
 
     private void btnDeleteBConvenioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteBConvenioActionPerformed
-      int fila = jTable1.getSelectedRow();
+     int fila = tblBConvenio.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un registro para eliminar.");
             return;
         }
 
-        String clave = jTable1.getValueAt(fila, 0).toString();
-        String desc = jTable1.getValueAt(fila, 1).toString();
+        String clave = tblBConvenio.getValueAt(fila, 0).toString();
+        String desc = tblBConvenio.getValueAt(fila, 1).toString();
         
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar Beca/Convenio: " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar Beca/Convenio: " + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // ATENCIÓN: Cambia por el nombre real de tu tabla
-                    String sql = "DELETE FROM tabla_becas WHERE clave = ?";
+                    String sql = "DELETE FROM tesbege WHERE CBECA = ?";
                     PreparedStatement ps = con.prepareStatement(sql);
                     ps.setString(1, clave);
                     
                     if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Registro eliminado.");
+                        JOptionPane.showMessageDialog(this, "Registro eliminado correctamente.");
                         cargarTablaBecas();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -216,16 +249,92 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
         String tituloVentana = modoEdicion ? "Modificar Becas y Convenios" : "Agregar Becas y Convenios";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
-        dialogo.setSize(680, 600); // Ventana más ancha para que quepa la tabla de detalles
+        dialogo.setSize(680, 600); 
         dialogo.setLayout(null);
         dialogo.setResizable(false);
+
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(250);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(320, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA LOS BUSCADORES ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        // Arreglos de datos desde la BD
+        Object[][] dInst = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CINS' ORDER BY CVE");
+        Object[][] dAut = cargarDatos.apply("SELECT NEMP, NOME FROM tgemp ORDER BY NEMP");
+        Object[][] dCon = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TCPT' ORDER BY CVE");
 
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblClave = new JLabel("Clave");
         lblClave.setBounds(20, 15, 80, 25);
         JTextField txtClave = new JTextField();
         txtClave.setBounds(100, 15, 100, 25);
-        if (modoEdicion) txtClave.setEditable(false);
+        if (modoEdicion) txtClave.setEditable(false); // Bloquear clave en edición
 
         JLabel lblDesc = new JLabel("Descripción");
         lblDesc.setBounds(20, 45, 80, 25);
@@ -271,27 +380,41 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
         bgTipo.add(rbBeca); bgTipo.add(rbConvenio);
         pnlTipoBeca.add(rbBeca); pnlTipoBeca.add(rbConvenio);
 
-        // >> Sección Media: Institución y Autorizante (Simulando el recuadro)
+        // >> Sección Media: Institución y Autorizante
         JPanel pnlMid = new JPanel(null);
         pnlMid.setBorder(BorderFactory.createEtchedBorder());
         pnlMid.setBounds(10, 70, 605, 75);
 
+        // Buscador Clave de Institución
         JLabel lblClaveInst = new JLabel("Clave de Institución");
         lblClaveInst.setBounds(10, 10, 120, 25);
-        JComboBox<String> cmbClaveInst = new JComboBox<>(new String[]{"CSAC", "OTRO"});
-        cmbClaveInst.setBounds(130, 10, 80, 25);
-        JLabel lblDescInst = new JLabel("COLEGIO SALESIANO, A.C.");
-        lblDescInst.setBounds(220, 10, 300, 25);
+        JTextField txtCveInst = new JTextField();
+        txtCveInst.setBounds(130, 10, 60, 25);
+        JButton btnCveInst = new JButton("▼");
+        btnCveInst.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCveInst.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCveInst.setBounds(190, 10, 20, 25);
+        JTextField txtDescInst = new JTextField();
+        txtDescInst.setBounds(215, 10, 375, 25);
+        txtDescInst.setEditable(false); txtDescInst.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtCveInst, txtDescInst, btnCveInst, dInst);
 
+        // Buscador Autorizante
         JLabel lblAut = new JLabel("Autorizante");
         lblAut.setBounds(10, 40, 120, 25);
-        JComboBox<String> cmbAut = new JComboBox<>(new String[]{"58", "59"});
-        cmbAut.setBounds(130, 40, 80, 25);
-        JLabel lblDescAut = new JLabel("JOSE DE JESUS AMBROSIO RAMIREZ ARAGON");
-        lblDescAut.setBounds(220, 40, 300, 25);
+        JTextField txtAut = new JTextField();
+        txtAut.setBounds(130, 40, 60, 25);
+        JButton btnAut = new JButton("▼");
+        btnAut.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnAut.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnAut.setBounds(190, 40, 20, 25);
+        JTextField txtDescAut = new JTextField();
+        txtDescAut.setBounds(215, 40, 375, 25);
+        txtDescAut.setEditable(false); txtDescAut.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtAut, txtDescAut, btnAut, dAut);
 
-        pnlMid.add(lblClaveInst); pnlMid.add(cmbClaveInst); pnlMid.add(lblDescInst);
-        pnlMid.add(lblAut); pnlMid.add(cmbAut); pnlMid.add(lblDescAut);
+        pnlMid.add(lblClaveInst); pnlMid.add(txtCveInst); pnlMid.add(btnCveInst); pnlMid.add(txtDescInst);
+        pnlMid.add(lblAut); pnlMid.add(txtAut); pnlMid.add(btnAut); pnlMid.add(txtDescAut);
 
         // >> Sección Inferior: Captura de Detalle y Tabla
         JPanel pnlDetalle = new JPanel(null);
@@ -301,26 +424,47 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
         // Títulos de captura
         JLabel l1 = new JLabel("Sec"); l1.setBounds(10, 10, 30, 20);
         JLabel l2 = new JLabel("Tipo Concepto"); l2.setBounds(50, 10, 90, 20);
-        JLabel l3 = new JLabel("Descripción"); l3.setBounds(150, 10, 90, 20);
+        JLabel l3 = new JLabel("Descripción"); l3.setBounds(145, 10, 90, 20);
         JLabel l4 = new JLabel("% Descuento"); l4.setBounds(300, 10, 80, 20);
         JLabel l5 = new JLabel("Fecha Inicial"); l5.setBounds(390, 10, 80, 20);
         JLabel l6 = new JLabel("Fecha Final"); l6.setBounds(480, 10, 80, 20);
         pnlDetalle.add(l1); pnlDetalle.add(l2); pnlDetalle.add(l3); 
         pnlDetalle.add(l4); pnlDetalle.add(l5); pnlDetalle.add(l6);
 
-        // Campos de captura
-        JTextField txtSec = new JTextField("3"); txtSec.setBounds(10, 30, 30, 25);
-        JComboBox<String> cmbConcepto = new JComboBox<>(new String[]{"I", "C"}); cmbConcepto.setBounds(50, 30, 90, 25);
-        JTextField txtDescDet = new JTextField(); txtDescDet.setBounds(150, 30, 140, 25);
-        JTextField txtPorc = new JTextField("0.00"); txtPorc.setBounds(300, 30, 80, 25);
-        JTextField txtFecIni = new JTextField("04/06/2026"); txtFecIni.setBounds(390, 30, 80, 25);
-        JTextField txtFecFin = new JTextField("04/06/2026"); txtFecFin.setBounds(480, 30, 80, 25);
-        JButton btnOk = new JButton("OK"); btnOk.setBounds(565, 30, 30, 25);
+        // Campos de captura (Incluye Buscador Tipo Concepto y JDateChoosers)
+        JTextField txtSec = new JTextField("1"); 
+        txtSec.setBounds(10, 30, 30, 25);
         
-        pnlDetalle.add(txtSec); pnlDetalle.add(cmbConcepto); pnlDetalle.add(txtDescDet);
+        JTextField txtTipoCp = new JTextField(); 
+        txtTipoCp.setBounds(50, 30, 40, 25);
+        JButton btnTipoCp = new JButton("▼"); 
+        btnTipoCp.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); 
+        btnTipoCp.setMargin(new java.awt.Insets(0,0,0,0)); 
+        btnTipoCp.setBounds(90, 30, 20, 25);
+        JTextField txtDescDet = new JTextField(); 
+        txtDescDet.setBounds(115, 30, 175, 25);
+        txtDescDet.setEditable(false); txtDescDet.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtTipoCp, txtDescDet, btnTipoCp, dCon);
+        
+        JTextField txtPorc = new JTextField("0.00"); 
+        txtPorc.setBounds(300, 30, 80, 25);
+        
+        com.toedter.calendar.JDateChooser txtFecIni = new com.toedter.calendar.JDateChooser();
+        txtFecIni.setDateFormatString("yyyy-MM-dd"); 
+        txtFecIni.setBounds(390, 30, 85, 25);
+        
+        com.toedter.calendar.JDateChooser txtFecFin = new com.toedter.calendar.JDateChooser();
+        txtFecFin.setDateFormatString("yyyy-MM-dd"); 
+        txtFecFin.setBounds(480, 30, 85, 25);
+        
+        JButton btnOk = new JButton("OK"); 
+        btnOk.setBounds(570, 30, 30, 25);
+        btnOk.setMargin(new java.awt.Insets(0,0,0,0));
+        
+        pnlDetalle.add(txtSec); pnlDetalle.add(txtTipoCp); pnlDetalle.add(btnTipoCp); pnlDetalle.add(txtDescDet);
         pnlDetalle.add(txtPorc); pnlDetalle.add(txtFecIni); pnlDetalle.add(txtFecFin); pnlDetalle.add(btnOk);
 
-        // Tabla interna de Detalles
+        // Tabla interna de Detalles (Visual)
         JTable tblDetalle = new JTable();
         DefaultTableModel modDetalle = new DefaultTableModel(
             new Object[][]{}, 
@@ -331,17 +475,21 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
         scrollDetalle.setBounds(10, 65, 585, 130);
         pnlDetalle.add(scrollDetalle);
 
-        // Lógica súper rápida para que el botón "OK" agregue a la tablita interna visualmente
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+
         btnOk.addActionListener(e -> {
+            String fi = txtFecIni.getDate() != null ? sdf.format(txtFecIni.getDate()) : "";
+            String ff = txtFecFin.getDate() != null ? sdf.format(txtFecFin.getDate()) : "";
+
             modDetalle.addRow(new Object[]{
-                txtSec.getText(), cmbConcepto.getSelectedItem().toString(), txtDescDet.getText(), 
-                txtPorc.getText(), txtFecIni.getText(), txtFecFin.getText()
+                txtSec.getText(), txtTipoCp.getText(), txtDescDet.getText(), 
+                txtPorc.getText(), fi, ff
             });
-            txtSec.setText(String.valueOf(modDetalle.getRowCount() + 1)); // Incrementa secuencia
+            txtSec.setText(String.valueOf(modDetalle.getRowCount() + 1)); 
             txtDescDet.setText("");
+            txtTipoCp.setText("");
         });
 
-        // Agregamos todo a la pestaña principal
         pnlGenerales.add(pnlTipoInst); pnlGenerales.add(pnlTipoBeca);
         pnlGenerales.add(pnlMid); pnlGenerales.add(pnlDetalle);
 
@@ -359,10 +507,56 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
 
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
-            int fila = jTable1.getSelectedRow();
-            txtClave.setText(jTable1.getValueAt(fila, 0).toString());
-            txtDesc.setText(jTable1.getValueAt(fila, 1).toString());
-            // Aquí simularías cargar los detalles en la tablita interna `modDetalle`
+            int fila = tblBConvenio.getSelectedRow();
+            String claveSel = tblBConvenio.getValueAt(fila, 0).toString();
+            
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement("SELECT DBECA, TINST, TBECA, CINST, NAUT FROM tesbege WHERE CBECA = ?");
+                    ps.setString(1, claveSel);
+                    ResultSet rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        txtClave.setText(claveSel);
+                        txtDesc.setText(rs.getString("DBECA") != null ? rs.getString("DBECA") : "");
+                        
+                        String tipoBeca = rs.getString("TBECA");
+                        if ("C".equalsIgnoreCase(tipoBeca)) {
+                            rbConvenio.setSelected(true);
+                        } else {
+                            rbBeca.setSelected(true);
+                        }
+                        
+                        String tipoInst = rs.getString("TINST");
+                        if ("O".equalsIgnoreCase(tipoInst)) rbOtras.setSelected(true);
+                        else if ("E".equalsIgnoreCase(tipoInst)) rbEmpresas.setSelected(true);
+                        else rbPropias.setSelected(true);
+                        
+                        txtCveInst.setText(rs.getString("CINST") != null ? rs.getString("CINST") : "");
+                        txtAut.setText(rs.getString("NAUT") != null ? rs.getString("NAUT") : "");
+
+                        // Consultar descripciones de los buscadores si es edición
+                        try {
+                            PreparedStatement p1 = con.prepareStatement("SELECT DES FROM tmclas WHERE TBL='CINS' AND CVE=?");
+                            p1.setString(1, txtCveInst.getText());
+                            ResultSet r1 = p1.executeQuery();
+                            if(r1.next()) txtDescInst.setText(r1.getString("DES"));
+                            r1.close(); p1.close();
+                            
+                            PreparedStatement p2 = con.prepareStatement("SELECT NOME FROM tgemp WHERE NEMP=?");
+                            p2.setString(1, txtAut.getText());
+                            ResultSet r2 = p2.executeQuery();
+                            if(r2.next()) txtDescAut.setText(r2.getString("NOME"));
+                            r2.close(); p2.close();
+                        } catch(Exception ignored) {}
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                // Silencioso
+            }
         }
 
         // --- 5. EVENTOS ---
@@ -370,16 +564,56 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
 
         btnAceptar.addActionListener(e -> {
             String clave = txtClave.getText().trim();
-            if (clave.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "La clave no puede estar vacía.");
+            String desc = txtDesc.getText().trim();
+            
+            String tipoBeca = rbBeca.isSelected() ? "B" : "C";
+            String tipoInst = rbPropias.isSelected() ? "P" : (rbOtras.isSelected() ? "O" : "E");
+            
+            String cveInst = txtCveInst.getText().trim();
+            String autorizante = txtAut.getText().trim();
+
+            if (clave.isEmpty() || desc.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La clave y la descripción son obligatorias.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va tu código SQL INSERT o UPDATE para la tabla maestra y los detalles
-            JOptionPane.showMessageDialog(dialogo, "Beca/Convenio guardado (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaBecas(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    if (modoEdicion) {
+                        String sql = "UPDATE tesbege SET DBECA=?, TBECA=?, TINST=?, CINST=?, NAUT=? WHERE CBECA=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, desc);
+                        ps.setString(2, tipoBeca);
+                        ps.setString(3, tipoInst);
+                        ps.setString(4, cveInst);
+                        ps.setString(5, autorizante);
+                        ps.setString(6, clave);
+                    } else {
+                        String sql = "INSERT INTO tesbege (CBECA, DBECA, TBECA, TINST, CINST, NAUT) VALUES (?, ?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, clave);
+                        ps.setString(2, desc);
+                        ps.setString(3, tipoBeca);
+                        ps.setString(4, tipoInst);
+                        ps.setString(5, cveInst);
+                        ps.setString(6, autorizante);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Beca/Convenio guardado con éxito.");
+                        dialogo.dispose();
+                        cargarTablaBecas(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---
@@ -393,6 +627,6 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
     private javax.swing.JButton btnEditBConvenio;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable tblBConvenio;
     // End of variables declaration//GEN-END:variables
 }

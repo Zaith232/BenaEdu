@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
+import com.mycompany.benaedu.Dashboard;
 import com.mycompany.benaedu.db.ConDB;
 import java.awt.Window;
 import java.sql.Connection;
@@ -15,7 +16,9 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
@@ -24,13 +27,32 @@ import javax.swing.table.DefaultTableModel;
  * @author b17za
  */
 public class Ciclos_Escolares extends javax.swing.JPanel {
-
+private String usuarioLogueado = "Admin";
     /**
      * Creates new form Ciclos_Escolares
      */
+    public Ciclos_Escolares(String usuarioLogueado) {
+        if (usuarioLogueado != null && !usuarioLogueado.trim().isEmpty()) {
+            this.usuarioLogueado = usuarioLogueado.trim();
+        }
+        initComponents();
+        cargarTablaCiclos();
+    }
+    
     public Ciclos_Escolares() {
         initComponents();
         cargarTablaCiclos();
+    }
+    
+    private String obtenerUsuarioActivo() {
+        if (this.usuarioLogueado != null && !this.usuarioLogueado.equals("Admin")) {
+            return this.usuarioLogueado;
+        }
+        Window parentWindow = SwingUtilities.getWindowAncestor(this);
+        if (parentWindow instanceof Dashboard dash) {
+            return dash.getUsuarioCodigo();
+        }
+        return this.usuarioLogueado;
     }
     private void cargarTablaCiclos() {
         DefaultTableModel modelo = (DefaultTableModel) tblCEscolar.getModel();
@@ -119,7 +141,15 @@ public class Ciclos_Escolares extends javax.swing.JPanel {
             new String [] {
                 "Compañia", "Centro Costos", "Ciclo Escolar", "Descripción", "Fech. Inicial", "Fech. Final", "Usuario", "Fech. Ult. Act", "Hora. Ult. Act"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblCEscolar);
 
         btnAddCEscolar.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -250,7 +280,7 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
 
         JLabel lblCC = new JLabel("Centro Costos");
         lblCC.setBounds(20, 45, 90, 25);
-        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", "12200", "12300", "12400"}); // Opciones de tu BD
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", "12200", "12300", "12400"});
         cmbCC.setBounds(110, 45, 80, 25);
         JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE");
         lblCCDesc.setBounds(200, 45, 250, 25);
@@ -265,7 +295,6 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         JTextField txtDesc = new JTextField();
         txtDesc.setBounds(110, 105, 380, 25);
 
-        // Bloqueamos llaves primarias en edición
         if (modoEdicion) {
             cmbCia.setEnabled(false);
             cmbCC.setEnabled(false);
@@ -281,71 +310,106 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.setBounds(15, 145, 500, 350);
 
+        // ==========================================
+        // >> PESTAÑA 1: DATOS GENERALES
+        // ==========================================
         JPanel pnlGenerales = new JPanel(null);
-
-        // >> Marco: Vigencia del Ciclo Escolar
+// Sub-panel: Vigencia del Ciclo Escolar (ambos con JDateChooser)
         JPanel pnlVigencia = new JPanel(null);
         pnlVigencia.setBorder(BorderFactory.createTitledBorder("Vigencia del Ciclo Escolar"));
         pnlVigencia.setBounds(10, 10, 475, 90);
 
-        JLabel lblFecIni = new JLabel("Fecha Inicial");
-        lblFecIni.setBounds(120, 20, 80, 25);
-        JTextField txtFecIni = new JTextField(); 
-        txtFecIni.setBounds(200, 20, 80, 25);
+        pnlVigencia.add(new JLabel("Fecha Inicial")).setBounds(50, 20, 80, 25);
+        com.toedter.calendar.JDateChooser txtFecIni = new com.toedter.calendar.JDateChooser();
+        txtFecIni.setDateFormatString("dd/MM/yyyy");
+        txtFecIni.setDate(new java.util.Date());
+        txtFecIni.setBounds(130, 20, 110, 25);
+        pnlVigencia.add(txtFecIni);
 
-        JLabel lblFecFin = new JLabel("Fecha Final");
-        lblFecFin.setBounds(300, 20, 80, 25);
-        JTextField txtFecFin = new JTextField();
-        txtFecFin.setBounds(370, 20, 80, 25);
+        pnlVigencia.add(new JLabel("Fecha Final")).setBounds(270, 20, 70, 25);
+        com.toedter.calendar.JDateChooser txtFecFin = new com.toedter.calendar.JDateChooser();
+        txtFecFin.setDateFormatString("dd/MM/yyyy");
+        txtFecFin.setDate(new java.util.Date());
+        txtFecFin.setBounds(350, 20, 110, 25);
+        pnlVigencia.add(txtFecFin);
 
-        JLabel lblRef = new JLabel("Código utilizado en Referencias Bancarias");
-        lblRef.setBounds(20, 55, 250, 25);
+        pnlVigencia.add(new JLabel("Código utilizado en Referencias Bancarias")).setBounds(15, 55, 230, 25);
         JTextField txtRef = new JTextField();
-        txtRef.setBounds(270, 55, 80, 25);
+        txtRef.setBounds(250, 55, 100, 25);
+        pnlVigencia.add(txtRef);
 
-        pnlVigencia.add(lblFecIni); pnlVigencia.add(txtFecIni);
-        pnlVigencia.add(lblFecFin); pnlVigencia.add(txtFecFin);
-        pnlVigencia.add(lblRef); pnlVigencia.add(txtRef);
+        pnlGenerales.add(pnlVigencia);
+      
 
-        // >> Marco: Anualidad
         JPanel pnlAnualidad = new JPanel(null);
         pnlAnualidad.setBorder(BorderFactory.createTitledBorder("Anualidad"));
         pnlAnualidad.setBounds(10, 110, 475, 60);
+        
+        JLabel lblFecLim = new JLabel("Fecha Límite Anualidad"); lblFecLim.setBounds(15, 20, 130, 25);
+        com.toedter.calendar.JDateChooser txtFecLim = new com.toedter.calendar.JDateChooser();
+        txtFecLim.setDateFormatString("dd/MM/yyyy");
+        txtFecLim.setDate(new java.util.Date());
+        txtFecLim.setBounds(150, 20, 110, 25);
 
-        JLabel lblFecLim = new JLabel("Fecha Límite Anualidad");
-        lblFecLim.setBounds(20, 20, 140, 25);
-        JTextField txtFecLim = new JTextField();
-        txtFecLim.setBounds(160, 20, 80, 25);
-
-        JLabel lblDescAnu = new JLabel("% Descuento Anualidad");
-        lblDescAnu.setBounds(260, 20, 140, 25);
-        JTextField txtDescAnu = new JTextField("0");
-        txtDescAnu.setBounds(400, 20, 50, 25);
-
+        JLabel lblDescAnu = new JLabel("% Descuento Anualidad"); lblDescAnu.setBounds(275, 20, 140, 25);
+        JTextField txtDescAnu = new JTextField("0"); txtDescAnu.setBounds(415, 20, 50, 25);
+        
         pnlAnualidad.add(lblFecLim); pnlAnualidad.add(txtFecLim);
         pnlAnualidad.add(lblDescAnu); pnlAnualidad.add(txtDescAnu);
 
-        // >> Marco: Políticas del Ciclo Escolar
         JPanel pnlPoliticas = new JPanel(null);
         pnlPoliticas.setBorder(BorderFactory.createTitledBorder("Establece Políticas del Ciclo Escolar"));
         pnlPoliticas.setBounds(10, 180, 475, 60);
-        JButton btnPol = new JButton("Políticas de Cobranza");
-        btnPol.setBounds(300, 20, 160, 25);
+        JButton btnPol = new JButton("Políticas de Cobranza"); btnPol.setBounds(300, 20, 160, 25);
         pnlPoliticas.add(btnPol);
 
-        // >> Marco: Plan de Estudios
         JPanel pnlPlan = new JPanel(null);
         pnlPlan.setBorder(BorderFactory.createTitledBorder("Plan de Estudios"));
         pnlPlan.setBounds(10, 250, 475, 60);
-        JButton btnPlan = new JButton("Plan de Estudios");
-        btnPlan.setBounds(300, 20, 160, 25);
+        JButton btnPlan = new JButton("Plan de Estudios"); btnPlan.setBounds(300, 20, 160, 25);
         pnlPlan.add(btnPlan);
 
         pnlGenerales.add(pnlVigencia); pnlGenerales.add(pnlAnualidad);
         pnlGenerales.add(pnlPoliticas); pnlGenerales.add(pnlPlan);
 
+        // ==========================================
+        // >> PESTAÑA 2: INCORPORACIÓN
+        // ==========================================
+        JPanel pnlIncorporacion = new JPanel(null);
+
+        JPanel pnlDetallesInc = new JPanel(null);
+        pnlDetallesInc.setBorder(BorderFactory.createTitledBorder("Detalles de Incorporación"));
+        pnlDetallesInc.setBounds(10, 10, 475, 300);
+
+        JLabel lblSecInc = new JLabel("Sec"); lblSecInc.setBounds(20, 20, 40, 20);
+        JTextField txtSecInc = new JTextField(); txtSecInc.setBounds(20, 40, 40, 25);
+
+        JLabel lblInc = new JLabel("Incorporación"); lblInc.setBounds(70, 20, 100, 20);
+        JComboBox<String> cmbInc = new JComboBox<>(new String[]{"", "SEP", "UNAM", "UAP"}); 
+        cmbInc.setBounds(70, 40, 100, 25);
+        cmbInc.setEditable(true);
+
+        JLabel lblFormatoInc = new JLabel("Formato"); lblFormatoInc.setBounds(180, 20, 100, 20);
+        JTextField txtFormatoInc = new JTextField(); txtFormatoInc.setBounds(180, 40, 230, 25);
+
+        JButton btnOkInc = new JButton("OK"); 
+        btnOkInc.setBounds(415, 40, 50, 25);
+
+        pnlDetallesInc.add(lblSecInc); pnlDetallesInc.add(txtSecInc);
+        pnlDetallesInc.add(lblInc); pnlDetallesInc.add(cmbInc);
+        pnlDetallesInc.add(lblFormatoInc); pnlDetallesInc.add(txtFormatoInc);
+        pnlDetallesInc.add(btnOkInc);
+
+        DefaultTableModel modInc = new DefaultTableModel(new Object[][]{}, new String[]{"Sec", "Incorporación", "Formato"});
+        JTable tblInc = new JTable(modInc);
+        JScrollPane scrollInc = new JScrollPane(tblInc);
+        scrollInc.setBounds(20, 75, 445, 205);
+        pnlDetallesInc.add(scrollInc);
+
+        pnlIncorporacion.add(pnlDetallesInc);
+
         pestanas.addTab("Datos Generales", pnlGenerales);
-        pestanas.addTab("Incorporación", new JPanel()); // Pestaña vacía
+        pestanas.addTab("Incorporación", pnlIncorporacion);
         dialogo.add(pestanas);
 
         // --- 3. BOTONES INFERIORES ---
@@ -360,52 +424,72 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
             int fila = tblCEscolar.getSelectedRow();
-            String cia = tblCEscolar.getValueAt(fila, 0).toString();
-            String cc = tblCEscolar.getValueAt(fila, 1).toString();
-            String ciclo = tblCEscolar.getValueAt(fila, 2).toString();
+            if (fila != -1) {
+                String cia = tblCEscolar.getValueAt(fila, 0).toString();
+                String cc = tblCEscolar.getValueAt(fila, 1).toString();
+                String ciclo = tblCEscolar.getValueAt(fila, 2).toString();
 
-            cmbCia.setSelectedItem(cia);
-            cmbCC.setSelectedItem(cc);
-            txtCiclo.setText(ciclo);
-            txtDesc.setText(tblCEscolar.getValueAt(fila, 3) != null ? tblCEscolar.getValueAt(fila, 3).toString() : "");
-            txtFecIni.setText(tblCEscolar.getValueAt(fila, 4) != null ? tblCEscolar.getValueAt(fila, 4).toString() : "");
-            txtFecFin.setText(tblCEscolar.getValueAt(fila, 5) != null ? tblCEscolar.getValueAt(fila, 5).toString() : "");
+                cmbCia.setSelectedItem(cia);
+                cmbCC.setSelectedItem(cc);
+                txtCiclo.setText(ciclo);
+                txtDesc.setText(tblCEscolar.getValueAt(fila, 3) != null ? tblCEscolar.getValueAt(fila, 3).toString() : "");
 
-            // Buscamos los datos extra directo en la BD
-            try {
-                ConDB db = new ConDB();
-                Connection con = db.Conectar();
-                if (con != null) {
-                    PreparedStatement ps = con.prepareStatement("SELECT CODREF, FLIMA, PDSCA FROM tescesc WHERE CIA = ? AND CC = ? AND CESC = ?");
-                    ps.setString(1, cia);
-                    ps.setString(2, cc);
-                    ps.setString(3, ciclo);
-                    ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
-                        txtRef.setText(rs.getString("CODREF") != null ? rs.getString("CODREF") : "");
-                        txtFecLim.setText(rs.getString("FLIMA") != null ? rs.getString("FLIMA") : "");
-                        txtDescAnu.setText(rs.getString("PDSCA") != null ? rs.getString("PDSCA") : "0");
+                java.text.SimpleDateFormat sdfParser = new java.text.SimpleDateFormat("yyyy-MM-dd");
+
+                try {
+                    ConDB db = new ConDB();
+                    Connection con = db.Conectar();
+                    if (con != null) {
+                        PreparedStatement ps = con.prepareStatement("SELECT FINI, FFIN, CODREF, FLIMA, PDSCA FROM tescesc WHERE CIA = ? AND CC = ? AND CESC = ?");
+                        ps.setString(1, cia);
+                        ps.setString(2, cc);
+                        ps.setString(3, ciclo);
+                        ResultSet rs = ps.executeQuery();
+                        if (rs.next()) {
+                            if (rs.getString("FINI") != null) txtFecIni.setDate(sdfParser.parse(rs.getString("FINI")));
+                            if (rs.getString("FFIN") != null) txtFecFin.setDate(sdfParser.parse(rs.getString("FFIN")));
+                            if (rs.getString("FLIMA") != null) txtFecLim.setDate(sdfParser.parse(rs.getString("FLIMA")));
+                            txtRef.setText(rs.getString("CODREF") != null ? rs.getString("CODREF") : "");
+                            txtDescAnu.setText(rs.getString("PDSCA") != null ? rs.getString("PDSCA") : "0");
+                        }
+                        rs.close(); ps.close(); db.Cerrar();
                     }
-                    rs.close(); ps.close(); db.Cerrar();
-                }
-            } catch (Exception e) {
-                // Ignorar si no se pudieron cargar los datos adicionales
+                } catch (Exception e) {}
             }
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
+        btnOkInc.addActionListener(e -> {
+            String sec = txtSecInc.getText().trim();
+            String inc = cmbInc.getSelectedItem() != null ? cmbInc.getSelectedItem().toString() : "";
+            String format = txtFormatoInc.getText().trim();
+
+            if (!sec.isEmpty() && !inc.isEmpty()) {
+                modInc.addRow(new Object[]{sec, inc, format});
+                txtSecInc.setText("");
+                txtFormatoInc.setText("");
+                cmbInc.setSelectedIndex(0);
+            } else {
+                JOptionPane.showMessageDialog(dialogo, "Ingresa al menos la Sec y la Incorporación.");
+            }
+        });
+
         btnAceptar.addActionListener(e -> {
             String cia = cmbCia.getSelectedItem().toString();
             String cc = cmbCC.getSelectedItem().toString();
             String ciclo = txtCiclo.getText().trim();
             String desc = txtDesc.getText().trim();
-            String fecIni = txtFecIni.getText().trim();
-            String fecFin = txtFecFin.getText().trim();
+
+            java.text.SimpleDateFormat sdfSql = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            String fecIni = txtFecIni.getDate() != null ? sdfSql.format(txtFecIni.getDate()) : sdfSql.format(new java.util.Date());
+            String fecFin = txtFecFin.getDate() != null ? sdfSql.format(txtFecFin.getDate()) : sdfSql.format(new java.util.Date());
+            String fecLim = txtFecLim.getDate() != null ? sdfSql.format(txtFecLim.getDate()) : sdfSql.format(new java.util.Date());
+
             String ref = txtRef.getText().trim();
-            String fecLim = txtFecLim.getText().trim();
             String descAnu = txtDescAnu.getText().trim().isEmpty() ? "0" : txtDescAnu.getText().trim();
+            String usrActivo = obtenerUsuarioActivo();
 
             if (ciclo.isEmpty() || desc.isEmpty()) {
                 JOptionPane.showMessageDialog(dialogo, "El ciclo y la descripción son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
@@ -419,31 +503,18 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
                     PreparedStatement ps;
                     
                     if (modoEdicion) {
-                        // UPDATE 
-                        String sql = "UPDATE tescesc SET CDSC=?, FINI=?, FFIN=?, CODREF=?, FLIMA=?, PDSCA=? WHERE CIA=? AND CC=? AND CESC=?";
+                        String sql = "UPDATE tescesc SET CDSC=?, FINI=?, FFIN=?, CODREF=?, FLIMA=?, PDSCA=?, USER=?, FEAC=CURDATE(), HOAC=DATE_FORMAT(NOW(), '%r') WHERE CIA=? AND CC=? AND CESC=?";
                         ps = con.prepareStatement(sql);
-                        ps.setString(1, desc);
-                        ps.setString(2, fecIni);
-                        ps.setString(3, fecFin);
-                        ps.setString(4, ref);
-                        ps.setString(5, fecLim);
-                        ps.setString(6, descAnu);
-                        ps.setString(7, cia);
-                        ps.setString(8, cc);
-                        ps.setString(9, ciclo);
+                        ps.setString(1, desc); ps.setString(2, fecIni); ps.setString(3, fecFin);
+                        ps.setString(4, ref); ps.setString(5, fecLim); ps.setString(6, descAnu);
+                        ps.setString(7, usrActivo); ps.setString(8, cia); ps.setString(9, cc); ps.setString(10, ciclo);
                     } else {
-                        // INSERT
-                        String sql = "INSERT INTO tescesc (CIA, CC, CESC, CDSC, FINI, FFIN, CODREF, FLIMA, PDSCA) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        String sql = "INSERT INTO tescesc (CIA, CC, CESC, CDSC, FINI, FFIN, CODREF, FLIMA, PDSCA, USER, FEAC, HOAC) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
                         ps = con.prepareStatement(sql);
-                        ps.setString(1, cia);
-                        ps.setString(2, cc);
-                        ps.setString(3, ciclo);
-                        ps.setString(4, desc);
-                        ps.setString(5, fecIni);
-                        ps.setString(6, fecFin);
-                        ps.setString(7, ref);
-                        ps.setString(8, fecLim);
-                        ps.setString(9, descAnu);
+                        ps.setString(1, cia); ps.setString(2, cc); ps.setString(3, ciclo);
+                        ps.setString(4, desc); ps.setString(5, fecIni); ps.setString(6, fecFin);
+                        ps.setString(7, ref); ps.setString(8, fecLim); ps.setString(9, descAnu);
+                        ps.setString(10, usrActivo);
                     }
 
                     if (ps.executeUpdate() > 0) {
@@ -465,6 +536,7 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
         dialogo.setVisible(true);
     }
 
+  
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCEscolar;
     private javax.swing.JButton btnDeleteCEscolar;

@@ -147,106 +147,297 @@ private void configurarTablaBitacora() {
         JOptionPane.showMessageDialog(this, "No se pueden eliminar registros desde el generador de reportes.");
     }//GEN-LAST:event_btnDeleteRAInscritosActionPerformed
 private void mostrarDialogoAlumnosNoInscritos() {
-        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
-        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Resumen de Alumnos No Inscritos", true);
-        dialogo.setSize(620, 620);
-        dialogo.setLayout(null);
-        dialogo.setResizable(false);
+    Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+    JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Resumen de Alumnos No Inscritos", true);
+    dialogo.setSize(620, 620);
+    dialogo.setLayout(null);
+    dialogo.setResizable(false);
 
-        // --- 1. DATOS DE SELECCIÓN (Panel Izquierdo) ---
-        JPanel pnlSel = new JPanel(null);
-        pnlSel.setBorder(BorderFactory.createEtchedBorder());
-        pnlSel.setBounds(15, 15, 330, 115);
+    // --- CLASE LOCAL BUSCADOR FLOTANTE ---
+    class BuscadorFlotante {
+        void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos, String[] columnas, int[] anchos) {
+            Runnable mostrarPopup = () -> {
+                javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                popup.setFocusable(false);
+                javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                    @Override public boolean isCellEditable(int r, int c) { return false; }
+                };
+                javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                for (int i = 0; i < anchos.length; i++) {
+                    tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                }
 
-        pnlSel.add(new JLabel("Compañía")).setBounds(20, 15, 100, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(130, 15, 80, 25);
+                javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                tabla.setRowSorter(sorter);
 
-        pnlSel.add(new JLabel("Centro de Costo")).setBounds(20, 45, 100, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12100"})).setBounds(130, 45, 100, 25);
+                tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseReleased(java.awt.event.MouseEvent me) {
+                        int viewRow = tabla.getSelectedRow();
+                        if (viewRow != -1) {
+                            int modelRow = tabla.convertRowIndexToModel(viewRow);
+                            txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                            if (txtDesc != null && mod.getColumnCount() >= 2) {
+                                txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                            }
+                            popup.setVisible(false);
+                        }
+                    }
+                });
+                
+                int widthTotal = 0; for(int w : anchos) widthTotal += w;
+                javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                scroll.setPreferredSize(new java.awt.Dimension(widthTotal + 20, 150));
+                popup.add(scroll);
 
-        pnlSel.add(new JLabel("Ciclo Escolar")).setBounds(20, 75, 100, 25);
-        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(130, 75, 100, 25);
+                String texto = txtClave.getText().trim();
+                if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                popup.show(txtClave, 0, txtClave.getHeight());
+                txtClave.requestFocus();
+            };
 
-        dialogo.add(pnlSel);
-
-        // --- 2. TIPO REPORTE (Panel Derecho) ---
-        JPanel pnlTipoReporte = new JPanel(null);
-        pnlTipoReporte.setBorder(BorderFactory.createTitledBorder("Tipo Reporte"));
-        pnlTipoReporte.setBounds(360, 15, 230, 80);
-
-        JRadioButton rbDetalle = new JRadioButton("Imprimir Detalle");
-        rbDetalle.setBounds(20, 20, 150, 20);
-        JRadioButton rbResumen = new JRadioButton("Imprimir Resumen", true); // Seleccionado por defecto
-        rbResumen.setBounds(20, 45, 150, 20);
-
-        ButtonGroup bgTipo = new ButtonGroup();
-        bgTipo.add(rbDetalle); bgTipo.add(rbResumen);
-        
-        pnlTipoReporte.add(rbDetalle); pnlTipoReporte.add(rbResumen);
-        dialogo.add(pnlTipoReporte);
-
-        // --- BOTÓN FILTRAR ---
-        JButton btnFiltra = new JButton("Filtrar información");
-        btnFiltra.setBounds(360, 100, 230, 30);
-        dialogo.add(btnFiltra);
-
-        // --- 3. TABLA DE RESUMEN ---
-        JTable tblResumen = new JTable(new DefaultTableModel(
-            new Object[][]{}, 
-            new String[]{"Grado", "Descripcion", "Total"}
-        ));
-        
-        JPanel pnlTabla = new JPanel(null);
-        pnlTabla.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Resumen de Alumnos No Inscritos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP));
-        pnlTabla.setBounds(15, 145, 575, 330);
-        
-        JScrollPane scrollResumen = new JScrollPane(tblResumen);
-        scrollResumen.setBounds(10, 20, 555, 300);
-        pnlTabla.add(scrollResumen);
-        
-        dialogo.add(pnlTabla);
-
-        // --- 4. TOTALES ---
-        JPanel pnlTotales = new JPanel(null);
-        pnlTotales.setBorder(BorderFactory.createEtchedBorder());
-        pnlTotales.setBounds(15, 485, 575, 45);
-
-        JLabel lblTotalInsc = new JLabel("Total de Alumnos No Inscritos");
-        lblTotalInsc.setBounds(290, 10, 180, 25);
-        JTextField txtTotal = new JTextField("0");
-        txtTotal.setHorizontalAlignment(JTextField.RIGHT);
-        txtTotal.setEditable(false);
-        txtTotal.setBounds(480, 10, 80, 25);
-
-        pnlTotales.add(lblTotalInsc);
-        pnlTotales.add(txtTotal);
-        dialogo.add(pnlTotales);
-
-        // --- 5. BOTONES INFERIORES ---
-        JButton btnImprimir = new JButton("Imprimir");
-        btnImprimir.setBounds(190, 540, 100, 40);
-        JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(310, 540, 100, 40);
-
-        dialogo.add(btnImprimir);
-        dialogo.add(btnSalir);
-
-        // --- 6. EVENTOS ---
-        btnSalir.addActionListener(e -> dialogo.dispose());
-
-        btnFiltra.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Buscando alumnos no inscritos en la base de datos... (Simulación)");
-            // Aquí iría tu consulta SQL para llenar la tabla y sumar el total
-        });
-
-        btnImprimir.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Enviando el resumen a la impresora... (Simulación)");
-        });
-
-        // --- 7. MOSTRAR ---
-        dialogo.setLocationRelativeTo(this);
-        dialogo.setVisible(true);
+            boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+            txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                @Override
+                public void keyReleased(java.awt.event.KeyEvent e) {
+                    int c = e.getKeyCode();
+                    if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                    mostrarPopup.run();
+                }
+            });
+        }
     }
+    BuscadorFlotante buscador = new BuscadorFlotante();
+
+    // --- CARGA DE DATOS PARA BUSCADORES ---
+    java.util.function.BiFunction<String, Integer, Object[][]> cargarDatosMultiple = (query, numCols) -> {
+        java.util.List<Object[]> lista = new java.util.ArrayList<>();
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                PreparedStatement ps = con.prepareStatement(query);
+                ResultSet rs = ps.executeQuery();
+                while(rs.next()) {
+                    Object[] row = new Object[numCols];
+                    for(int i=0; i<numCols; i++) row[i] = rs.getString(i+1);
+                    lista.add(row);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+            }
+        } catch(Exception e) {}
+        return lista.toArray(new Object[0][0]);
+    };
+
+    Object[][] dCiclo = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+
+    // --- 1. DATOS DE SELECCIÓN ---
+    JPanel pnlSel = new JPanel(null);
+    pnlSel.setBorder(BorderFactory.createEtchedBorder());
+    pnlSel.setBounds(15, 15, 330, 115);
+
+    pnlSel.add(new JLabel("Compañía")).setBounds(20, 15, 100, 25);
+    JComboBox<String> cmbCia = new JComboBox<>();
+    cmbCia.setBounds(130, 15, 80, 25);
+    pnlSel.add(cmbCia);
+
+    pnlSel.add(new JLabel("Centro de Costo")).setBounds(20, 45, 100, 25);
+    JComboBox<String> cmbCC = new JComboBox<>();
+    cmbCC.setBounds(130, 45, 100, 25);
+    cmbCC.addItem(""); // Opción vacía para incluir todos los CC
+    pnlSel.add(cmbCC);
+
+    try {
+        ConDB db = new ConDB();
+        Connection con = db.Conectar();
+        if (con != null) {
+            ResultSet rsCia = con.prepareStatement("SELECT CIA FROM tmcias ORDER BY CIA").executeQuery();
+            while(rsCia.next()) cmbCia.addItem(rsCia.getString("CIA"));
+            rsCia.close();
+
+            ResultSet rsCC = con.prepareStatement("SELECT CVE FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE").executeQuery();
+            while(rsCC.next()) cmbCC.addItem(rsCC.getString("CVE"));
+            rsCC.close();
+            db.Cerrar();
+        }
+    } catch (Exception ex) {}
+
+    pnlSel.add(new JLabel("Ciclo Escolar")).setBounds(20, 75, 100, 25);
+    JTextField txtCiclo = new JTextField(); txtCiclo.setBounds(130, 75, 70, 25);
+    JButton btnCiclo = new JButton("▼"); btnCiclo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnCiclo.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnCiclo.setBounds(200, 75, 25, 25);
+    buscador.configurar(txtCiclo, null, btnCiclo, dCiclo, new String[]{"Clave", "Descripción"}, new int[]{60, 200});
+    pnlSel.add(txtCiclo); pnlSel.add(btnCiclo);
+
+    dialogo.add(pnlSel);
+
+    // --- 2. TIPO REPORTE ---
+    JPanel pnlTipoReporte = new JPanel(null);
+    pnlTipoReporte.setBorder(BorderFactory.createTitledBorder("Tipo Reporte"));
+    pnlTipoReporte.setBounds(360, 15, 230, 80);
+
+    JRadioButton rbDetalle = new JRadioButton("Imprimir Detalle");
+    rbDetalle.setBounds(20, 20, 150, 20);
+    JRadioButton rbResumen = new JRadioButton("Imprimir Resumen", true); 
+    rbResumen.setBounds(20, 45, 150, 20);
+
+    ButtonGroup bgTipo = new ButtonGroup();
+    bgTipo.add(rbDetalle); bgTipo.add(rbResumen);
+    
+    pnlTipoReporte.add(rbDetalle); pnlTipoReporte.add(rbResumen);
+    dialogo.add(pnlTipoReporte);
+
+    JButton btnFiltra = new JButton("Filtrar información");
+    btnFiltra.setBounds(360, 100, 230, 30);
+    dialogo.add(btnFiltra);
+
+    // --- 3. TABLA DE RESUMEN ---
+    DefaultTableModel modResumen = new DefaultTableModel(
+        new Object[][]{}, 
+        new String[]{"Grado", "Descripción / Matrícula", "Total / Nombre"}
+    ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
+
+    JTable tblResumen = new JTable(modResumen);
+    tblResumen.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    tblResumen.getColumnModel().getColumn(1).setPreferredWidth(200);
+    tblResumen.getColumnModel().getColumn(2).setPreferredWidth(220);
+
+    JPanel pnlTabla = new JPanel(null);
+    pnlTabla.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Resumen de Alumnos No Inscritos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP));
+    pnlTabla.setBounds(15, 145, 575, 330);
+    
+    JScrollPane scrollResumen = new JScrollPane(tblResumen);
+    scrollResumen.setBounds(10, 20, 555, 300);
+    pnlTabla.add(scrollResumen);
+    
+    dialogo.add(pnlTabla);
+
+    // --- 4. TOTALES ---
+    JPanel pnlTotales = new JPanel(null);
+    pnlTotales.setBorder(BorderFactory.createEtchedBorder());
+    pnlTotales.setBounds(15, 485, 575, 45);
+
+    JLabel lblTotalInsc = new JLabel("Total de Alumnos No Inscritos");
+    lblTotalInsc.setBounds(250, 10, 200, 25);
+    JTextField txtTotal = new JTextField("0");
+    txtTotal.setHorizontalAlignment(JTextField.RIGHT);
+    txtTotal.setEditable(false);
+    txtTotal.setBounds(460, 10, 100, 25);
+
+    pnlTotales.add(lblTotalInsc);
+    pnlTotales.add(txtTotal);
+    dialogo.add(pnlTotales);
+
+    // --- 5. BOTONES INFERIORES ---
+    JButton btnImprimir = new JButton("Imprimir");
+    btnImprimir.setBounds(190, 540, 100, 40);
+    JButton btnSalir = new JButton("Salir");
+    btnSalir.setBounds(310, 540, 100, 40);
+
+    dialogo.add(btnImprimir);
+    dialogo.add(btnSalir);
+
+    // --- 6. EVENTOS ---
+    btnSalir.addActionListener(e -> dialogo.dispose());
+
+btnImprimir.addActionListener(e -> {
+        if (modResumen.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(dialogo, "No hay datos en la tabla para imprimir.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
+            job.setJobName("Reporte de Alumnos No Inscritos");
+
+            String tituloReporte = rbResumen.isSelected() ? "RESUMEN DE ALUMNOS NO INSCRITOS" : "DETALLE DE ALUMNOS NO INSCRITOS";
+            String ciaSel = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+            String ccSel = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
+            String cicloSel = txtCiclo.getText().trim();
+            String totalTexto = txtTotal.getText();
+
+            job.setPrintable((g, pf, pageIndex) -> {
+                // Configurar límite de filas por página
+                int filasPorPagina = 30;
+                int totalPaginas = (int) Math.ceil((double) modResumen.getRowCount() / filasPorPagina);
+                if (totalPaginas == 0) totalPaginas = 1;
+
+                if (pageIndex >= totalPaginas) {
+                    return java.awt.print.Printable.NO_SUCH_PAGE;
+                }
+
+                java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                g2d.translate(pf.getImageableX(), pf.getImageableY());
+
+                int y = 40;
+
+                // --- ENCABEZADO DE LA INSTITUCIÓN ---
+                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 14));
+                g2d.drawString("UNIDAD ESCOLAR BENAVENTE, A.C.", 50, y); y += 20;
+
+                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 11));
+                g2d.drawString(tituloReporte, 50, y); y += 15;
+
+                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 9));
+                g2d.drawString("Compañía: " + ciaSel + " | C. Costo: " + ccSel + " | Ciclo Escolar: " + cicloSel, 50, y); y += 15;
+                g2d.drawLine(50, y, 520, y); y += 15;
+
+                // --- ENCABEZADOS DE LA TABLA DE REPORTE ---
+                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 9));
+                g2d.drawString("GRADO", 50, y);
+                g2d.drawString(rbResumen.isSelected() ? "DESCRIPCIÓN" : "MATRÍCULA", 110, y);
+                g2d.drawString(rbResumen.isSelected() ? "TOTAL" : "NOMBRE DEL ALUMNO", 380, y);
+                y += 5;
+                g2d.drawLine(50, y, 520, y); y += 15;
+
+                // --- FILAS DE LA TABLA ---
+                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 8));
+                int inicioRow = pageIndex * filasPorPagina;
+                int finRow = Math.min(inicioRow + filasPorPagina, modResumen.getRowCount());
+
+                for (int r = inicioRow; r < finRow; r++) {
+                    String colGrado = modResumen.getValueAt(r, 0) != null ? modResumen.getValueAt(r, 0).toString() : "";
+                    String colDesc = modResumen.getValueAt(r, 1) != null ? modResumen.getValueAt(r, 1).toString() : "";
+                    String colTot = modResumen.getValueAt(r, 2) != null ? modResumen.getValueAt(r, 2).toString() : "";
+
+                    g2d.drawString(colGrado, 50, y);
+
+                    // Truncar textos largos si es necesario para evitar que se empalmen en la hoja
+                    if (colDesc.length() > 45) colDesc = colDesc.substring(0, 42) + "...";
+                    if (colTot.length() > 35) colTot = colTot.substring(0, 32) + "...";
+
+                    g2d.drawString(colDesc, 110, y);
+                    g2d.drawString(colTot, 380, y);
+                    y += 12;
+                }
+
+                // --- PIE DE PÁGINA Y TOTALES (Solo en la última página) ---
+                if (pageIndex == totalPaginas - 1) {
+                    y += 10;
+                    g2d.drawLine(50, y, 520, y); y += 15;
+                    g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 10));
+                    g2d.drawString("TOTAL DE ALUMNOS NO INSCRITOS:", 250, y);
+                    g2d.drawString(totalTexto, 450, y);
+                }
+
+                // Número de página
+                g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.ITALIC, 8));
+                g2d.drawString("Página " + (pageIndex + 1) + " de " + totalPaginas, 450, 750);
+
+                return java.awt.print.Printable.PAGE_EXISTS;
+            });
+
+            if (job.printDialog()) {
+                job.print();
+                JOptionPane.showMessageDialog(dialogo, "Reporte impreso correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(dialogo, "Error al enviar a la impresora: " + ex.getMessage(), "Error de Impresión", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+    dialogo.setLocationRelativeTo(this);
+    dialogo.setVisible(true);
+}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddRAInscritos;

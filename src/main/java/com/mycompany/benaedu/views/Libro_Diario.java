@@ -154,38 +154,149 @@ private void mostrarDialogoLibroDiario() {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos, String[] columnas, int[] anchos) {
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    for (int i = 0; i < anchos.length; i++) {
+                        tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                    }
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null && mod.getColumnCount() >= 2) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    
+                    int widthTotal = 0; for(int w : anchos) widthTotal += w;
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(widthTotal + 20, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS DESDE LA BASE DE DATOS ---
+        java.util.function.BiFunction<String, Integer, Object[][]> cargarDatosMultiple = (query, numCols) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) {
+                        Object[] row = new Object[numCols];
+                        for(int i=0; i<numCols; i++) row[i] = rs.getString(i+1);
+                        lista.add(row);
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        // Carga de datos para buscadores
+        Object[][] dContab = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TCONT' ORDER BY CVE", 2);
+        Object[][] dMov    = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TPOL' ORDER BY CVE", 2);
+
         // --- 1. DATOS DE SELECCIÓN (Panel Superior) ---
         JPanel pnlSel = new JPanel(null);
         pnlSel.setBorder(BorderFactory.createEtchedBorder());
         pnlSel.setBounds(10, 10, 885, 120);
 
-        // Bloque Izquierdo
+        // Bloque Izquierdo: Compañía (tmcias)
         pnlSel.add(new JLabel("Compañía")).setBounds(20, 15, 80, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(100, 15, 70, 25);
-        pnlSel.add(new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.")).setBounds(180, 15, 250, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(100, 15, 60, 25);
+        JLabel lblCiaDesc = new JLabel();
+        lblCiaDesc.setBounds(170, 15, 250, 25);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rs = con.prepareStatement("SELECT CIA, NCIA FROM tmcias ORDER BY CIA").executeQuery();
+                while(rs.next()){ 
+                    cmbCia.addItem(rs.getString("CIA")); 
+                    lblCiaDesc.setText(rs.getString("NCIA")); 
+                }
+                rs.close(); db.Cerrar();
+            }
+        } catch (Exception ex) {}
+
+        pnlSel.add(cmbCia);
+        pnlSel.add(lblCiaDesc);
+
+        // Fechas con JDateChooser
         pnlSel.add(new JLabel("Fecha Inicial")).setBounds(20, 45, 80, 25);
-        pnlSel.add(new JTextField("04/06/2026")).setBounds(100, 45, 100, 25);
+        com.toedter.calendar.JDateChooser txtFecIni = new com.toedter.calendar.JDateChooser();
+        txtFecIni.setDateFormatString("dd/MM/yyyy"); txtFecIni.setBounds(100, 45, 110, 25);
+        pnlSel.add(txtFecIni);
 
         pnlSel.add(new JLabel("Fecha Final")).setBounds(20, 75, 80, 25);
-        pnlSel.add(new JTextField("04/06/2026")).setBounds(100, 75, 100, 25);
+        com.toedter.calendar.JDateChooser txtFecFin = new com.toedter.calendar.JDateChooser();
+        txtFecFin.setDateFormatString("dd/MM/yyyy"); txtFecFin.setBounds(100, 75, 110, 25);
+        pnlSel.add(txtFecFin);
 
-        // Bloque Central (Tipos)
+        // Bloque Central: Tipo Contab. (TCONT)
         pnlSel.add(new JLabel("Tipo Contab.")).setBounds(450, 45, 100, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"MN"})).setBounds(560, 45, 70, 25);
+        JTextField txtContab = new JTextField("MN"); txtContab.setBounds(550, 45, 50, 25);
+        JButton btnContab = new JButton("▼"); btnContab.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnContab.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnContab.setBounds(600, 45, 20, 25);
+        buscador.configurar(txtContab, null, btnContab, dContab, new String[]{"Clave", "Descripción"}, new int[]{60, 200});
+        pnlSel.add(txtContab); pnlSel.add(btnContab);
 
+        // Bloque Central: Tipo de Movimiento (TPOL)
         pnlSel.add(new JLabel("Tipo de Movimiento")).setBounds(430, 75, 120, 25);
-        pnlSel.add(new JTextField()).setBounds(560, 75, 70, 25);
+        JTextField txtMov = new JTextField(); txtMov.setBounds(550, 75, 50, 25);
+        JButton btnMov = new JButton("▼"); btnMov.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnMov.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnMov.setBounds(600, 75, 20, 25);
+        buscador.configurar(txtMov, null, btnMov, dMov, new String[]{"Clave", "Descripción"}, new int[]{60, 220});
+        pnlSel.add(txtMov); pnlSel.add(btnMov);
 
-        // Bloque Derecho (Ordenar por y Botón)
+        // Bloque Derecho: Ordenar por
         JPanel pnlOrden = new JPanel(null);
         pnlOrden.setBorder(BorderFactory.createTitledBorder("Ordenar por"));
-        pnlOrden.setBounds(700, 10, 170, 70);
+        pnlOrden.setBounds(690, 10, 180, 70);
 
         JRadioButton rbFechaPoliza = new JRadioButton("Fecha y Póliza", true);
-        rbFechaPoliza.setBounds(10, 15, 140, 20);
+        rbFechaPoliza.setBounds(10, 15, 150, 20);
         JRadioButton rbPoliza = new JRadioButton("Póliza");
-        rbPoliza.setBounds(10, 40, 140, 20);
+        rbPoliza.setBounds(10, 40, 150, 20);
 
         ButtonGroup bgOrden = new ButtonGroup();
         bgOrden.add(rbFechaPoliza); bgOrden.add(rbPoliza);
@@ -193,8 +304,9 @@ private void mostrarDialogoLibroDiario() {
         
         pnlSel.add(pnlOrden);
 
+        // Botón Filtrar
         JButton btnFiltra = new JButton("Filtrar Información");
-        btnFiltra.setBounds(700, 85, 170, 25);
+        btnFiltra.setBounds(690, 85, 180, 25);
         pnlSel.add(btnFiltra);
 
         dialogo.add(pnlSel);
@@ -230,7 +342,6 @@ private void mostrarDialogoLibroDiario() {
 
         btnFiltra.addActionListener(e -> {
             JOptionPane.showMessageDialog(dialogo, "Extrayendo pólizas y organizando Libro de Diario... (Simulación)");
-            // Aquí iría la consulta SQL con su respectivo 'ORDER BY'
         });
 
         btnImprimir.addActionListener(e -> {

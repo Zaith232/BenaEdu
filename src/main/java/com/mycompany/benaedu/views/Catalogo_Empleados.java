@@ -33,16 +33,15 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         cargarTablaEmpleados();
     }
     
-   private void cargarTablaEmpleados() {
+  private void cargarTablaEmpleados() {
         DefaultTableModel modelo = (DefaultTableModel) tblEmpleados.getModel();
-        modelo.setRowCount(0); // Limpia la tabla antes de cargar nuevos datos
+        modelo.setRowCount(0); 
 
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tu_tabla_empleados' por el nombre real de tu tabla (ej. tgem, empleados, etc.)
                 String sql = "SELECT NEMP, NOME, TEL, CD, EDO, CIA, CC, USER, FEAC, HOAC FROM tgemp";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
@@ -65,12 +64,31 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
                 rs.close(); 
                 ps.close(); 
                 db.Cerrar();
+                
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Empleados: " + e.getMessage());
         }
     }
-    
+
+    private void adaptarTamañoColumnas() {
+        tblEmpleados.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        for (int i = 0; i < tblEmpleados.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblEmpleados.getColumnModel().getColumn(i);
+            int anchoPreferido = 60; 
+            java.awt.Component compCabecera = tblEmpleados.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblEmpleados, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+            
+            for (int r = 0; r < tblEmpleados.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblEmpleados.getCellRenderer(r, i);
+                java.awt.Component c = tblEmpleados.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            columna.setPreferredWidth(anchoPreferido); 
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -100,7 +118,15 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
             new String [] {
                 "Numero", "Nombre", "Telefono", "Ciudad", "Estado", "Compañia", "Centro", "Usuario", "Fecha Mod.", "Hora Mod."
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         tblEmpleados.setGridColor(new java.awt.Color(0, 0, 0));
         tblEmpleados.setShowGrid(true);
         jScrollPane1.setViewportView(tblEmpleados);
@@ -168,7 +194,7 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAddEmpleadosActionPerformed
 
     private void btnDeleteEmpleadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteEmpleadosActionPerformed
-    int fila = tblEmpleados.getSelectedRow();
+   int fila = tblEmpleados.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un empleado para eliminar.");
             return;
@@ -184,14 +210,12 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // Consulta adaptada a tu tabla tgemp
-                    String sql = "DELETE FROM tgemp WHERE NEMP = ?";
-                    PreparedStatement ps = con.prepareStatement(sql);
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM tgemp WHERE NEMP = ?");
                     ps.setString(1, numEmp);
                     
                     if (ps.executeUpdate() > 0) {
                         JOptionPane.showMessageDialog(this, "Empleado eliminado correctamente.");
-                        cargarTablaEmpleados(); // Refrescamos la tabla
+                        cargarTablaEmpleados(); 
                     } else {
                         JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
@@ -204,40 +228,14 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
     }//GEN-LAST:event_btnDeleteEmpleadosActionPerformed
 
     private void btnEditEmpleadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditEmpleadosActionPerformed
-        int fila = tblEmpleados.getSelectedRow();
-        if (fila == -1) {
-            JOptionPane.showMessageDialog(this, "Selecciona un empleado para eliminar.");
+    if (tblEmpleados.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un empleado para editar.");
             return;
         }
-
-        String numEmp = tblEmpleados.getValueAt(fila, 0).toString();
-        String nombre = tblEmpleados.getValueAt(fila, 1).toString();
-        
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar al empleado: " + nombre + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        
-        if (resp == JOptionPane.YES_OPTION) {
-            try {
-                ConDB db = new ConDB();
-                Connection con = db.Conectar();
-                if (con != null) {
-                    // ATENCIÓN: Cambia 'tabla_empleados' por tu nombre real
-                    String sql = "DELETE FROM tabla_empleados WHERE num_emp = ?";
-                    PreparedStatement ps = con.prepareStatement(sql);
-                    ps.setString(1, numEmp);
-                    
-                    if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Empleado eliminado.");
-                        cargarTablaEmpleados();
-                    }
-                    ps.close(); db.Cerrar();
-                }
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
-            }
-        }
+        mostrarDialogoEmpleado(true);
     }//GEN-LAST:event_btnEditEmpleadosActionPerformed
 
-  private void mostrarDialogoEmpleado(boolean modoEdicion) {
+private void mostrarDialogoEmpleado(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         String tituloVentana = modoEdicion ? "Modificar Empleado" : "Agregar Empleado";
 
@@ -245,6 +243,85 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         dialogo.setSize(550, 580);
         dialogo.setLayout(null);
         dialogo.setResizable(false);
+
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(50);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(200);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(280, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA CENTRALIZADA DE DATOS PARA LOS BUSCADORES ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dTrat   = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TRAT' ORDER BY CVE");
+        Object[][] dCd     = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CD' ORDER BY CVE");
+        Object[][] dEdo    = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'EDO' ORDER BY CVE");
+        Object[][] dPais   = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'PAIS' ORDER BY CVE");
+        Object[][] dTTel   = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TTEL' ORDER BY CVE");
+        Object[][] dCC     = cargarDatos.apply("SELECT CVE, DES1 FROM tgcc ORDER BY CVE");
+        Object[][] dClas   = cargarDatos.apply("SELECT CVE, DES FROM tmclas ORDER BY CVE");
 
         // --- 1. SECCIÓN SUPERIOR ---
         JPanel pnlTop = new JPanel(null);
@@ -255,26 +332,31 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         lblNumEmp.setBounds(15, 10, 80, 20);
         JTextField txtNumEmp = new JTextField();
         txtNumEmp.setBounds(15, 30, 80, 25);
-        if (modoEdicion) txtNumEmp.setEditable(false);
 
         JLabel lblRfcTop = new JLabel("R.F.C.");
         lblRfcTop.setBounds(110, 10, 80, 20);
         JTextField txtRfcTop = new JTextField();
         txtRfcTop.setBounds(110, 30, 200, 25);
 
+        // Tratamiento
         JLabel lblTratamiento = new JLabel("Tratamiento");
         lblTratamiento.setBounds(15, 65, 80, 25);
-        JComboBox<String> cmbTratamiento = new JComboBox<>(new String[]{"", "Sr.", "Sra.", "Srita.", "Dr.", "Ing."});
-        cmbTratamiento.setBounds(90, 65, 80, 25);
+        JTextField txtTrat = new JTextField();
+        txtTrat.setBounds(90, 65, 60, 25);
+        JButton btnTrat = new JButton("▼");
+        btnTrat.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnTrat.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTrat.setBounds(150, 65, 20, 25);
+        buscador.configurar(txtTrat, null, btnTrat, dTrat);
 
         JLabel lblNombre = new JLabel("Nombre");
         lblNombre.setBounds(15, 100, 60, 25); 
         JTextField txtNombre = new JTextField();
-        txtNombre.setBounds(90, 100, 270, 25);
+        txtNombre.setBounds(90, 100, 260, 25);
         
         pnlTop.add(lblNumEmp); pnlTop.add(txtNumEmp);
         pnlTop.add(lblRfcTop); pnlTop.add(txtRfcTop);
-        pnlTop.add(lblTratamiento); pnlTop.add(cmbTratamiento);
+        pnlTop.add(lblTratamiento); pnlTop.add(txtTrat); pnlTop.add(btnTrat);
         pnlTop.add(lblNombre); pnlTop.add(txtNombre);
         
         dialogo.add(pnlTop);
@@ -288,73 +370,181 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.setBounds(15, 160, 500, 320);
 
-        // >> Pestaña 1: Datos Generales
+        // ==========================================
+        // >> PESTAÑA 1: DATOS GENERALES
+        // ==========================================
         JPanel pnlGenerales = new JPanel(null);
 
         JLabel lblCalle = new JLabel("Calle");
-        lblCalle.setBounds(20, 20, 60, 25);
+        lblCalle.setBounds(20, 15, 60, 25);
         JTextField txtCalle = new JTextField();
-        txtCalle.setBounds(90, 20, 380, 25);
+        txtCalle.setBounds(90, 15, 380, 25);
 
         JLabel lblColonia = new JLabel("Colonia");
-        lblColonia.setBounds(20, 60, 60, 25);
+        lblColonia.setBounds(20, 50, 60, 25);
         JTextField txtColonia = new JTextField();
-        txtColonia.setBounds(90, 60, 380, 25);
+        txtColonia.setBounds(90, 50, 380, 25);
 
+        // Población
         JLabel lblPob = new JLabel("Población");
-        lblPob.setBounds(20, 100, 70, 25);
-        JComboBox<String> cmbPob = new JComboBox<>(new String[]{"", "TEH", "PUE", "CDMX"}); // Agrega tus opciones de ciudad
-        cmbPob.setBounds(90, 100, 70, 25);
+        lblPob.setBounds(20, 85, 70, 25);
+        JTextField txtPob = new JTextField();
+        txtPob.setBounds(90, 85, 60, 25);
+        JButton btnPob = new JButton("▼");
+        btnPob.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnPob.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnPob.setBounds(150, 85, 20, 25);
         JTextField txtPobDesc = new JTextField();
-        txtPobDesc.setBounds(170, 100, 150, 25);
+        txtPobDesc.setBounds(175, 85, 145, 25);
+        txtPobDesc.setEditable(false); txtPobDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtPob, txtPobDesc, btnPob, dCd);
 
+        // Estado
         JLabel lblEdo = new JLabel("Estado");
-        lblEdo.setBounds(20, 140, 70, 25);
-        JComboBox<String> cmbEdo = new JComboBox<>(new String[]{"", "PUE", "VER", "MEX"}); // Agrega tus opciones de estado
-        cmbEdo.setBounds(90, 140, 70, 25);
+        lblEdo.setBounds(20, 120, 70, 25);
+        JTextField txtEdo = new JTextField();
+        txtEdo.setBounds(90, 120, 60, 25);
+        JButton btnEdo = new JButton("▼");
+        btnEdo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnEdo.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnEdo.setBounds(150, 120, 20, 25);
         JTextField txtEdoDesc = new JTextField();
-        txtEdoDesc.setBounds(170, 140, 150, 25);
+        txtEdoDesc.setBounds(175, 120, 145, 25);
+        txtEdoDesc.setEditable(false); txtEdoDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtEdo, txtEdoDesc, btnEdo, dEdo);
 
+        // País
         JLabel lblPais = new JLabel("País");
-        lblPais.setBounds(20, 180, 70, 25);
-        JComboBox<String> cmbPais = new JComboBox<>(new String[]{"", "MEX", "USA"});
-        cmbPais.setBounds(90, 180, 70, 25);
+        lblPais.setBounds(20, 155, 70, 25);
+        JTextField txtPais = new JTextField();
+        txtPais.setBounds(90, 155, 60, 25);
+        JButton btnPais = new JButton("▼");
+        btnPais.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnPais.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnPais.setBounds(150, 155, 20, 25);
         JTextField txtPaisDesc = new JTextField();
-        txtPaisDesc.setBounds(170, 180, 150, 25);
+        txtPaisDesc.setBounds(175, 155, 145, 25);
+        txtPaisDesc.setEditable(false); txtPaisDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtPais, txtPaisDesc, btnPais, dPais);
 
         JLabel lblCp = new JLabel("Código Postal");
-        lblCp.setBounds(300, 220, 90, 25);
+        lblCp.setBounds(300, 190, 90, 25);
         JTextField txtCp = new JTextField();
-        txtCp.setBounds(390, 220, 80, 25);
+        txtCp.setBounds(390, 190, 80, 25);
 
         JLabel lblImss = new JLabel("Núm IMSS");
-        lblImss.setBounds(20, 250, 70, 25);
+        lblImss.setBounds(20, 190, 70, 25);
         JTextField txtImss = new JTextField();
-        txtImss.setBounds(90, 250, 120, 25);
+        txtImss.setBounds(90, 190, 120, 25);
 
         JLabel lblCurp = new JLabel("C.U.R.P.");
-        lblCurp.setBounds(230, 250, 50, 25);
+        lblCurp.setBounds(20, 225, 50, 25);
         JTextField txtCurp = new JTextField();
-        txtCurp.setBounds(280, 250, 190, 25);
+        txtCurp.setBounds(90, 225, 190, 25);
 
+        // Teléfono con Buscador de Tipo
         JLabel lblTel = new JLabel("Teléfono");
-        lblTel.setBounds(20, 280, 60, 25);
-        JComboBox<String> cmbTelTipo = new JComboBox<>(new String[]{"PAR", "CEL"});
-        cmbTelTipo.setBounds(90, 280, 60, 25);
+        lblTel.setBounds(290, 225, 60, 25);
+        JTextField txtTipoTel = new JTextField();
+        txtTipoTel.setBounds(350, 225, 45, 25);
+        JButton btnTipoTel = new JButton("▼");
+        btnTipoTel.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnTipoTel.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTipoTel.setBounds(395, 225, 20, 25);
         JTextField txtTel = new JTextField();
-        txtTel.setBounds(160, 280, 310, 25);
+        txtTel.setBounds(420, 225, 70, 25);
+        buscador.configurar(txtTipoTel, null, btnTipoTel, dTTel);
+
+        // --- CHECKBOX ES CAJERO ---
+        javax.swing.JCheckBox chkEsCajero = new javax.swing.JCheckBox("Es Cajero");
+        chkEsCajero.setBounds(20, 255, 120, 25);
 
         pnlGenerales.add(lblCalle); pnlGenerales.add(txtCalle);
         pnlGenerales.add(lblColonia); pnlGenerales.add(txtColonia);
-        pnlGenerales.add(lblPob); pnlGenerales.add(cmbPob); pnlGenerales.add(txtPobDesc);
-        pnlGenerales.add(lblEdo); pnlGenerales.add(cmbEdo); pnlGenerales.add(txtEdoDesc);
-        pnlGenerales.add(lblPais); pnlGenerales.add(cmbPais); pnlGenerales.add(txtPaisDesc);
+        pnlGenerales.add(lblPob); pnlGenerales.add(txtPob); pnlGenerales.add(btnPob); pnlGenerales.add(txtPobDesc);
+        pnlGenerales.add(lblEdo); pnlGenerales.add(txtEdo); pnlGenerales.add(btnEdo); pnlGenerales.add(txtEdoDesc);
+        pnlGenerales.add(lblPais); pnlGenerales.add(txtPais); pnlGenerales.add(btnPais); pnlGenerales.add(txtPaisDesc);
         pnlGenerales.add(lblCp); pnlGenerales.add(txtCp);
         pnlGenerales.add(lblImss); pnlGenerales.add(txtImss);
         pnlGenerales.add(lblCurp); pnlGenerales.add(txtCurp);
-        pnlGenerales.add(lblTel); pnlGenerales.add(cmbTelTipo); pnlGenerales.add(txtTel);
+        pnlGenerales.add(lblTel); pnlGenerales.add(txtTipoTel); pnlGenerales.add(btnTipoTel); pnlGenerales.add(txtTel);
+        pnlGenerales.add(chkEsCajero);
 
+        // ==========================================
+        // >> PESTAÑA 2: INFORMACIÓN ADICIONAL
+        // ==========================================
         JPanel pnlAdicional = new JPanel(null);
+
+        JLabel lblCia = new JLabel("Compañía");
+        lblCia.setBounds(20, 15, 80, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(110, 15, 250, 25);
+        
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rs = con.prepareStatement("SELECT CIA, NCIA FROM tmcias").executeQuery();
+                while(rs.next()){ cmbCia.addItem(rs.getString("CIA") + " - " + rs.getString("NCIA")); }
+                rs.close(); db.Cerrar();
+            }
+        } catch (Exception ex) {}
+
+        // Centro de Costo (Buscador tgcc)
+        JLabel lblCC = new JLabel("Centro Costo");
+        lblCC.setBounds(20, 45, 80, 25);
+        JTextField txtCC = new JTextField();
+        txtCC.setBounds(110, 45, 70, 25);
+        JButton btnCC = new JButton("▼");
+        btnCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCC.setBounds(180, 45, 20, 25);
+        JTextField txtCCDesc = new JTextField();
+        txtCCDesc.setBounds(205, 45, 255, 25);
+        txtCCDesc.setEditable(false); txtCCDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtCC, txtCCDesc, btnCC, dCC);
+
+        // Clasificaciones
+        JPanel pnlClas = new JPanel(null);
+        pnlClas.setBorder(BorderFactory.createTitledBorder("Clasificaciones"));
+        pnlClas.setBounds(10, 85, 470, 175);
+
+        JLabel lblTitClas = new JLabel("Clasificaciones"); lblTitClas.setBounds(120, 15, 100, 20);
+        JLabel lblTitDesc = new JLabel("Descripción"); lblTitDesc.setBounds(210, 15, 100, 20);
+        pnlClas.add(lblTitClas); pnlClas.add(lblTitDesc);
+
+        String[] nomClas = {"Empleados", "Clasificación 2", "Clasificación 3", "Clasificación 4", "Clasificación 5"};
+        JTextField[] txtClas = new JTextField[5];
+        JTextField[] txtClasDesc = new JTextField[5];
+        
+        int yOffset = 40;
+        for(int i=0; i<5; i++){
+            JLabel l = new JLabel(nomClas[i]); l.setBounds(20, yOffset, 90, 25);
+            txtClas[i] = new JTextField();
+            txtClas[i].setBounds(120, yOffset, 60, 25);
+            JButton btnClas = new JButton("▼");
+            btnClas.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+            btnClas.setMargin(new java.awt.Insets(0, 0, 0, 0));
+            btnClas.setBounds(180, yOffset, 20, 25);
+            txtClasDesc[i] = new JTextField();
+            txtClasDesc[i].setBounds(205, yOffset, 245, 25);
+            txtClasDesc[i].setEditable(false); txtClasDesc[i].setBackground(new java.awt.Color(240,240,240));
+            
+            buscador.configurar(txtClas[i], txtClasDesc[i], btnClas, dClas);
+            
+            pnlClas.add(l); pnlClas.add(txtClas[i]); pnlClas.add(btnClas); pnlClas.add(txtClasDesc[i]);
+            yOffset += 25;
+        }
+
+        JLabel lblRuta = new JLabel("Ruta de Autorización");
+        lblRuta.setBounds(20, 265, 130, 25);
+        JComboBox<String> cmbRuta = new JComboBox<>(new String[]{"", "Ruta 1"});
+        cmbRuta.setBounds(150, 265, 100, 25);
+
+        pnlAdicional.add(lblCia); pnlAdicional.add(cmbCia);
+        pnlAdicional.add(lblCC); pnlAdicional.add(txtCC); pnlAdicional.add(btnCC); pnlAdicional.add(txtCCDesc);
+        pnlAdicional.add(pnlClas);
+        pnlAdicional.add(lblRuta); pnlAdicional.add(cmbRuta);
 
         pestanas.addTab("Datos Generales", pnlGenerales);
         pestanas.addTab("Información Adicional", pnlAdicional);
@@ -371,18 +561,59 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
 
         // --- 4. CARGAR DATOS SI ES EDICIÓN ---
         if (modoEdicion) {
+            txtNumEmp.setEditable(false);
             int fila = tblEmpleados.getSelectedRow();
-            // Evitamos errores de NullPointerException si la celda está vacía
-            txtNumEmp.setText(tblEmpleados.getValueAt(fila, 0) != null ? tblEmpleados.getValueAt(fila, 0).toString() : "");
-            txtNombre.setText(tblEmpleados.getValueAt(fila, 1) != null ? tblEmpleados.getValueAt(fila, 1).toString() : "");
-            txtTel.setText(tblEmpleados.getValueAt(fila, 2) != null ? tblEmpleados.getValueAt(fila, 2).toString() : "");
+            String numEmpSel = tblEmpleados.getValueAt(fila, 0).toString();
+            txtNumEmp.setText(numEmpSel);
             
-            // Asignar combos basándose en el texto de la tabla
-            String ciudad = tblEmpleados.getValueAt(fila, 3) != null ? tblEmpleados.getValueAt(fila, 3).toString() : "";
-            cmbPob.setSelectedItem(ciudad);
-            
-            String estado = tblEmpleados.getValueAt(fila, 4) != null ? tblEmpleados.getValueAt(fila, 4).toString() : "";
-            cmbEdo.setSelectedItem(estado);
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    String sql = "SELECT NOME, RFC, TRAT, CALLE, COL, CD, EDO, PAIS, CPOS, IMSS, CURP, TEL, CIA, CC, CLS01, CLS02, CLS03, CLS04, CLS05, CRUTA, CAJ " +
+                                 "FROM tgemp WHERE NEMP = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, numEmpSel);
+                    ResultSet rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        txtNombre.setText(rs.getString("NOME") != null ? rs.getString("NOME") : "");
+                        txtRfcTop.setText(rs.getString("RFC") != null ? rs.getString("RFC") : "");
+                        txtTrat.setText(rs.getString("TRAT") != null ? rs.getString("TRAT") : "");
+                        
+                        txtCalle.setText(rs.getString("CALLE") != null ? rs.getString("CALLE") : "");
+                        txtColonia.setText(rs.getString("COL") != null ? rs.getString("COL") : "");
+                        txtPob.setText(rs.getString("CD") != null ? rs.getString("CD") : "");
+                        txtEdo.setText(rs.getString("EDO") != null ? rs.getString("EDO") : "");
+                        txtPais.setText(rs.getString("PAIS") != null ? rs.getString("PAIS") : "");
+                        txtCp.setText(rs.getString("CPOS") != null ? rs.getString("CPOS") : "");
+                        txtImss.setText(rs.getString("IMSS") != null ? rs.getString("IMSS") : "");
+                        txtCurp.setText(rs.getString("CURP") != null ? rs.getString("CURP") : "");
+                        
+                        txtTel.setText(rs.getString("TEL") != null ? rs.getString("TEL") : "");
+                        
+                        // Cargar Estatus de Cajero
+                        chkEsCajero.setSelected("S".equalsIgnoreCase(rs.getString("CAJ")));
+                        
+                        String ciaDB = rs.getString("CIA");
+                        if(ciaDB != null) {
+                            for (int i=0; i<cmbCia.getItemCount(); i++){
+                                if(cmbCia.getItemAt(i).startsWith(ciaDB)) {
+                                    cmbCia.setSelectedIndex(i); break;
+                                }
+                            }
+                        }
+                        txtCC.setText(rs.getString("CC") != null ? rs.getString("CC") : "");
+                        txtClas[0].setText(rs.getString("CLS01") != null ? rs.getString("CLS01") : "");
+                        txtClas[1].setText(rs.getString("CLS02") != null ? rs.getString("CLS02") : "");
+                        txtClas[2].setText(rs.getString("CLS03") != null ? rs.getString("CLS03") : "");
+                        txtClas[3].setText(rs.getString("CLS04") != null ? rs.getString("CLS04") : "");
+                        txtClas[4].setText(rs.getString("CLS05") != null ? rs.getString("CLS05") : "");
+                        cmbRuta.setSelectedItem(rs.getString("CRUTA") != null ? rs.getString("CRUTA") : "");
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {}
         }
 
         // --- 5. EVENTOS ---
@@ -391,11 +622,30 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         btnAceptar.addActionListener(e -> {
             String numEmp = txtNumEmp.getText().trim();
             String nombre = txtNombre.getText().trim();
-            String telefono = txtTel.getText().trim();
-            String ciudad = cmbPob.getSelectedItem() != null ? cmbPob.getSelectedItem().toString() : "";
-            String estado = cmbEdo.getSelectedItem() != null ? cmbEdo.getSelectedItem().toString() : "";
+            String rfc = txtRfcTop.getText().trim();
+            String trat = txtTrat.getText().trim();
+            
+            String calle = txtCalle.getText().trim();
+            String colonia = txtColonia.getText().trim();
+            String ciudad = txtPob.getText().trim();
+            String estado = txtEdo.getText().trim();
+            String pais = txtPais.getText().trim();
+            String cp = txtCp.getText().trim();
+            String imss = txtImss.getText().trim();
+            String curp = txtCurp.getText().trim();
+            
+            String telefono = (txtTipoTel.getText().trim() + " " + txtTel.getText().trim()).trim();
+            
+            String ciaCompleta = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+            String cia = ciaCompleta.contains("-") ? ciaCompleta.split("-")[0].trim() : ciaCompleta;
+            if(cia.isEmpty()) cia = "12";
 
-            // Validación mínima
+            String cc = txtCC.getText().trim();
+            String ruta = cmbRuta.getSelectedItem() != null ? cmbRuta.getSelectedItem().toString() : "";
+            
+            // Marca de Cajero 'S' o 'N'
+            String esCajero = chkEsCajero.isSelected() ? "S" : "N";
+
             if (numEmp.isEmpty() || nombre.isEmpty()) {
                 JOptionPane.showMessageDialog(dialogo, "El Número de Empleado y Nombre son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
@@ -405,40 +655,62 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
+                    con.setAutoCommit(false); // Iniciar Transacción
+                    
                     PreparedStatement ps;
                     
                     if (modoEdicion) {
-                        // ACTUALIZAR (UPDATE)
-                        String sql = "UPDATE tgemp SET NOME = ?, TEL = ?, CD = ?, EDO = ? WHERE NEMP = ?";
+                        String sql = "UPDATE tgemp SET NOME=?, RFC=?, TRAT=?, CALLE=?, COL=?, CD=?, EDO=?, PAIS=?, CPOS=?, IMSS=?, CURP=?, TEL=?, CIA=?, CC=?, CLS01=?, CLS02=?, CLS03=?, CLS04=?, CLS05=?, CRUTA=?, CAJ=? WHERE NEMP=?";
                         ps = con.prepareStatement(sql);
-                        ps.setString(1, nombre);
-                        ps.setString(2, telefono);
-                        ps.setString(3, ciudad);
-                        ps.setString(4, estado);
-                        ps.setString(5, numEmp);
+                        ps.setString(1, nombre); ps.setString(2, rfc); ps.setString(3, trat);
+                        ps.setString(4, calle); ps.setString(5, colonia); ps.setString(6, ciudad);
+                        ps.setString(7, estado); ps.setString(8, pais); ps.setString(9, cp);
+                        ps.setString(10, imss); ps.setString(11, curp); ps.setString(12, telefono);
+                        ps.setString(13, cia); ps.setString(14, cc);
+                        for(int i=0; i<5; i++) { ps.setString(15+i, txtClas[i].getText().trim()); }
+                        ps.setString(20, ruta);
+                        ps.setString(21, esCajero);
+                        ps.setString(22, numEmp);
                     } else {
-                        // NUEVO (INSERT)
-                        String sql = "INSERT INTO tgemp (NEMP, NOME, TEL, CD, EDO) VALUES (?, ?, ?, ?, ?)";
+                        String sql = "INSERT INTO tgemp (NEMP, NOME, RFC, TRAT, CALLE, COL, CD, EDO, PAIS, CPOS, IMSS, CURP, TEL, CIA, CC, CLS01, CLS02, CLS03, CLS04, CLS05, CRUTA, CAJ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                         ps = con.prepareStatement(sql);
-                        ps.setString(1, numEmp);
-                        ps.setString(2, nombre);
-                        ps.setString(3, telefono);
-                        ps.setString(4, ciudad);
-                        ps.setString(5, estado);
+                        ps.setString(1, numEmp); ps.setString(2, nombre); ps.setString(3, rfc); ps.setString(4, trat);
+                        ps.setString(5, calle); ps.setString(6, colonia); ps.setString(7, ciudad);
+                        ps.setString(8, estado); ps.setString(9, pais); ps.setString(10, cp);
+                        ps.setString(11, imss); ps.setString(12, curp); ps.setString(13, telefono);
+                        ps.setString(14, cia); ps.setString(15, cc);
+                        for(int i=0; i<5; i++) { ps.setString(16+i, txtClas[i].getText().trim()); }
+                        ps.setString(21, ruta);
+                        ps.setString(22, esCajero);
                     }
 
-                    if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(dialogo, "Operación guardada con éxito.");
+                    int res = ps.executeUpdate();
+                    ps.close();
+
+                    // Si está marcado como cajero ('S'), garantizamos su registro en tescaj
+                    if ("S".equals(esCajero)) {
+                        String sqlCaj = "INSERT INTO tescaj (CIA, NEMP, ECAJ) VALUES (?, ?, 'A') " +
+                                        "ON DUPLICATE KEY UPDATE ECAJ = 'A'";
+                        PreparedStatement psCaj = con.prepareStatement(sqlCaj);
+                        psCaj.setString(1, cia);
+                        psCaj.setString(2, numEmp);
+                        psCaj.executeUpdate();
+                        psCaj.close();
+                    }
+
+                    con.commit();
+                    db.Cerrar();
+
+                    if (res > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Empleado guardado con éxito.");
                         dialogo.dispose();
-                        cargarTablaEmpleados(); // Refresca la tabla principal automáticamente
+                        cargarTablaEmpleados(); 
                     } else {
                         JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
                     }
-                    ps.close();
-                    db.Cerrar();
                 }
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialogo, "Error al guardar en base de datos: " + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -446,7 +718,6 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
         dialogo.setLocationRelativeTo(this);
         dialogo.setVisible(true);
     }
-    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddEmpleados;

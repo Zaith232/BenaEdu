@@ -155,14 +155,118 @@ private void mostrarDialogoImpresionPoliza() {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(220);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(320, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA EL BUSCADOR (Tipo de Póliza) ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dTPol = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TPOL' ORDER BY CVE");
+
         // --- 1. SECCIÓN SUPERIOR (Filtros de Póliza) ---
+        
+        // Compañía (Dinámica)
         dialogo.add(new JLabel("Compañía")).setBounds(30, 20, 80, 25);
-        dialogo.add(new JComboBox<>(new String[]{"12"})).setBounds(130, 20, 70, 25);
-        dialogo.add(new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.")).setBounds(210, 20, 250, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(130, 20, 70, 25);
+        dialogo.add(cmbCia);
+        JLabel lblNomCia = new JLabel();
+        lblNomCia.setBounds(210, 20, 250, 25);
+        dialogo.add(lblNomCia);
+        
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rs = con.prepareStatement("SELECT CIA, NCIA FROM tmcias").executeQuery();
+                while(rs.next()){ 
+                    cmbCia.addItem(rs.getString("CIA")); 
+                    lblNomCia.setText(rs.getString("NCIA")); // Toma la última o se puede atar al evento del combobox
+                }
+                rs.close(); db.Cerrar();
+            }
+        } catch (Exception ex) {}
 
+        // Tipo de Póliza (Con Buscador Flotante)
         dialogo.add(new JLabel("Tipo de Póliza")).setBounds(30, 55, 90, 25);
-        dialogo.add(new JComboBox<>(new String[]{""})).setBounds(130, 55, 70, 25);
+        JTextField txtTipoPol = new JTextField();
+        txtTipoPol.setBounds(130, 55, 60, 25);
+        JButton btnTipoPol = new JButton("▼");
+        btnTipoPol.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnTipoPol.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTipoPol.setBounds(190, 55, 20, 25);
+        
+        buscador.configurar(txtTipoPol, null, btnTipoPol, dTPol);
+        
+        dialogo.add(txtTipoPol);
+        dialogo.add(btnTipoPol);
 
+        // Póliza Inicial / Final
         dialogo.add(new JLabel("Póliza Inicial")).setBounds(30, 90, 90, 25);
         dialogo.add(new JTextField()).setBounds(130, 90, 130, 25);
 
@@ -221,7 +325,6 @@ private void mostrarDialogoImpresionPoliza() {
         dialogo.setLocationRelativeTo(this);
         dialogo.setVisible(true);
     }
-
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddIPoliza;
     private javax.swing.JButton btnDeleteIPoliza;

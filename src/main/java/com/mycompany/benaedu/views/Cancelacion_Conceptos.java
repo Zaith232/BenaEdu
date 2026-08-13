@@ -31,49 +31,292 @@ public class Cancelacion_Conceptos extends javax.swing.JPanel {
      */
     public Cancelacion_Conceptos() {
         initComponents();
+        construirInterfazCancelacionConceptos();
     }
-private void cargarTablaCancelaciones() {
-        // 1. Arreglamos las columnas de la tabla por código
-        DefaultTableModel modelo = new DefaultTableModel(
-            new Object[][] {}, 
-            new String[] {"Compañía", "Centro Costos", "Matrícula", "Concepto Cancelado", "Motivo", "Fecha", "Usuario"}
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; 
-            }
-        };
-        tblCConceptos.setModel(modelo);
+    private void construirInterfazCancelacionConceptos() {
+        this.removeAll();
+        this.setLayout(null);
+        this.setBackground(new java.awt.Color(255, 255, 255));
 
-        // 2. Cargamos los datos
+        // --- CLASE LOCAL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos, String[] columnas, int[] anchos) {
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    DefaultTableModel mod = new DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    JTable tabla = new JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    for (int i = 0; i < anchos.length; i++) {
+                        tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                    }
+
+                    javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null && mod.getColumnCount() >= 2) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    
+                    int widthTotal = 0; for(int w : anchos) widthTotal += w;
+                    JScrollPane scroll = new JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(widthTotal + 20, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA BUSCADORES ---
+        java.util.function.BiFunction<String, Integer, Object[][]> cargarDatosMultiple = (query, numCols) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) {
+                        Object[] row = new Object[numCols];
+                        for(int i=0; i<numCols; i++) row[i] = rs.getString(i+1);
+                        lista.add(row);
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dMatricula = cargarDatosMultiple.apply("SELECT MAT, APATE, AMATE, NOMA FROM tesalum ORDER BY MAT", 4);
+        Object[][] dMotivo    = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'MCAN' ORDER BY CVE", 2);
+
+        // --- 1. PANEL DE SELECCIÓN ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección - UNIDAD ESCOLAR BENAVENTE"));
+        pnlSel.setBounds(10, 10, 785, 90);
+
+        pnlSel.add(new JLabel("Compañía")).setBounds(20, 25, 70, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(90, 25, 60, 25);
+        
+        pnlSel.add(new JLabel("C. Costos")).setBounds(250, 25, 70, 25);
+        JComboBox<String> cmbCC = new JComboBox<>();
+        cmbCC.setBounds(320, 25, 80, 25);
+
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
-
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_cancelaciones' por tu tabla real
-                String sql = "SELECT compania, centro_costos, matricula, concepto, motivo, fecha_mod, usuario FROM tabla_cancelaciones";
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
+                ResultSet rsCia = con.prepareStatement("SELECT CIA FROM tmcias ORDER BY CIA").executeQuery();
+                while(rsCia.next()) cmbCia.addItem(rsCia.getString("CIA"));
+                rsCia.close();
 
-                while (rs.next()) {
-                    Object[] fila = new Object[7]; 
-                    fila[0] = rs.getString("compania");
-                    fila[1] = rs.getString("centro_costos");
-                    fila[2] = rs.getString("matricula");
-                    fila[3] = rs.getString("concepto");
-                    fila[4] = rs.getString("motivo");
-                    fila[5] = rs.getString("fecha_mod");
-                    fila[6] = rs.getString("usuario");
-                    modelo.addRow(fila);
-                }
-                rs.close(); ps.close(); db.Cerrar();
+                ResultSet rsCC = con.prepareStatement("SELECT CVE FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE").executeQuery();
+                while(rsCC.next()) cmbCC.addItem(rsCC.getString("CVE"));
+                rsCC.close();
+                
+                db.Cerrar();
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
-        }
+        } catch (Exception ex) {}
+
+        pnlSel.add(cmbCia);
+        pnlSel.add(cmbCC);
+
+        // Buscador Matrícula
+        pnlSel.add(new JLabel("Matrícula")).setBounds(20, 55, 70, 25);
+        JTextField txtMatricula = new JTextField(); txtMatricula.setBounds(90, 55, 100, 25);
+        JButton btnMatricula = new JButton("▼"); btnMatricula.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnMatricula.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnMatricula.setBounds(190, 55, 20, 25);
+        buscador.configurar(txtMatricula, null, btnMatricula, dMatricula, new String[]{"Matrícula", "A. Paterno", "A. Materno", "Nombre"}, new int[]{80, 120, 120, 150});
+        pnlSel.add(txtMatricula); pnlSel.add(btnMatricula);
+
+        JButton btnFiltra = new JButton("Filtra Información");
+        btnFiltra.setBounds(620, 50, 150, 30);
+        pnlSel.add(btnFiltra);
+
+        this.add(pnlSel);
+
+        // --- 2. MOTIVO DE CANCELACIÓN ---
+        JLabel lblMotivo = new JLabel("Motivo de Cancelación");
+        lblMotivo.setBounds(120, 110, 150, 25);
+        
+        JTextField txtMotivo = new JTextField(); txtMotivo.setBounds(260, 110, 50, 25);
+        JButton btnMotivo = new JButton("▼"); btnMotivo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnMotivo.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnMotivo.setBounds(310, 110, 20, 25);
+        JTextField txtMotivoDesc = new JTextField(); txtMotivoDesc.setBounds(335, 110, 460, 25); txtMotivoDesc.setEditable(false); txtMotivoDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtMotivo, txtMotivoDesc, btnMotivo, dMotivo, new String[]{"Clave", "Descripción"}, new int[]{60, 350});
+
+        this.add(lblMotivo);
+        this.add(txtMotivo);
+        this.add(btnMotivo);
+        this.add(txtMotivoDesc);
+
+        // --- 3. TABLA DE CONCEPTOS SIN PAGO ---
+        DefaultTableModel modCptosPendientes = new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Compañía", "C. Costos", "Ciclo Escolar", "ID", "Cpto", "Descripción", "Fecha Venc", "Moneda", "Imp Total", "Imp Pend Pag"}
+        ) {
+            @Override public boolean isCellEditable(int row, int column) { return false; }
+        };
+        JTable tblConceptosPendientes = new JTable(modCptosPendientes);
+        tblConceptosPendientes.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        
+        JScrollPane scrollConceptos = new JScrollPane(tblConceptosPendientes);
+        
+        JPanel pnlTabla = new JPanel(null);
+        pnlTabla.setBorder(BorderFactory.createTitledBorder("Conceptos Sin Pago"));
+        pnlTabla.setBounds(10, 145, 785, 260);
+        scrollConceptos.setBounds(10, 20, 765, 230);
+        pnlTabla.add(scrollConceptos);
+        
+        this.add(pnlTabla);
+
+        // --- 4. BOTÓN ACEPTAR ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(350, 420, 110, 35);
+        this.add(btnAceptar);
+
+        // --- 5. EVENTOS ---
+
+        // LÓGICA DE BÚSQUEDA DE CONCEPTOS SIN PAGO (tescalu)
+        btnFiltra.addActionListener(e -> {
+            modCptosPendientes.setRowCount(0);
+            String matricula = txtMatricula.getText().trim();
+            String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+            String cc = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
+
+            if (matricula.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Por favor proporcione una matrícula para filtrar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    StringBuilder sql = new StringBuilder(
+                        "SELECT CIA, CC, CESC, IDCPT, NCPTO, DCPTO, FVEN, CMON, IMPTMN, IPENMN " +
+                        "FROM tescalu " +
+                        "WHERE MAT = ? AND (IPAGMN = 0 OR IPENMN = IMPTMN) AND (MCAN IS NULL OR MCAN = '') "
+                    );
+
+                    if (!cia.isEmpty()) sql.append(" AND CIA = ?");
+                    if (!cc.isEmpty()) sql.append(" AND CC = ?");
+
+                    sql.append(" ORDER BY FVEN ASC");
+
+                    PreparedStatement ps = con.prepareStatement(sql.toString());
+                    int pIdx = 1;
+                    ps.setString(pIdx++, matricula);
+                    if (!cia.isEmpty()) ps.setString(pIdx++, cia);
+                    if (!cc.isEmpty()) ps.setString(pIdx++, cc);
+
+                    ResultSet rs = ps.executeQuery();
+                    java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
+
+                    while (rs.next()) {
+                        Object[] fila = new Object[10];
+                        fila[0] = rs.getString("CIA");
+                        fila[1] = rs.getString("CC");
+                        fila[2] = rs.getString("CESC");
+                        fila[3] = rs.getString("IDCPT");
+                        fila[4] = rs.getString("NCPTO");
+                        fila[5] = rs.getString("DCPTO");
+                        fila[6] = rs.getString("FVEN");
+                        fila[7] = rs.getString("CMON");
+                        fila[8] = df.format(rs.getDouble("IMPTMN"));
+                        fila[9] = df.format(rs.getDouble("IPENMN"));
+
+                        modCptosPendientes.addRow(fila);
+                    }
+
+                    rs.close(); ps.close(); db.Cerrar();
+
+                    if (modCptosPendientes.getRowCount() == 0) {
+                        JOptionPane.showMessageDialog(this, "No se encontraron conceptos pendientes por pagar para la matrícula " + matricula, "Información", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error al buscar conceptos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // PROCESAR CANCELACIÓN DE CONCEPTO
+        btnAceptar.addActionListener(e -> {
+            int filaSel = tblConceptosPendientes.getSelectedRow();
+            if (filaSel == -1) {
+                JOptionPane.showMessageDialog(this, "Seleccione al menos un concepto de la tabla para cancelar.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            if (txtMotivo.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Debe especificar un Motivo de Cancelación.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String matricula = txtMatricula.getText().trim();
+            String idCpt = tblConceptosPendientes.getValueAt(filaSel, 3).toString();
+            String concepto = tblConceptosPendientes.getValueAt(filaSel, 5).toString();
+            String motivoCode = txtMotivo.getText().trim();
+
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                "¿Está seguro de cancelar el concepto '" + concepto + "' para el alumno con matrícula " + matricula + "?", 
+                "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    ConDB db = new ConDB();
+                    Connection con = db.Conectar();
+                    if (con != null) {
+                        String sql = "UPDATE tescalu SET MCAN = ?, IPENMN = 0 WHERE MAT = ? AND IDCPT = ?";
+                        PreparedStatement ps = con.prepareStatement(sql);
+                        ps.setString(1, motivoCode);
+                        ps.setString(2, matricula);
+                        ps.setString(3, idCpt);
+
+                        int rows = ps.executeUpdate();
+                        ps.close(); db.Cerrar();
+
+                        if (rows > 0) {
+                            JOptionPane.showMessageDialog(this, "Concepto cancelado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                            btnFiltra.doClick(); // Recarga la tabla de conceptos automáticamente
+                        }
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error al cancelar el concepto: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        this.revalidate();
+        this.repaint();
     }
-    /**
+  /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
      * regenerated by the Form Editor.
@@ -163,106 +406,18 @@ private void cargarTablaCancelaciones() {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCConceptosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCConceptosActionPerformed
-        mostrarDialogoCancelacion();
+  
     }//GEN-LAST:event_btnAddCConceptosActionPerformed
 
     private void btnEditCConceptosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCConceptosActionPerformed
-        JOptionPane.showMessageDialog(this, "Las cancelaciones no pueden modificarse. Si hubo un error, debe registrarse el concepto nuevamente.");
+
 
     }//GEN-LAST:event_btnEditCConceptosActionPerformed
 
     private void btnDeleteCConceptosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCConceptosActionPerformed
-       JOptionPane.showMessageDialog(this, "El historial de cancelaciones no se puede eliminar por políticas de auditoría.");
+
     }//GEN-LAST:event_btnDeleteCConceptosActionPerformed
-private void mostrarDialogoCancelacion() {
-        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
-        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Cancelación de Conceptos", true);
-        dialogo.setSize(820, 520);
-        dialogo.setLayout(null);
-        dialogo.setResizable(false);
 
-        // --- 1. DATOS DE SELECCIÓN ---
-        JPanel pnlSel = new JPanel(null);
-        pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección - UNIDAD ESCOLAR BENAVENTE (JARDIN DE NIÑOS)"));
-        pnlSel.setBounds(10, 10, 785, 90);
-
-        pnlSel.add(new JLabel("Compañía")).setBounds(20, 25, 70, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(90, 25, 60, 25);
-
-        pnlSel.add(new JLabel("C. Costos")).setBounds(250, 25, 70, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12100"})).setBounds(320, 25, 80, 25);
-
-        pnlSel.add(new JLabel("Matrícula")).setBounds(20, 55, 70, 25);
-        pnlSel.add(new JTextField()).setBounds(90, 55, 120, 25);
-
-        JButton btnFiltra = new JButton("Filtra Información");
-        btnFiltra.setBounds(620, 50, 150, 30);
-        pnlSel.add(btnFiltra);
-
-        dialogo.add(pnlSel);
-
-        // --- 2. MOTIVO DE CANCELACIÓN ---
-        JLabel lblMotivo = new JLabel("Motivo de Cancelación");
-        lblMotivo.setBounds(150, 110, 150, 25);
-        JComboBox<String> cmbMotivo = new JComboBox<>(new String[]{""});
-        cmbMotivo.setBounds(290, 110, 60, 25);
-        JTextField txtMotivoDesc = new JTextField();
-        txtMotivoDesc.setBounds(360, 110, 435, 25);
-
-        dialogo.add(lblMotivo);
-        dialogo.add(cmbMotivo);
-        dialogo.add(txtMotivoDesc);
-
-        // --- 3. TABLA DE CONCEPTOS SIN PAGO ---
-        JTable tblConceptosPendientes = new JTable(new DefaultTableModel(
-            new Object[][]{}, 
-            new String[]{"Compañía", "C. Costos", "Ciclo Escolar", "ID", "Cpto", "Descripcion", "Fecha", "Moneda", "Imp Total", "Imp Pend Pag"}
-        ));
-        JScrollPane scrollConceptos = new JScrollPane(tblConceptosPendientes);
-        scrollConceptos.setBounds(10, 150, 785, 250);
-        
-        JPanel pnlTabla = new JPanel(null);
-        pnlTabla.setBorder(BorderFactory.createTitledBorder("Conceptos Sin Pago"));
-        pnlTabla.setBounds(10, 145, 785, 260);
-        scrollConceptos.setBounds(10, 20, 765, 230);
-        pnlTabla.add(scrollConceptos);
-        
-        dialogo.add(pnlTabla);
-
-        // --- 4. BOTONES INFERIORES ---
-        JButton btnAceptar = new JButton("Aceptar");
-        btnAceptar.setBounds(280, 425, 100, 40);
-        JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(410, 425, 100, 40);
-
-        dialogo.add(btnAceptar);
-        dialogo.add(btnSalir);
-
-        // --- 5. EVENTOS ---
-        btnSalir.addActionListener(e -> dialogo.dispose());
-
-        btnFiltra.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Buscando conceptos sin pago para esta matrícula... (Simulación)");
-            // Aquí iría la lógica SQL para llenar tblConceptosPendientes
-        });
-
-        btnAceptar.addActionListener(e -> {
-            // Se validaría que haya al menos una fila seleccionada en la tabla interna
-            int filaSel = tblConceptosPendientes.getSelectedRow();
-            if (filaSel == -1 && tblConceptosPendientes.getRowCount() > 0) {
-                JOptionPane.showMessageDialog(dialogo, "Seleccione al menos un concepto de la tabla para cancelar.");
-                return;
-            }
-            
-            JOptionPane.showMessageDialog(dialogo, "Concepto(s) cancelado(s) exitosamente (Simulación).");
-            dialogo.dispose();
-            cargarTablaCancelaciones(); 
-        });
-
-        // --- 6. MOSTRAR ---
-        dialogo.setLocationRelativeTo(this);
-        dialogo.setVisible(true);
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCConceptos;

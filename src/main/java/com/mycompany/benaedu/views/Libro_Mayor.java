@@ -155,53 +155,176 @@ private void mostrarDialogoLibroMayor() {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
-        // --- 1. DATOS DE SELECCIÓN (Panel Izquierdo/Central) ---
+        // --- CLASE LOCAL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos, String[] columnas, int[] anchos) {
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    for (int i = 0; i < anchos.length; i++) {
+                        tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                    }
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null && mod.getColumnCount() >= 2) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    
+                    int widthTotal = 0; for(int w : anchos) widthTotal += w;
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(widthTotal + 20, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS DESDE LA BASE DE DATOS ---
+        java.util.function.BiFunction<String, Integer, Object[][]> cargarDatosMultiple = (query, numCols) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) {
+                        Object[] row = new Object[numCols];
+                        for(int i=0; i<numCols; i++) row[i] = rs.getString(i+1);
+                        lista.add(row);
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        // Carga de arreglos para buscadores
+        Object[][] dTssc    = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TSSC' ORDER BY CVE", 2);
+        Object[][] dCta     = cargarDatosMultiple.apply("SELECT CCTA, CDES FROM tmctas ORDER BY CCTA", 2);
+        Object[][] dContab  = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TCONT' ORDER BY CVE", 2);
+        Object[][] dMoneda  = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TMON' ORDER BY CVE", 2);
+
+        // --- 1. DATOS DE SELECCIÓN (Panel Superior/Izquierdo) ---
         JPanel pnlSel = new JPanel(null);
         pnlSel.setBorder(BorderFactory.createEtchedBorder());
-        pnlSel.setBounds(10, 10, 680, 140);
+        pnlSel.setBounds(10, 10, 680, 170);
 
+        // Compañía (tmcias)
         pnlSel.add(new JLabel("Compañía")).setBounds(20, 15, 80, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(110, 15, 70, 25);
-        pnlSel.add(new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.")).setBounds(190, 15, 250, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(110, 15, 60, 25);
+        JLabel lblCiaDesc = new JLabel();
+        lblCiaDesc.setBounds(180, 15, 250, 25);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rs = con.prepareStatement("SELECT CIA, NCIA FROM tmcias ORDER BY CIA").executeQuery();
+                while(rs.next()){ 
+                    cmbCia.addItem(rs.getString("CIA")); 
+                    lblCiaDesc.setText(rs.getString("NCIA")); 
+                }
+                rs.close(); db.Cerrar();
+            }
+        } catch (Exception ex) {}
+
+        pnlSel.add(cmbCia);
+        pnlSel.add(lblCiaDesc);
+
+        // Buscador Tpo/No.SSubCta (TSSC)
         pnlSel.add(new JLabel("Tpo/No.SSubCta")).setBounds(20, 45, 100, 25);
-        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(110, 45, 70, 25);
-        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(190, 45, 120, 25);
+        JTextField txtTssc = new JTextField(); txtTssc.setBounds(110, 45, 50, 25);
+        JButton btnTssc = new JButton("▼"); btnTssc.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnTssc.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnTssc.setBounds(160, 45, 20, 25);
+        buscador.configurar(txtTssc, null, btnTssc, dTssc, new String[]{"Clave", "Descripción"}, new int[]{60, 150});
+        
+        JTextField txtNumSub = new JTextField(); txtNumSub.setBounds(190, 45, 80, 25);
+        JButton btnNumSub = new JButton("▼"); btnNumSub.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnNumSub.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnNumSub.setBounds(270, 45, 20, 25);
+        
+        pnlSel.add(txtTssc); pnlSel.add(btnTssc);
+        pnlSel.add(txtNumSub); pnlSel.add(btnNumSub);
 
+        // Buscador De la cuenta (tmctas)
         pnlSel.add(new JLabel("De la cuenta")).setBounds(20, 75, 80, 25);
-        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(110, 75, 150, 25);
+        JTextField txtCtaIni = new JTextField(); txtCtaIni.setBounds(110, 75, 120, 25);
+        JButton btnCtaIni = new JButton("▼"); btnCtaIni.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnCtaIni.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnCtaIni.setBounds(230, 75, 20, 25);
+        buscador.configurar(txtCtaIni, null, btnCtaIni, dCta, new String[]{"Clave", "Descripción"}, new int[]{110, 250});
+        pnlSel.add(txtCtaIni); pnlSel.add(btnCtaIni);
 
+        // Buscador A la cuenta (tmctas)
         pnlSel.add(new JLabel("A la cuenta")).setBounds(20, 105, 80, 25);
-        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(110, 105, 150, 25);
+        JTextField txtCtaFin = new JTextField(); txtCtaFin.setBounds(110, 105, 120, 25);
+        JButton btnCtaFin = new JButton("▼"); btnCtaFin.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnCtaFin.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnCtaFin.setBounds(230, 105, 20, 25);
+        buscador.configurar(txtCtaFin, null, btnCtaFin, dCta, new String[]{"Clave", "Descripción"}, new int[]{110, 250});
+        pnlSel.add(txtCtaFin); pnlSel.add(btnCtaFin);
 
-        // Niveles (1 al 9)
-        pnlSel.add(new JLabel("Nivel")).setBounds(20, 135, 50, 25); // Ajuste visual debajo de las cuentas
+        // Niveles (Radio Buttons 1 al 9)
+        pnlSel.add(new JLabel("Nivel")).setBounds(20, 135, 50, 25);
         ButtonGroup bgNivel = new ButtonGroup();
         int xPosNivel = 110;
         for (int i = 1; i <= 9; i++) {
             JRadioButton rb = new JRadioButton(String.valueOf(i));
-            if(i == 2) rb.setSelected(true); // Seleccionado el nivel 2 por defecto en la imagen
+            if(i == 2) rb.setSelected(true); // Nivel 2 por defecto
             rb.setBounds(xPosNivel, 135, 40, 25);
             bgNivel.add(rb);
             pnlSel.add(rb);
             xPosNivel += 40;
         }
 
-        // Tipo de Contabilidad y Moneda
+        // Buscador Tipo Contab. (TCONT)
         pnlSel.add(new JLabel("Tipo Contab.")).setBounds(480, 75, 80, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"MN"})).setBounds(560, 75, 70, 25);
+        JTextField txtContab = new JTextField("MN"); txtContab.setBounds(560, 75, 40, 25);
+        JButton btnContab = new JButton("▼"); btnContab.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnContab.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnContab.setBounds(600, 75, 20, 25);
+        buscador.configurar(txtContab, null, btnContab, dContab, new String[]{"Clave", "Descripción"}, new int[]{60, 200});
+        pnlSel.add(txtContab); pnlSel.add(btnContab);
 
+        // Buscador Moneda (TMON)
         pnlSel.add(new JLabel("Moneda")).setBounds(480, 105, 80, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"MXP"})).setBounds(560, 105, 70, 25);
+        JTextField txtMoneda = new JTextField("MXP"); txtMoneda.setBounds(560, 105, 40, 25);
+        JButton btnMoneda = new JButton("▼"); btnMoneda.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnMoneda.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnMoneda.setBounds(600, 105, 20, 25);
+        buscador.configurar(txtMoneda, null, btnMoneda, dMoneda, new String[]{"Clave", "Descripción"}, new int[]{60, 150});
+        pnlSel.add(txtMoneda); pnlSel.add(btnMoneda);
 
-        // Ajustamos la altura del panel principal para que quepan los niveles
-        pnlSel.setSize(680, 170);
         dialogo.add(pnlSel);
 
         // --- 2. AÑO Y PERIODO (Panel Derecho) ---
         JPanel pnlPeriodo = new JPanel(null);
         pnlPeriodo.setBorder(BorderFactory.createEtchedBorder());
-        pnlPeriodo.setBounds(700, 10, 120, 90);
+        pnlPeriodo.setBounds(700, 10, 125, 90);
 
         pnlPeriodo.add(new JLabel("Año")).setBounds(15, 15, 40, 25);
         pnlPeriodo.add(new JTextField("2026")).setBounds(55, 15, 50, 25);
@@ -213,7 +336,7 @@ private void mostrarDialogoLibroMayor() {
 
         // --- BOTÓN FILTRAR ---
         JButton btnFiltra = new JButton("Filtrar Información");
-        btnFiltra.setBounds(700, 110, 120, 30);
+        btnFiltra.setBounds(700, 110, 125, 30);
         dialogo.add(btnFiltra);
 
         // --- 3. TABLA DEL LIBRO MAYOR ---
@@ -247,7 +370,6 @@ private void mostrarDialogoLibroMayor() {
 
         btnFiltra.addActionListener(e -> {
             JOptionPane.showMessageDialog(dialogo, "Agrupando movimientos a nivel de Mayor... (Simulación)");
-            // Aquí agregarías la consulta SQL para llenar tblMayor
         });
 
         btnImprimir.addActionListener(e -> {

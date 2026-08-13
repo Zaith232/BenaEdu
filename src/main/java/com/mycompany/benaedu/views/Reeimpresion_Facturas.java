@@ -4,45 +4,371 @@
  */
 package com.mycompany.benaedu.views;
 import com.mycompany.benaedu.db.ConDB;
-import java.awt.Window;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterJob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 /**
  *
  * @author b17za
  */
 public class Reeimpresion_Facturas extends javax.swing.JPanel {
-
+private JComboBox<String> cmbCia;
+    private JTextField txtDesde;
+    private JTextField txtHasta;
+    private JTextField txtTipo;
+    private JCheckBox chkDetallada;
+    private JCheckBox chkRegenera;
     /**
      * Creates new form Reeimpresion_Facturas
      */
     public Reeimpresion_Facturas() {
         initComponents();
+        construirInterfazReeimpresion();
     }
-private void configurarTablaBitacora() {
-        DefaultTableModel modelo = new DefaultTableModel(
-            new Object[][] {}, 
-            new String[] {"Fecha Reimpresión", "Rango Facturas", "Tipo Documento", "Compañía", "Usuario"}
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; 
+private void construirInterfazReeimpresion() {
+        this.removeAll();
+        this.setLayout(new BorderLayout(10, 10));
+        this.setBackground(Color.WHITE);
+
+        // --- BUSCADOR FLOTANTE LOCAL ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos, String[] cols, int[] anchos) {
+                Runnable mostrarPopup = () -> {
+                    JPopupMenu popup = new JPopupMenu();
+                    popup.setFocusable(false);
+                    DefaultTableModel mod = new DefaultTableModel(datos, cols) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    JTable tabla = new JTable(mod);
+                    tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                    for (int i = 0; i < anchos.length; i++) {
+                        tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                    }
+
+                    TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int r = tabla.getSelectedRow();
+                            if (r != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(r);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null && mod.getColumnCount() >= 2) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    JScrollPane scroll = new JScrollPane(tabla);
+                    scroll.setPreferredSize(new Dimension(320, 160));
+                    popup.add(scroll);
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                };
+                boton.addActionListener(e -> mostrarPopup.run());
             }
-        };
-        tblRFacturas.setModel(modelo);
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // 1. Carga de catálogo de Tipos de Documento
+        Object[][] dFact;
+        try (Connection con = new ConDB().Conectar(); 
+             PreparedStatement ps = con.prepareStatement("SELECT CVE, DES FROM tmclas WHERE TBL = 'FACT' AND CVE IN ('FE','FP','NC','VC') ORDER BY CVE")) {
+            ResultSet rs = ps.executeQuery();
+            List<Object[]> lista = new ArrayList<>();
+            while (rs.next()) {
+                lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+            }
+            dFact = lista.toArray(new Object[0][0]);
+            rs.close();
+        } catch (Exception e) {
+            dFact = new Object[][]{{"FE", "FACTURA ELECTRÓNICA"}, {"NC", "NOTA DE CRÉDITO"}};
+        }
+
+        // 2. Carga de lista de Facturas para los buscadores de folios
+        Object[][] dFacturas;
+        try (Connection con = new ConDB().Conectar();
+             PreparedStatement ps = con.prepareStatement("SELECT NFAC, CTE, FFAC FROM tgfcte ORDER BY CAST(NFAC AS UNSIGNED) DESC LIMIT 200")) {
+            ResultSet rs = ps.executeQuery();
+            List<Object[]> lista = new ArrayList<>();
+            while (rs.next()) {
+                lista.add(new Object[]{rs.getString("NFAC"), rs.getString("CTE"), rs.getString("FFAC")});
+            }
+            dFacturas = lista.toArray(new Object[0][0]);
+            rs.close();
+        } catch (Exception e) {
+            dFacturas = new Object[0][0];
+        }
+
+        JTabbedPane pestanas = new JTabbedPane();
+        JPanel pnlImpresion = new JPanel(null);
+        pnlImpresion.setBackground(Color.WHITE);
+
+        // --- Selección de Compañía ---
+        pnlImpresion.add(new JLabel("Compañía:")).setBounds(30, 20, 100, 25);
+        cmbCia = new JComboBox<>();
+        cmbCia.setBounds(140, 20, 310, 25);
+
+        try (Connection con = new ConDB().Conectar();
+             PreparedStatement psCia = con.prepareStatement("SELECT CIA, NCIA FROM tmcias ORDER BY CIA")) {
+            ResultSet rsCia = psCia.executeQuery();
+            while (rsCia.next()) {
+                cmbCia.addItem(rsCia.getString("CIA") + " - " + rsCia.getString("NCIA"));
+            }
+            rsCia.close();
+        } catch (Exception ex) {
+            cmbCia.addItem("12 - UNIDAD ESCOLAR BENAVENTE");
+        }
+        pnlImpresion.add(cmbCia);
+
+        // --- Rango de Facturas (con buscadores flotantes) ---
+        pnlImpresion.add(new JLabel("Desde Número:")).setBounds(30, 60, 100, 25);
+        txtDesde = new JTextField("1");
+        txtDesde.setBounds(140, 60, 80, 25);
+        JButton btnDesde = new JButton("▼");
+        btnDesde.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        btnDesde.setBounds(220, 60, 22, 25);
+        buscador.configurar(txtDesde, null, btnDesde, dFacturas, new String[]{"Folio", "Cliente", "Fecha"}, new int[]{60, 140, 90});
+        
+        pnlImpresion.add(txtDesde);
+        pnlImpresion.add(btnDesde);
+
+        pnlImpresion.add(new JLabel("A:")).setBounds(260, 60, 20, 25);
+        txtHasta = new JTextField("1");
+        txtHasta.setBounds(280, 60, 80, 25);
+        JButton btnHasta = new JButton("▼");
+        btnHasta.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        btnHasta.setBounds(360, 60, 22, 25);
+        buscador.configurar(txtHasta, null, btnHasta, dFacturas, new String[]{"Folio", "Cliente", "Fecha"}, new int[]{60, 140, 90});
+
+        pnlImpresion.add(txtHasta);
+        pnlImpresion.add(btnHasta);
+
+        // --- Tipo de Documento ---
+        pnlImpresion.add(new JLabel("Tipo Doc.:")).setBounds(30, 100, 100, 25);
+        txtTipo = new JTextField("FE");
+        txtTipo.setBounds(140, 100, 60, 25);
+        JButton btnTipo = new JButton("▼");
+        btnTipo.setFont(new Font("SansSerif", Font.PLAIN, 10));
+        btnTipo.setBounds(200, 100, 22, 25);
+        buscador.configurar(txtTipo, null, btnTipo, dFact, new String[]{"Clave", "Descripción"}, new int[]{50, 180});
+
+        pnlImpresion.add(txtTipo);
+        pnlImpresion.add(btnTipo);
+
+        // --- Parámetros de Impresión ---
+        JPanel pnlInfoFac = new JPanel(null);
+        pnlInfoFac.setBackground(Color.WHITE);
+        pnlInfoFac.setBorder(BorderFactory.createTitledBorder("Información de Factura"));
+        pnlInfoFac.setBounds(30, 140, 480, 60);
+
+        chkDetallada = new JCheckBox("Factura Detallada", true);
+        chkDetallada.setBackground(Color.WHITE);
+        chkDetallada.setBounds(20, 20, 180, 25);
+
+        chkRegenera = new JCheckBox("Regenera Factura");
+        chkRegenera.setBackground(Color.WHITE);
+        chkRegenera.setBounds(220, 20, 180, 25);
+
+        pnlInfoFac.add(chkDetallada);
+        pnlInfoFac.add(chkRegenera);
+        pnlImpresion.add(pnlInfoFac);
+
+        pestanas.addTab("Impresión de Factura", pnlImpresion);
+
+        // Botones de Control
+        JPanel pnlBotones = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 10));
+        pnlBotones.setBackground(Color.WHITE);
+
+        JButton btnImprimir = new JButton("Imprimir");
+        btnImprimir.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnImprimir.setPreferredSize(new Dimension(110, 35));
+
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setPreferredSize(new Dimension(110, 35));
+
+        pnlBotones.add(btnImprimir);
+        pnlBotones.add(btnSalir);
+
+        this.add(pestanas, BorderLayout.CENTER);
+        this.add(pnlBotones, BorderLayout.SOUTH);
+
+        // Eventos
+        btnSalir.addActionListener(e -> {
+            this.removeAll();
+            this.revalidate();
+            this.repaint();
+        });
+
+        btnImprimir.addActionListener(e -> ejecutarReeimpresion());
+
+        this.revalidate();
+        this.repaint();
+    }
+
+    private void ejecutarReeimpresion() {
+        String ciaCompleta = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+        String cia = ciaCompleta.contains(" - ") ? ciaCompleta.split(" - ")[0].trim() : ciaCompleta;
+        String tipoDoc = txtTipo.getText().trim();
+        String desdeStr = txtDesde.getText().trim();
+        String hastaStr = txtHasta.getText().trim();
+
+        if (tipoDoc.isEmpty() || desdeStr.isEmpty() || hastaStr.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Especifique el Tipo de Documento y el rango de números.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int desdeNum, hastaNum;
+        try {
+            desdeNum = Integer.parseInt(desdeStr);
+            hastaNum = Integer.parseInt(hastaStr);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "El rango de facturas debe ser numérico.", "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con == null) return;
+
+            String sql = "SELECT CFAC, NFAC, FFAC, CTE, DESPAR, MIMP, IVAR, FOLFIS " +
+                         "FROM tgfcte " +
+                         "WHERE CIA = ? AND TFAC = ? AND CAST(NFAC AS UNSIGNED) BETWEEN ? AND ? " +
+                         "ORDER BY CAST(NFAC AS UNSIGNED) ASC";
+
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, cia);
+            ps.setString(2, tipoDoc);
+            ps.setInt(3, desdeNum);
+            ps.setInt(4, hastaNum);
+
+            ResultSet rs = ps.executeQuery();
+            List<Object[]> listaFacturas = new ArrayList<>();
+
+            while (rs.next()) {
+                Object[] f = new Object[8];
+                f[0] = rs.getString("CFAC");
+                f[1] = rs.getString("NFAC");
+                f[2] = rs.getString("FFAC");
+                f[3] = rs.getString("CTE");
+                f[4] = rs.getString("DESPAR");
+                f[5] = rs.getDouble("MIMP");
+                f[6] = rs.getDouble("IVAR");
+                f[7] = rs.getString("FOLFIS");
+                listaFacturas.add(f);
+            }
+
+            rs.close(); ps.close(); db.Cerrar();
+
+            if (listaFacturas.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "No se encontraron facturas en el rango especificado.", "Sin Resultados", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            PrinterJob job = PrinterJob.getPrinterJob();
+            job.setJobName("Reimpresión de Facturas (" + desdeStr + " - " + hastaStr + ")");
+
+            final boolean esDetallada = chkDetallada.isSelected();
+
+            job.setPrintable((g, pf, pageIndex) -> {
+                if (pageIndex >= listaFacturas.size()) return Printable.NO_SUCH_PAGE;
+
+                Graphics2D g2d = (Graphics2D) g;
+                g2d.translate(pf.getImageableX(), pf.getImageableY());
+
+                Object[] fac = listaFacturas.get(pageIndex);
+                String cfac = fac[0].toString();
+                String nfac = fac[1].toString();
+                String ffac = fac[2] != null ? fac[2].toString() : "";
+                String cte = fac[3] != null ? fac[3].toString() : "";
+                double mimp = (double) fac[5];
+                double ivar = (double) fac[6];
+                String folfis = fac[7] != null ? fac[7].toString() : "N/A";
+
+                int y = 40;
+                g2d.setFont(new Font("Monospaced", Font.BOLD, 12));
+                g2d.drawString("UNIDAD ESCOLAR BENAVENTE, A.C.", 40, y); y += 20;
+                g2d.drawString("FACTURA ELECTRÓNICA (" + tipoDoc + "): " + nfac, 40, y); y += 15;
+                g2d.setFont(new Font("Monospaced", Font.PLAIN, 9));
+                g2d.drawString("FECHA EMISIÓN: " + ffac + " | FOLIO FISCAL: " + folfis, 40, y); y += 15;
+                g2d.drawString("RECEPTOR (CLIENTE / MATRÍCULA): " + cte, 40, y); y += 15;
+                g2d.drawLine(40, y, 520, y); y += 15;
+
+                if (esDetallada) {
+                    g2d.setFont(new Font("Monospaced", Font.BOLD, 8));
+                    g2d.drawString("SEC", 40, y);
+                    g2d.drawString("CONCEPTO", 80, y);
+                    g2d.drawString("DESCRIPCIÓN", 160, y);
+                    y += 10;
+                    g2d.drawLine(40, y, 520, y); y += 12;
+
+                    g2d.setFont(new Font("Monospaced", Font.PLAIN, 8));
+                    try (Connection conDet = new ConDB().Conectar()) {
+                        if (conDet != null) {
+                            PreparedStatement psDet = conDet.prepareStatement("SELECT NLIN, CODCON, CONCEP FROM tgfcted WHERE CFAC = ? ORDER BY NLIN ASC");
+                            psDet.setString(1, cfac);
+                            ResultSet rsDet = psDet.executeQuery();
+                            while (rsDet.next()) {
+                                g2d.drawString(rsDet.getString("NLIN"), 40, y);
+                                g2d.drawString(rsDet.getString("CODCON"), 80, y);
+                                String d = rsDet.getString("CONCEP");
+                                if (d.length() > 40) d = d.substring(0, 37) + "...";
+                                g2d.drawString(d, 160, y);
+                                y += 12;
+                            }
+                            rsDet.close(); psDet.close();
+                        }
+                    } catch (Exception ignore) {}
+                } else {
+                    g2d.drawString("CONCEPTO GENERAL: " + fac[4], 40, y); y += 20;
+                }
+
+                y += 15;
+                g2d.drawLine(40, y, 520, y); y += 15;
+                DecimalFormat df = new DecimalFormat("#,##0.00");
+                g2d.drawString("SUBTOTAL: $" + df.format(mimp - ivar), 350, y); y += 12;
+                g2d.drawString("IVA: $" + df.format(ivar), 350, y); y += 12;
+                g2d.setFont(new Font("Monospaced", Font.BOLD, 10));
+                g2d.drawString("TOTAL: $" + df.format(mimp), 350, y);
+
+                return Printable.PAGE_EXISTS;
+            });
+
+            if (job.printDialog()) {
+                job.print();
+                JOptionPane.showMessageDialog(this, "Se reimprimieron " + listaFacturas.size() + " facturas correctamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Error durante la reimpresión: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -134,85 +460,14 @@ private void configurarTablaBitacora() {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddRFacturasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddRFacturasActionPerformed
-       mostrarDialogoReimpresionFacturas();
     }//GEN-LAST:event_btnAddRFacturasActionPerformed
 
     private void btnEditRFacturasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditRFacturasActionPerformed
- JOptionPane.showMessageDialog(this, "Esta pantalla es exclusivamente para reimpresión de facturas. Para editar, dirígete al módulo correspondiente.");
     }//GEN-LAST:event_btnEditRFacturasActionPerformed
 
     private void btnDeleteRFacturasActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteRFacturasActionPerformed
-   JOptionPane.showMessageDialog(this, "Las facturas no pueden eliminarse desde este módulo. Si requieres cancelar una factura, usa el módulo de Impresión de Facturas.");
     }//GEN-LAST:event_btnDeleteRFacturasActionPerformed
-private void mostrarDialogoReimpresionFacturas() {
-        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
-        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Reimpresión de Facturas", true);
-        dialogo.setSize(480, 350);
-        dialogo.setLayout(null);
-        dialogo.setResizable(false);
 
-        // --- 1. PESTAÑA PRINCIPAL ---
-        JTabbedPane pestanas = new JTabbedPane();
-        pestanas.setBounds(10, 10, 445, 230);
-
-        JPanel pnlImpresion = new JPanel(null);
-
-        // --- CAMPOS SUPERIORES ---
-        pnlImpresion.add(new JLabel("Compañía")).setBounds(30, 20, 100, 25);
-        pnlImpresion.add(new JComboBox<>(new String[]{"12"})).setBounds(140, 20, 70, 25);
-
-        pnlImpresion.add(new JLabel("Desde Número")).setBounds(30, 75, 100, 25);
-        pnlImpresion.add(new JTextField()).setBounds(140, 75, 80, 25);
-
-        pnlImpresion.add(new JLabel("A")).setBounds(240, 75, 20, 25);
-        pnlImpresion.add(new JTextField()).setBounds(270, 75, 80, 25);
-
-        pnlImpresion.add(new JLabel("Tipo de Documento")).setBounds(30, 110, 110, 25);
-        pnlImpresion.add(new JComboBox<>(new String[]{""})).setBounds(140, 110, 80, 25);
-
-        // --- 2. INFORMACIÓN DE FACTURA ---
-        JPanel pnlInfoFac = new JPanel(null);
-        pnlInfoFac.setBorder(BorderFactory.createTitledBorder("Información de Factura"));
-        pnlInfoFac.setBounds(20, 150, 400, 50);
-
-        JCheckBox chkDetallada = new JCheckBox("Factura Detallada", true);
-        chkDetallada.setBounds(20, 20, 150, 20);
-        // Según la imagen, a veces esta casilla aparece bloqueada (gris), 
-        // si quieres bloquearla descomenta la siguiente línea:
-        // chkDetallada.setEnabled(false);
-        
-        JCheckBox chkRegenera = new JCheckBox("Regenera Factura");
-        chkRegenera.setBounds(230, 20, 150, 20);
-
-        pnlInfoFac.add(chkDetallada);
-        pnlInfoFac.add(chkRegenera);
-        
-        pnlImpresion.add(pnlInfoFac);
-
-        pestanas.addTab("Impresión de Factura", pnlImpresion);
-        dialogo.add(pestanas);
-
-        // --- 3. BOTONES INFERIORES ---
-        JButton btnImprimir = new JButton("Imprimir");
-        btnImprimir.setBounds(120, 260, 100, 40);
-        JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(240, 260, 100, 40);
-
-        dialogo.add(btnImprimir);
-        dialogo.add(btnSalir);
-
-        // --- 4. EVENTOS ---
-        btnSalir.addActionListener(e -> dialogo.dispose());
-
-        btnImprimir.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Buscando facturas y enviando a la impresora... (Simulación)");
-            dialogo.dispose();
-        });
-
-        // --- 5. MOSTRAR ---
-        dialogo.setLocationRelativeTo(this);
-        dialogo.setVisible(true);
-    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddRFacturas;

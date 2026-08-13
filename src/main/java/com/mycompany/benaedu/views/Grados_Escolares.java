@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
+
 import com.mycompany.benaedu.db.ConDB;
 import java.awt.Window;
 import java.sql.Connection;
@@ -21,6 +22,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author b17za
@@ -32,50 +34,76 @@ public class Grados_Escolares extends javax.swing.JPanel {
      */
     public Grados_Escolares() {
         initComponents();
+        cargarTablaGrados();
     }
-private void cargarTablaGrados() {
-        // 1. Arreglamos las columnas de la tabla por código
+
+    private void cargarTablaGrados() {
+        // 1. Arreglamos las columnas de la tabla para coincidir con tu diseño exacto y la BD
         DefaultTableModel modelo = new DefaultTableModel(
-            new Object[][] {}, 
-            new String[] {"Compañía", "Centro Costo", "Grado", "Descripción", "Carrera", "Id Contable", "Excluido", "Usuario", "Fecha Mod."}
+                new Object[][]{},
+                new String[]{"Compañía", "Centro Costos", "Sección", "Grado", "Descripción", "Usuario", "Fec Ult Act", "Hora Ult Act"}
         ) {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false; // Hacemos que la tabla no sea editable directamente
+                return false;
             }
         };
-        jTable1.setModel(modelo);
+        tblGEscolares.setModel(modelo);
 
-        // 2. Cargamos los datos
+        // 2. Cargamos los datos reales de la tabla tesgrad
         try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_grados' por tu tabla real
-                String sql = "SELECT compania, centro_costos, grado, descripcion, carrera, id_contable, excluido, usuario, fecha_mod FROM tabla_grados";
+                String sql = "SELECT CIA, CC, SECC, CGRAD, DGRAD, USER, FEAC, HOAC FROM tesgrad";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
 
                 while (rs.next()) {
-                    Object[] fila = new Object[9]; 
-                    fila[0] = rs.getString("compania");
-                    fila[1] = rs.getString("centro_costos");
-                    fila[2] = rs.getString("grado");
-                    fila[3] = rs.getString("descripcion");
-                    fila[4] = rs.getString("carrera");
-                    fila[5] = rs.getString("id_contable");
-                    fila[6] = rs.getString("excluido");
-                    fila[7] = rs.getString("usuario");
-                    fila[8] = rs.getString("fecha_mod");
+                    Object[] fila = new Object[8];
+                    fila[0] = rs.getString("CIA");
+                    fila[1] = rs.getString("CC");
+                    fila[2] = rs.getString("SECC");
+                    fila[3] = rs.getString("CGRAD");
+                    fila[4] = rs.getString("DGRAD");
+                    fila[5] = rs.getString("USER");
+                    fila[6] = rs.getString("FEAC");
+                    fila[7] = rs.getString("HOAC");
                     modelo.addRow(fila);
                 }
-                rs.close(); ps.close(); db.Cerrar();
+                rs.close();
+                ps.close();
+                db.Cerrar();
+
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
         }
     }
+
+    // --- MÉTODO PARA AUTO-AJUSTAR ANCHO DE COLUMNAS ---
+    private void adaptarTamañoColumnas() {
+        tblGEscolares.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF);
+
+        for (int i = 0; i < tblGEscolares.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblGEscolares.getColumnModel().getColumn(i);
+            int anchoPreferido = 50;
+
+            java.awt.Component compCabecera = tblGEscolares.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblGEscolares, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+
+            for (int r = 0; r < tblGEscolares.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblGEscolares.getCellRenderer(r, i);
+                java.awt.Component c = tblGEscolares.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15);
+            }
+            columna.setPreferredWidth(anchoPreferido);
+        }
+    }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -90,7 +118,7 @@ private void cargarTablaGrados() {
         btnEditGEscolar = new javax.swing.JButton();
         btnDeleteGEscolar = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        tblGEscolares = new javax.swing.JTable();
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -114,18 +142,18 @@ private void cargarTablaGrados() {
         btnDeleteGEscolar.setText("Eliminar");
         btnDeleteGEscolar.addActionListener(this::btnDeleteGEscolarActionPerformed);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        tblGEscolares.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null},
+                {null, null, null, null, null, null, null, null}
             },
             new String [] {
-                "Title 1", "Title 2", "Title 3", "Title 4"
+                "Compañia", "Centros Costos", "Sección", "Grado", "Descripción", "Usuario", "Fech. Ult. Act.", "Hora. Ult. Act"
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(tblGEscolares);
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -166,11 +194,11 @@ private void cargarTablaGrados() {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddGEscolarActionPerformed
-       mostrarDialogoGrado(false);
+        mostrarDialogoGrado(false);
     }//GEN-LAST:event_btnAddGEscolarActionPerformed
 
     private void btnEditGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditGEscolarActionPerformed
-       if (jTable1.getSelectedRow() == -1) {
+        if (tblGEscolares.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un grado escolar para editar.");
             return;
         }
@@ -178,36 +206,41 @@ private void cargarTablaGrados() {
     }//GEN-LAST:event_btnEditGEscolarActionPerformed
 
     private void btnDeleteGEscolarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteGEscolarActionPerformed
-       int fila = jTable1.getSelectedRow();
+        int fila = tblGEscolares.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un grado escolar para eliminar.");
             return;
         }
 
-        String compania = jTable1.getValueAt(fila, 0).toString();
-        String cc = jTable1.getValueAt(fila, 1).toString();
-        String grado = jTable1.getValueAt(fila, 2).toString();
-        String desc = jTable1.getValueAt(fila, 3).toString();
-        
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el grado " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        
+        String cia = tblGEscolares.getValueAt(fila, 0).toString();
+        String cc = tblGEscolares.getValueAt(fila, 1).toString();
+        String secc = tblGEscolares.getValueAt(fila, 2).toString();
+        String grado = tblGEscolares.getValueAt(fila, 3).toString();
+        String desc = tblGEscolares.getValueAt(fila, 4).toString();
+
+        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el grado " + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // ATENCIÓN: Cambia 'tabla_grados' por tu tabla real
-                    String sql = "DELETE FROM tabla_grados WHERE compania = ? AND centro_costos = ? AND grado = ?";
+                    // Borramos utilizando las 4 llaves maestras
+                    String sql = "DELETE FROM tesgrad WHERE CIA = ? AND CC = ? AND SECC = ? AND CGRAD = ?";
                     PreparedStatement ps = con.prepareStatement(sql);
-                    ps.setString(1, compania);
+                    ps.setString(1, cia);
                     ps.setString(2, cc);
-                    ps.setString(3, grado);
-                    
+                    ps.setString(3, secc);
+                    ps.setString(4, grado);
+
                     if (ps.executeUpdate() > 0) {
                         JOptionPane.showMessageDialog(this, "Grado escolar eliminado.");
                         cargarTablaGrados();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
-                    ps.close(); db.Cerrar();
+                    ps.close();
+                    db.Cerrar();
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
@@ -215,7 +248,7 @@ private void cargarTablaGrados() {
         }
     }//GEN-LAST:event_btnDeleteGEscolarActionPerformed
 
-private void mostrarDialogoGrado(boolean modoEdicion) {
+    private void mostrarDialogoGrado(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         String tituloVentana = modoEdicion ? "Modificar Grado Escolar" : "Agregar Grado Escolar";
 
@@ -224,49 +257,180 @@ private void mostrarDialogoGrado(boolean modoEdicion) {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override
+                        public boolean isCellEditable(int r, int c) {
+                            return false;
+                        }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(220);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(320, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) {
+                        sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    }
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> {
+                    txtClave.setText("");
+                    mostrarPopup.run();
+                });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) {
+                            return;
+                        }
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA EL BUSCADOR (Centro Costos) ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while (rs.next()) {
+                        lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    }
+                    rs.close();
+                    ps.close();
+                    db.Cerrar();
+                }
+            } catch (Exception e) {
+            }
+            return lista.toArray(new Object[0][0]);
+        };
+
+        // Filtramos para que solo traiga los centros 12100, 12200, 12300, 12400
+        Object[][] dCC = cargarDatos.apply("SELECT CVE, DES1 FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE");
+
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblCia = new JLabel("Compañía");
         lblCia.setBounds(20, 15, 80, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
-        cmbCia.setBounds(110, 15, 70, 25);
-        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
-        lblCiaDesc.setBounds(190, 15, 250, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(100, 15, 60, 25);
+        JLabel lblCiaDesc = new JLabel();
+        lblCiaDesc.setBounds(170, 15, 250, 25);
 
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rs = con.prepareStatement("SELECT CIA, NCIA FROM tmcias").executeQuery();
+                while (rs.next()) {
+                    cmbCia.addItem(rs.getString("CIA"));
+                    lblCiaDesc.setText(rs.getString("NCIA"));
+                }
+                rs.close();
+                db.Cerrar();
+            }
+        } catch (Exception ex) {
+        }
+
+        // Buscador Centro de Costos
         JLabel lblCC = new JLabel("Centro Costos");
         lblCC.setBounds(20, 45, 90, 25);
-        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", ""});
-        cmbCC.setBounds(110, 45, 70, 25);
-        JLabel lblCCDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE (JARDIN)");
-        lblCCDesc.setBounds(190, 45, 250, 25);
+        JTextField txtCC = new JTextField();
+        txtCC.setBounds(100, 45, 60, 25);
+        JButton btnCC = new JButton("▼");
+        btnCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCC.setBounds(160, 45, 20, 25);
+        JTextField txtCCDesc = new JTextField();
+        txtCCDesc.setBounds(185, 45, 175, 25);
+        txtCCDesc.setEditable(false);
+        txtCCDesc.setBackground(new java.awt.Color(240, 240, 240));
+        buscador.configurar(txtCC, txtCCDesc, btnCC, dCC);
+
+        JLabel lblSecc = new JLabel("Sección");
+        lblSecc.setBounds(370, 45, 50, 25);
+        JComboBox<String> cmbSecc = new JComboBox<>(new String[]{"JDN", "PRI", "SEC", "BAC"});
+        cmbSecc.setBounds(420, 45, 70, 25);
 
         JLabel lblGrado = new JLabel("Grado");
         lblGrado.setBounds(20, 75, 80, 25);
         JTextField txtGrado = new JTextField();
-        txtGrado.setBounds(110, 75, 80, 25);
+        txtGrado.setBounds(100, 75, 80, 25);
 
         JLabel lblDesc = new JLabel("Descripción");
         lblDesc.setBounds(20, 105, 80, 25);
         JTextField txtDesc = new JTextField();
-        txtDesc.setBounds(110, 105, 400, 25);
+        txtDesc.setBounds(100, 105, 390, 25);
 
         if (modoEdicion) {
             cmbCia.setEnabled(false);
-            cmbCC.setEnabled(false);
-            txtGrado.setEditable(false); // Llaves bloqueadas en edición
+            txtCC.setEditable(false);
+            btnCC.setEnabled(false);
+            cmbSecc.setEnabled(false);
+            txtGrado.setEditable(false);
         }
 
-        dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
-        dialogo.add(lblCC); dialogo.add(cmbCC); dialogo.add(lblCCDesc);
-        dialogo.add(lblGrado); dialogo.add(txtGrado);
-        dialogo.add(lblDesc); dialogo.add(txtDesc);
+        dialogo.add(lblCia);
+        dialogo.add(cmbCia);
+        dialogo.add(lblCiaDesc);
+        dialogo.add(lblCC);
+        dialogo.add(txtCC);
+        dialogo.add(btnCC);
+        dialogo.add(txtCCDesc);
+        dialogo.add(lblSecc);
+        dialogo.add(cmbSecc);
+        dialogo.add(lblGrado);
+        dialogo.add(txtGrado);
+        dialogo.add(lblDesc);
+        dialogo.add(txtDesc);
 
         // --- 2. PESTAÑAS Y MARCOS ---
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.setBounds(15, 145, 500, 230);
 
+        // ==========================================
+        // >> PESTAÑA 1: DATOS GENERALES
+        // ==========================================
         JPanel pnlGenerales = new JPanel(null);
 
-        // >> Marco: Nivel Superior
         JPanel pnlNivel = new JPanel(null);
         pnlNivel.setBorder(BorderFactory.createTitledBorder("Nivel Superior"));
         pnlNivel.setBounds(10, 10, 475, 100);
@@ -275,43 +439,65 @@ private void mostrarDialogoGrado(boolean modoEdicion) {
         lblCarrera.setBounds(20, 25, 70, 25);
         JTextField txtCarrera = new JTextField();
         txtCarrera.setBounds(100, 25, 70, 25);
-        JComboBox<String> cmbCarreraHelp = new JComboBox<>(); // Solo visual para la flechita
-        cmbCarreraHelp.setBounds(170, 25, 20, 25);
 
         JLabel lblIdContable = new JLabel("Id Contable");
         lblIdContable.setBounds(20, 60, 70, 25);
         JTextField txtIdContable = new JTextField();
         txtIdContable.setBounds(100, 60, 70, 25);
-        JLabel lblAvisoId = new JLabel("(Identificador para la contabilización detallada por carrera)");
+        JLabel lblAvisoId = new JLabel("(Identificador para contabilización detallada por carrera)");
         lblAvisoId.setBounds(180, 60, 290, 25);
         lblAvisoId.setFont(new java.awt.Font("Segoe UI", java.awt.Font.ITALIC, 11));
 
-        pnlNivel.add(lblCarrera); pnlNivel.add(txtCarrera); pnlNivel.add(cmbCarreraHelp);
-        pnlNivel.add(lblIdContable); pnlNivel.add(txtIdContable); pnlNivel.add(lblAvisoId);
+        pnlNivel.add(lblCarrera);
+        pnlNivel.add(txtCarrera);
+        pnlNivel.add(lblIdContable);
+        pnlNivel.add(txtIdContable);
+        pnlNivel.add(lblAvisoId);
 
-        // >> Marco: Condiciones
         JPanel pnlCondiciones = new JPanel(null);
         pnlCondiciones.setBorder(BorderFactory.createTitledBorder("Condiciones"));
         pnlCondiciones.setBounds(10, 120, 475, 60);
 
         JLabel lblExcluir = new JLabel("Excluir de Lista de alumnos No Inscritos");
         lblExcluir.setBounds(100, 20, 230, 25);
-        
+
         JRadioButton rbSi = new JRadioButton("Si");
         rbSi.setBounds(330, 20, 40, 25);
-        JRadioButton rbNo = new JRadioButton("No", true); // "No" seleccionado por defecto
+        JRadioButton rbNo = new JRadioButton("No", true);
         rbNo.setBounds(380, 20, 50, 25);
-        
-        ButtonGroup bgExcluir = new ButtonGroup();
-        bgExcluir.add(rbSi); bgExcluir.add(rbNo);
 
-        pnlCondiciones.add(lblExcluir); pnlCondiciones.add(rbSi); pnlCondiciones.add(rbNo);
+        ButtonGroup bgExcluir = new ButtonGroup();
+        bgExcluir.add(rbSi);
+        bgExcluir.add(rbNo);
+
+        pnlCondiciones.add(lblExcluir);
+        pnlCondiciones.add(rbSi);
+        pnlCondiciones.add(rbNo);
 
         pnlGenerales.add(pnlNivel);
         pnlGenerales.add(pnlCondiciones);
 
+        // ==========================================
+        // >> PESTAÑA 2: RECONOCIMIENTO
+        // ==========================================
+        JPanel pnlReconocimiento = new JPanel(null);
+
+        JPanel pnlRvoe = new JPanel(null);
+        pnlRvoe.setBorder(BorderFactory.createTitledBorder("Reconocimiento de Validez Oficial de Estudios"));
+        pnlRvoe.setBounds(10, 20, 475, 100);
+
+        JLabel lblAutorizacion = new JLabel("Autorización");
+        lblAutorizacion.setBounds(20, 40, 80, 25);
+        JTextField txtAutorizacion = new JTextField();
+        txtAutorizacion.setBounds(110, 40, 340, 25);
+
+        pnlRvoe.add(lblAutorizacion);
+        pnlRvoe.add(txtAutorizacion);
+        pnlReconocimiento.add(pnlRvoe);
+
+        // Agregar las pestañas al componente principal
         pestanas.addTab("Datos Generales", pnlGenerales);
-        pestanas.addTab("Reconocimiento", new JPanel()); // Pestaña vacía
+        pestanas.addTab("Reconocimiento", pnlReconocimiento);
         dialogo.add(pestanas);
 
         // --- 3. BOTONES INFERIORES ---
@@ -325,29 +511,122 @@ private void mostrarDialogoGrado(boolean modoEdicion) {
 
         // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
         if (modoEdicion) {
-            int fila = jTable1.getSelectedRow();
-            cmbCia.setSelectedItem(jTable1.getValueAt(fila, 0).toString());
-            cmbCC.setSelectedItem(jTable1.getValueAt(fila, 1).toString());
-            txtGrado.setText(jTable1.getValueAt(fila, 2).toString());
-            txtDesc.setText(jTable1.getValueAt(fila, 3).toString());
-            // Lógica para llenar Carrera, IdContable y RadioButtons
+            int fila = tblGEscolares.getSelectedRow();
+            String ciaSel = tblGEscolares.getValueAt(fila, 0).toString();
+            String ccSel = tblGEscolares.getValueAt(fila, 1).toString();
+            String seccSel = tblGEscolares.getValueAt(fila, 2).toString();
+            String gradoSel = tblGEscolares.getValueAt(fila, 3).toString();
+
+            cmbCia.setSelectedItem(ciaSel);
+            txtCC.setText(ccSel);
+            cmbSecc.setSelectedItem(seccSel);
+            txtGrado.setText(gradoSel);
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    // Traemos la descripción del Centro de Costo de tgcc
+                    PreparedStatement psCC = con.prepareStatement("SELECT DES1 FROM tgcc WHERE CVE=?");
+                    psCC.setString(1, ccSel);
+                    ResultSet rsCC = psCC.executeQuery();
+                    if (rsCC.next()) {
+                        txtCCDesc.setText(rsCC.getString("DES1"));
+                    }
+                    rsCC.close();
+                    psCC.close();
+
+                    PreparedStatement ps = con.prepareStatement("SELECT DGRAD, CARR, ESP, EXCLI, REVOE FROM tesgrad WHERE CIA=? AND CC=? AND SECC=? AND CGRAD=?");
+                    ps.setString(1, ciaSel);
+                    ps.setString(2, ccSel);
+                    ps.setString(3, seccSel);
+                    ps.setString(4, gradoSel);
+                    ResultSet rs = ps.executeQuery();
+
+                    if (rs.next()) {
+                        txtDesc.setText(rs.getString("DGRAD") != null ? rs.getString("DGRAD") : "");
+                        txtCarrera.setText(rs.getString("CARR") != null ? rs.getString("CARR") : "");
+                        txtIdContable.setText(rs.getString("ESP") != null ? rs.getString("ESP") : "");
+                        txtAutorizacion.setText(rs.getString("REVOE") != null ? rs.getString("REVOE") : "");
+
+                        if ("S".equalsIgnoreCase(rs.getString("EXCLI"))) {
+                            rbSi.setSelected(true);
+                        } else {
+                            rbNo.setSelected(true);
+                        }
+                    }
+                    rs.close();
+                    ps.close();
+                    db.Cerrar();
+                }
+            } catch (Exception e) {
+                // Silencioso en carga
+            }
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
+            String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+            String cc = txtCC.getText().trim();
+            String secc = cmbSecc.getSelectedItem() != null ? cmbSecc.getSelectedItem().toString() : "";
             String grado = txtGrado.getText().trim();
-            if (grado.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El grado no puede estar vacío.");
+            String desc = txtDesc.getText().trim();
+            String carrera = txtCarrera.getText().trim();
+            String idContable = txtIdContable.getText().trim();
+            String excluido = rbSi.isSelected() ? "S" : "N";
+            String autorizacion = txtAutorizacion.getText().trim();
+
+            if (grado.isEmpty() || desc.isEmpty() || cc.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "El centro de costos, grado y la descripción son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va la lógica SQL (INSERT / UPDATE)
-            JOptionPane.showMessageDialog(dialogo, "Grado escolar guardado (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaGrados(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps;
+                    if (modoEdicion) {
+                        String sql = "UPDATE tesgrad SET DGRAD=?, CARR=?, ESP=?, EXCLI=?, REVOE=? WHERE CIA=? AND CC=? AND SECC=? AND CGRAD=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, desc);
+                        ps.setString(2, carrera);
+                        ps.setString(3, idContable);
+                        ps.setString(4, excluido);
+                        ps.setString(5, autorizacion);
+                        ps.setString(6, cia);
+                        ps.setString(7, cc);
+                        ps.setString(8, secc);
+                        ps.setString(9, grado);
+                    } else {
+                        String sql = "INSERT INTO tesgrad (CIA, CC, SECC, CGRAD, DGRAD, CARR, ESP, EXCLI, REVOE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, cia);
+                        ps.setString(2, cc);
+                        ps.setString(3, secc);
+                        ps.setString(4, grado);
+                        ps.setString(5, desc);
+                        ps.setString(6, carrera);
+                        ps.setString(7, idContable);
+                        ps.setString(8, excluido);
+                        ps.setString(9, autorizacion);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Grado escolar guardado con éxito.");
+                        dialogo.dispose();
+                        cargarTablaGrados();
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close();
+                    db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---
@@ -360,6 +639,6 @@ private void mostrarDialogoGrado(boolean modoEdicion) {
     private javax.swing.JButton btnEditGEscolar;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable tblGEscolares;
     // End of variables declaration//GEN-END:variables
 }

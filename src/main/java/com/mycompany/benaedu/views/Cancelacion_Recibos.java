@@ -163,7 +163,7 @@ private void cargarTablaHistorialCancelaciones() {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCRecibosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCRecibosActionPerformed
-        mostrarDialogoCancelacionRecibos();
+        mostrarDialogoCancelacionRecibos(false);
     }//GEN-LAST:event_btnAddCRecibosActionPerformed
 
     private void btnEditCRecibosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCRecibosActionPerformed
@@ -174,32 +174,142 @@ private void cargarTablaHistorialCancelaciones() {
        JOptionPane.showMessageDialog(this, "El historial de recibos cancelados no se puede eliminar por control de auditoría.");
     }//GEN-LAST:event_btnDeleteCRecibosActionPerformed
 
-private void mostrarDialogoCancelacionRecibos() {
+private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Cancelación de Recibos", true);
         dialogo.setSize(850, 520);
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos, String[] columnas, int[] anchos) {
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    for (int i = 0; i < anchos.length; i++) {
+                        tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                    }
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null && mod.getColumnCount() >= 2) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    
+                    int widthTotal = 0; for(int w : anchos) widthTotal += w;
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(widthTotal + 20, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA BUSCADORES ---
+        java.util.function.BiFunction<String, Integer, Object[][]> cargarDatosMultiple = (query, numCols) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) {
+                        Object[] row = new Object[numCols];
+                        for(int i=0; i<numCols; i++) row[i] = rs.getString(i+1);
+                        lista.add(row);
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dMatricula = cargarDatosMultiple.apply("SELECT MAT, APATE, AMATE, NOMA FROM tesalum ORDER BY MAT", 4);
+        Object[][] dMotivo    = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'MCAN' ORDER BY CVE", 2);
+
         // --- 1. DATOS DE SELECCIÓN ---
         JPanel pnlSel = new JPanel(null);
         pnlSel.setBorder(BorderFactory.createTitledBorder("Datos de selección"));
         pnlSel.setBounds(10, 10, 810, 90);
 
-        pnlSel.add(new JLabel("Compañía")).setBounds(15, 25, 70, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(80, 25, 60, 25);
+        pnlSel.add(new JLabel("Compañía")).setBounds(20, 20, 70, 25);
+        JComboBox<String> cmbCia = new JComboBox<>();
+        cmbCia.setBounds(90, 20, 60, 25);
+        
+        pnlSel.add(new JLabel("C. Costos")).setBounds(220, 20, 70, 25);
+        JComboBox<String> cmbCC = new JComboBox<>();
+        cmbCC.setBounds(290, 20, 80, 25);
 
-        pnlSel.add(new JLabel("C. Costos")).setBounds(160, 25, 70, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12100"})).setBounds(230, 25, 80, 25);
+        // Llenar Combos Dinámicamente
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rsCia = con.prepareStatement("SELECT CIA FROM tmcias ORDER BY CIA").executeQuery();
+                while(rsCia.next()) cmbCia.addItem(rsCia.getString("CIA"));
+                rsCia.close();
 
-        pnlSel.add(new JLabel("Fecha Inicial")).setBounds(330, 25, 80, 25);
-        pnlSel.add(new JTextField("04/06/2026")).setBounds(410, 25, 90, 25);
+                ResultSet rsCC = con.prepareStatement("SELECT CVE FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE").executeQuery();
+                while(rsCC.next()) cmbCC.addItem(rsCC.getString("CVE"));
+                rsCC.close();
+                
+                db.Cerrar();
+            }
+        } catch (Exception ex) {}
 
-        pnlSel.add(new JLabel("Fecha Final")).setBounds(520, 25, 80, 25);
-        pnlSel.add(new JTextField("04/06/2026")).setBounds(590, 25, 90, 25);
+        pnlSel.add(cmbCia);
+        pnlSel.add(cmbCC);
 
-        pnlSel.add(new JLabel("Matrícula")).setBounds(15, 55, 70, 25);
-        pnlSel.add(new JComboBox<>(new String[]{""})).setBounds(80, 55, 120, 25);
+        // Buscador Matrícula (4 Columnas)
+        pnlSel.add(new JLabel("Matrícula")).setBounds(20, 55, 70, 25);
+        JTextField txtMatricula = new JTextField(); txtMatricula.setBounds(90, 55, 80, 25);
+        JButton btnMatricula = new JButton("▼"); btnMatricula.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnMatricula.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnMatricula.setBounds(170, 55, 20, 25);
+        buscador.configurar(txtMatricula, null, btnMatricula, dMatricula, new String[]{"Matrícula", "A. Paterno", "A. Materno", "Nombre"}, new int[]{80, 120, 120, 150});
+        pnlSel.add(txtMatricula); pnlSel.add(btnMatricula);
+
+        pnlSel.add(new JLabel("Fecha Inicial")).setBounds(220, 55, 80, 25);
+        com.toedter.calendar.JDateChooser txtFecIni = new com.toedter.calendar.JDateChooser();
+        txtFecIni.setDateFormatString("dd/MM/yyyy"); txtFecIni.setBounds(300, 55, 110, 25);
+        pnlSel.add(txtFecIni);
+
+        pnlSel.add(new JLabel("Fecha Final")).setBounds(430, 55, 80, 25);
+        com.toedter.calendar.JDateChooser txtFecFin = new com.toedter.calendar.JDateChooser();
+        txtFecFin.setDateFormatString("dd/MM/yyyy"); txtFecFin.setBounds(510, 55, 110, 25);
+        pnlSel.add(txtFecFin);
 
         JButton btnFiltra = new JButton("Filtra Información");
         btnFiltra.setBounds(650, 50, 140, 30);
@@ -209,23 +319,28 @@ private void mostrarDialogoCancelacionRecibos() {
 
         // --- 2. MOTIVO DE CANCELACIÓN ---
         JLabel lblMotivo = new JLabel("Motivo de Cancelación");
-        lblMotivo.setBounds(160, 110, 150, 25);
-        JComboBox<String> cmbMotivo = new JComboBox<>(new String[]{""});
-        cmbMotivo.setBounds(300, 110, 60, 25);
-        JTextField txtMotivoDesc = new JTextField();
-        txtMotivoDesc.setBounds(370, 110, 350, 25);
+        lblMotivo.setBounds(150, 110, 150, 25);
+        
+        JTextField txtMotivo = new JTextField(); txtMotivo.setBounds(300, 110, 50, 25);
+        JButton btnMotivo = new JButton("▼"); btnMotivo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnMotivo.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnMotivo.setBounds(350, 110, 20, 25);
+        JTextField txtMotivoDesc = new JTextField(); txtMotivoDesc.setBounds(375, 110, 420, 25); txtMotivoDesc.setEditable(false); txtMotivoDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtMotivo, txtMotivoDesc, btnMotivo, dMotivo, new String[]{"Clave", "Descripción"}, new int[]{60, 350});
 
         dialogo.add(lblMotivo);
-        dialogo.add(cmbMotivo);
+        dialogo.add(txtMotivo);
+        dialogo.add(btnMotivo);
         dialogo.add(txtMotivoDesc);
 
         // --- 3. TABLA DE RECIBOS SIN CONTABILIZAR ---
-        JTable tblRecibosPendientes = new JTable(new DefaultTableModel(
+        DefaultTableModel modRecibosPendientes = new DefaultTableModel(
             new Object[][]{}, 
-            new String[]{"Compañía", "C. Costos", "Descripción", "Ciclo Escolar", "Matrícula", "Num Recibo", "Tipo", "Fec Recibo", "Moneda", "Importe MN"}
-        ));
+            new String[]{"Compañía", "C. Costos", "Descripción", "Ciclo Escolar", "Matrícula", "Num Recibo", "Tipo", "Fec Recibo", "Moneda", "Importe MN", "IDCPT"}
+        ) {
+            @Override public boolean isCellEditable(int row, int column) { return false; }
+        };
+        JTable tblRecibosPendientes = new JTable(modRecibosPendientes);
+        tblRecibosPendientes.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         
-        // Agrupamos la tabla en un panel para simular el título central
         JPanel pnlTabla = new JPanel(null);
         pnlTabla.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Recibos Sin Contabilizar", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP));
         pnlTabla.setBounds(10, 150, 810, 250);
@@ -248,24 +363,130 @@ private void mostrarDialogoCancelacionRecibos() {
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
+        // BUSCAR RECIBOS A CANCELAR EN LA BASE DE DATOS (tesralu)
         btnFiltra.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Buscando recibos sin contabilizar para estas fechas/matrícula... (Simulación)");
-            // Lógica SQL para llenar tblRecibosPendientes
+            modRecibosPendientes.setRowCount(0);
+            
+            String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+            String cc = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
+            String matricula = txtMatricula.getText().trim();
+
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+            String fIni = txtFecIni.getDate() != null ? sdf.format(txtFecIni.getDate()) : "";
+            String fFin = txtFecFin.getDate() != null ? sdf.format(txtFecFin.getDate()) : "";
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    StringBuilder sql = new StringBuilder("SELECT CIA, CC, DCPTO, CESC, MAT, NREC, TREC, FREC, CMON, IMPMN, IDCPT FROM tesralu WHERE (MCAN IS NULL OR MCAN = '')");
+                    
+                    if (!cia.isEmpty()) sql.append(" AND CIA = ?");
+                    if (!cc.isEmpty()) sql.append(" AND CC = ?");
+                    if (!matricula.isEmpty()) sql.append(" AND MAT = ?");
+                    if (!fIni.isEmpty() && !fFin.isEmpty()) sql.append(" AND FREC BETWEEN ? AND ?");
+
+                    sql.append(" ORDER BY FREC DESC, NREC DESC");
+
+                    PreparedStatement ps = con.prepareStatement(sql.toString());
+                    int p = 1;
+                    if (!cia.isEmpty()) ps.setString(p++, cia);
+                    if (!cc.isEmpty()) ps.setString(p++, cc);
+                    if (!matricula.isEmpty()) ps.setString(p++, matricula);
+                    if (!fIni.isEmpty() && !fFin.isEmpty()) {
+                        ps.setString(p++, fIni);
+                        ps.setString(p++, fFin);
+                    }
+
+                    ResultSet rs = ps.executeQuery();
+                    java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
+
+                    while (rs.next()) {
+                        Object[] fila = new Object[11];
+                        fila[0] = rs.getString("CIA");
+                        fila[1] = rs.getString("CC");
+                        fila[2] = rs.getString("DCPTO");
+                        fila[3] = rs.getString("CESC");
+                        fila[4] = rs.getString("MAT");
+                        fila[5] = rs.getString("NREC");
+                        fila[6] = rs.getString("TREC");
+                        fila[7] = rs.getString("FREC");
+                        fila[8] = rs.getString("CMON");
+                        fila[9] = df.format(rs.getDouble("IMPMN"));
+                        fila[10] = rs.getString("IDCPT");
+                        modRecibosPendientes.addRow(fila);
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+
+                    if (modRecibosPendientes.getRowCount() == 0) {
+                        JOptionPane.showMessageDialog(dialogo, "No se encontraron recibos pendientes por cancelar con esos filtros.", "Información", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error al buscar recibos: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
+        // PROCESAR LA CANCELACIÓN (TRANSACCIÓN)
         btnAceptar.addActionListener(e -> {
             int filaSel = tblRecibosPendientes.getSelectedRow();
-            if (filaSel == -1 && tblRecibosPendientes.getRowCount() > 0) {
-                JOptionPane.showMessageDialog(dialogo, "Seleccione al menos un recibo de la tabla para cancelar.");
+            if (filaSel == -1) {
+                JOptionPane.showMessageDialog(dialogo, "Seleccione un recibo de la tabla para cancelar.", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
-            JOptionPane.showMessageDialog(dialogo, "Recibo(s) cancelado(s) exitosamente (Simulación).");
-            dialogo.dispose();
-            cargarTablaHistorialCancelaciones(); 
+            if (txtMotivo.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "Debe especificar un Motivo de Cancelación.", "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            String nRecibo = tblRecibosPendientes.getValueAt(filaSel, 5).toString();
+            String matricula = tblRecibosPendientes.getValueAt(filaSel, 4).toString();
+            String idCpt = tblRecibosPendientes.getValueAt(filaSel, 10) != null ? tblRecibosPendientes.getValueAt(filaSel, 10).toString() : "";
+            String motivoCode = txtMotivo.getText().trim();
+
+            int confirm = JOptionPane.showConfirmDialog(dialogo, 
+                "¿Está seguro de cancelar el recibo " + nRecibo + " del alumno con matrícula " + matricula + "?\nEsta acción restaurará el saldo pendiente.", 
+                "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                try {
+                    ConDB db = new ConDB();
+                    Connection con = db.Conectar();
+                    if (con != null) {
+                        con.setAutoCommit(false); // Iniciar Transacción
+
+                        // 1. Marcar el recibo como cancelado en tesralu
+                        String sqlCancelRalu = "UPDATE tesralu SET MCAN = ?, IPAGMN = 0 WHERE NREC = ? AND MAT = ?";
+                        PreparedStatement ps1 = con.prepareStatement(sqlCancelRalu);
+                        ps1.setString(1, motivoCode);
+                        ps1.setString(2, nRecibo);
+                        ps1.setString(3, matricula);
+                        ps1.executeUpdate();
+                        ps1.close();
+
+                        // 2. Devolver el concepto pagado a saldo pendiente en tescalu
+                        String sqlRestoreCalu = "UPDATE tescalu SET IPAGMN = 0, IPENMN = IMPTMN WHERE MAT = ? AND (IDCPT = ? OR ? = '')";
+                        PreparedStatement ps2 = con.prepareStatement(sqlRestoreCalu);
+                        ps2.setString(1, matricula);
+                        ps2.setString(2, idCpt);
+                        ps2.setString(3, idCpt);
+                        ps2.executeUpdate();
+                        ps2.close();
+
+                        con.commit(); // Confirmar cambios
+                        db.Cerrar();
+
+                        JOptionPane.showMessageDialog(dialogo, "Recibo cancelado exitosamente y saldo restaurado.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                        
+                        dialogo.dispose();
+                        cargarTablaHistorialCancelaciones(); 
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialogo, "Error al procesar la cancelación: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
         });
 
-        // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
         dialogo.setVisible(true);
     }

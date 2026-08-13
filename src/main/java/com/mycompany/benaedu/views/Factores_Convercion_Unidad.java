@@ -29,6 +29,7 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
      */
     public Factores_Convercion_Unidad() {
         initComponents();
+        cargarTablaFactores();
     }
     
    private void cargarTablaFactores() {
@@ -214,6 +215,80 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(220);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(320, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA UNIDADES DE MEDIDA ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        // Obtenemos los datos de la tabla tmclas filtrando por Unidades de Medida (UM)
+        Object[][] dUM = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'UM' ORDER BY CVE");
+
         // --- 1. MARCO PRINCIPAL ---
         JPanel pnlCentral = new JPanel(null);
         pnlCentral.setBorder(BorderFactory.createEtchedBorder());
@@ -221,17 +296,29 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
 
         JLabel lblOrigen = new JLabel("Unidad Medida Origen");
         lblOrigen.setBounds(20, 20, 140, 25);
-        JComboBox<String> cmbOrigen = new JComboBox<>(new String[]{"PZA", "LT", "KG", "ACT", "CJA"});
-        cmbOrigen.setBounds(160, 20, 80, 25);
-        JLabel lblDescOrigen = new JLabel("Piezas"); 
-        lblDescOrigen.setBounds(250, 20, 100, 25);
+        JTextField txtOrigen = new JTextField();
+        txtOrigen.setBounds(160, 20, 60, 25);
+        JButton btnOrigen = new JButton("▼");
+        btnOrigen.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnOrigen.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnOrigen.setBounds(220, 20, 20, 25);
+        JTextField txtDescOrigen = new JTextField();
+        txtDescOrigen.setBounds(245, 20, 170, 25);
+        txtDescOrigen.setEditable(false); txtDescOrigen.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtOrigen, txtDescOrigen, btnOrigen, dUM);
 
         JLabel lblDestino = new JLabel("Unidad Medida Destino");
         lblDestino.setBounds(20, 55, 140, 25);
-        JComboBox<String> cmbDestino = new JComboBox<>(new String[]{"CJA", "PZA", "KG", "LT", "ACT"});
-        cmbDestino.setBounds(160, 55, 80, 25);
-        JLabel lblDescDestino = new JLabel("Caja");
-        lblDescDestino.setBounds(250, 55, 100, 25);
+        JTextField txtDestino = new JTextField();
+        txtDestino.setBounds(160, 55, 60, 25);
+        JButton btnDestino = new JButton("▼");
+        btnDestino.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnDestino.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnDestino.setBounds(220, 55, 20, 25);
+        JTextField txtDescDestino = new JTextField();
+        txtDescDestino.setBounds(245, 55, 170, 25);
+        txtDescDestino.setEditable(false); txtDescDestino.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtDestino, txtDescDestino, btnDestino, dUM);
 
         JLabel lblProducto = new JLabel("Artículo");
         lblProducto.setBounds(20, 90, 140, 25);
@@ -240,8 +327,10 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
 
         // Si es edición, no permitimos cambiar las llaves, solo el factor
         if (modoEdicion) { 
-            cmbOrigen.setEnabled(false); 
-            cmbDestino.setEnabled(false); 
+            txtOrigen.setEditable(false);
+            btnOrigen.setEnabled(false);
+            txtDestino.setEditable(false);
+            btnDestino.setEnabled(false);
             txtProducto.setEditable(false); 
         }
 
@@ -250,8 +339,8 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
         JTextField txtFactor = new JTextField();
         txtFactor.setBounds(160, 130, 80, 25);
 
-        pnlCentral.add(lblOrigen); pnlCentral.add(cmbOrigen); pnlCentral.add(lblDescOrigen);
-        pnlCentral.add(lblDestino); pnlCentral.add(cmbDestino); pnlCentral.add(lblDescDestino);
+        pnlCentral.add(lblOrigen); pnlCentral.add(txtOrigen); pnlCentral.add(btnOrigen); pnlCentral.add(txtDescOrigen);
+        pnlCentral.add(lblDestino); pnlCentral.add(txtDestino); pnlCentral.add(btnDestino); pnlCentral.add(txtDescDestino);
         pnlCentral.add(lblProducto); pnlCentral.add(txtProducto);
         pnlCentral.add(lblFactor); pnlCentral.add(txtFactor);
 
@@ -270,23 +359,44 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
         if (modoEdicion) {
             int fila = tblFCUnidad.getSelectedRow();
             
-            cmbOrigen.setSelectedItem(tblFCUnidad.getValueAt(fila, 0) != null ? tblFCUnidad.getValueAt(fila, 0).toString() : "");
-            cmbDestino.setSelectedItem(tblFCUnidad.getValueAt(fila, 1) != null ? tblFCUnidad.getValueAt(fila, 1).toString() : "");
+            txtOrigen.setText(tblFCUnidad.getValueAt(fila, 0) != null ? tblFCUnidad.getValueAt(fila, 0).toString() : "");
+            txtDestino.setText(tblFCUnidad.getValueAt(fila, 1) != null ? tblFCUnidad.getValueAt(fila, 1).toString() : "");
             txtProducto.setText(tblFCUnidad.getValueAt(fila, 2) != null ? tblFCUnidad.getValueAt(fila, 2).toString() : "");
             txtFactor.setText(tblFCUnidad.getValueAt(fila, 3) != null ? tblFCUnidad.getValueAt(fila, 3).toString() : "0");
+            
+            // Cargar descripciones para las llaves en edición
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement("SELECT DES FROM tmclas WHERE TBL = 'UM' AND CVE = ?");
+                    
+                    ps.setString(1, txtOrigen.getText().trim());
+                    ResultSet rs = ps.executeQuery();
+                    if(rs.next()) txtDescOrigen.setText(rs.getString("DES"));
+                    rs.close();
+                    
+                    ps.setString(1, txtDestino.getText().trim());
+                    rs = ps.executeQuery();
+                    if(rs.next()) txtDescDestino.setText(rs.getString("DES"));
+                    rs.close();
+                    
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {}
         }
 
         // --- 4. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
-            String origen = cmbOrigen.getSelectedItem() != null ? cmbOrigen.getSelectedItem().toString() : "";
-            String destino = cmbDestino.getSelectedItem() != null ? cmbDestino.getSelectedItem().toString() : "";
+            String origen = txtOrigen.getText().trim();
+            String destino = txtDestino.getText().trim();
             String articulo = txtProducto.getText().trim();
             String factor = txtFactor.getText().trim();
 
-            if (articulo.isEmpty() || factor.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El artículo y el factor son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            if (origen.isEmpty() || destino.isEmpty() || articulo.isEmpty() || factor.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "Todos los campos son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 

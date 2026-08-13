@@ -75,15 +75,15 @@
               <Properties>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
                   <Table columnCount="9" rowCount="4">
-                    <Column editable="true" title="Compa&#xf1;ia" type="java.lang.Object"/>
-                    <Column editable="true" title="Centro Costos" type="java.lang.Object"/>
-                    <Column editable="true" title="Ciclo Escolar" type="java.lang.Object"/>
-                    <Column editable="true" title="Descripci&#xf3;n" type="java.lang.Object"/>
-                    <Column editable="true" title="Fech. Inicial" type="java.lang.Object"/>
-                    <Column editable="true" title="Fech. Final" type="java.lang.Object"/>
-                    <Column editable="true" title="Usuario" type="java.lang.Object"/>
-                    <Column editable="true" title="Fech. Ult. Act" type="java.lang.Object"/>
-                    <Column editable="true" title="Hora. Ult. Act" type="java.lang.Object"/>
+                    <Column editable="false" title="Compa&#xf1;ia" type="java.lang.Object"/>
+                    <Column editable="false" title="Centro Costos" type="java.lang.Object"/>
+                    <Column editable="false" title="Ciclo Escolar" type="java.lang.Object"/>
+                    <Column editable="false" title="Descripci&#xf3;n" type="java.lang.Object"/>
+                    <Column editable="false" title="Fech. Inicial" type="java.lang.Object"/>
+                    <Column editable="false" title="Fech. Final" type="java.lang.Object"/>
+                    <Column editable="false" title="Usuario" type="java.lang.Object"/>
+                    <Column editable="false" title="Fech. Ult. Act" type="java.lang.Object"/>
+                    <Column editable="false" title="Hora. Ult. Act" type="java.lang.Object"/>
                   </Table>
                 </Property>
                 <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">

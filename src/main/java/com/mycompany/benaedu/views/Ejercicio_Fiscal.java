@@ -3,7 +3,26 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-
+import com.mycompany.benaedu.db.ConDB;
+import java.awt.Window;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
+import com.toedter.calendar.JDateChooser;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 /**
  *
  * @author b17za
@@ -15,8 +34,60 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
      */
     public Ejercicio_Fiscal() {
         initComponents();
+        cargarTablaEjercicio(); 
+    }
+private void cargarTablaEjercicio() {
+        DefaultTableModel modelo = (DefaultTableModel) tblEjercicioFiscal.getModel();
+        modelo.setRowCount(0); 
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+
+            if (con != null) {
+                String sql = "SELECT CIA, ANO, FINI, USER, FEAC, HOAC FROM tgefi ORDER BY ANO DESC";
+                PreparedStatement ps = con.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+
+                while (rs.next()) {
+                    Object[] fila = new Object[6]; 
+                    fila[0] = rs.getString("CIA");
+                    fila[1] = rs.getInt("ANO"); // Manejo de ANO como Entero
+                    fila[2] = rs.getString("FINI") != null ? rs.getString("FINI") : "";
+                    fila[3] = rs.getString("USER") != null ? rs.getString("USER") : "";
+                    fila[4] = rs.getString("FEAC") != null ? rs.getString("FEAC") : "";
+                    fila[5] = rs.getString("HOAC") != null ? rs.getString("HOAC") : "";
+
+                    modelo.addRow(fila);
+                }
+                rs.close(); ps.close(); db.Cerrar();
+                
+                adaptarTamañoColumnas();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Ejercicio Fiscal: " + e.getMessage());
+        }
     }
 
+    private void adaptarTamañoColumnas() {
+        tblEjercicioFiscal.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        
+        for (int i = 0; i < tblEjercicioFiscal.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblEjercicioFiscal.getColumnModel().getColumn(i);
+            int anchoPreferido = 80; 
+            
+            java.awt.Component compCabecera = tblEjercicioFiscal.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblEjercicioFiscal, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 15);
+            
+            for (int r = 0; r < tblEjercicioFiscal.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblEjercicioFiscal.getCellRenderer(r, i);
+                java.awt.Component c = tblEjercicioFiscal.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            columna.setPreferredWidth(anchoPreferido); 
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -37,13 +108,13 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
 
         tblEjercicioFiscal.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null},
+                {null, null, null, null, null, null}
             },
             new String [] {
-                "Tablas", "Descripcion", "Usuario", "Fec. Ult. Act", "Hora. Ult. Act"
+                "Compañia", "Ejercicio", "Fecha de Inicio de Ejercicio", "Usuario", "Fecha", "Hora Mod."
             }
         ));
         tblEjercicioFiscal.setGridColor(new java.awt.Color(0, 0, 0));
@@ -62,6 +133,7 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
         btnEditFiscal.setText("Editar");
         btnEditFiscal.setMaximumSize(new java.awt.Dimension(93, 31));
         btnEditFiscal.setMinimumSize(new java.awt.Dimension(93, 31));
+        btnEditFiscal.addActionListener(this::btnEditFiscalActionPerformed);
 
         btnDeleteFiscal.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         btnDeleteFiscal.setForeground(new java.awt.Color(26, 61, 99));
@@ -108,14 +180,347 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddFiscalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddFiscalActionPerformed
-        // TODO add your handling code here:
+      mostrarDialogoFiscal(false);
     }//GEN-LAST:event_btnAddFiscalActionPerformed
 
     private void btnDeleteFiscalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteFiscalActionPerformed
-        // TODO add your handling code here:
+     int fila = tblEjercicioFiscal.getSelectedRow();
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un Ejercicio Fiscal para eliminar.");
+            return;
+        }
+
+        String compania = tblEjercicioFiscal.getValueAt(fila, 0).toString();
+        int anio = Integer.parseInt(tblEjercicioFiscal.getValueAt(fila, 1).toString());
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar el Ejercicio del Año: " + anio + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+        
+        if (resp == JOptionPane.YES_OPTION) {
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    String sql = "DELETE FROM tgefi WHERE CIA = ? AND ANO = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, compania);
+                    ps.setInt(2, anio);
+                    
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(this, "Ejercicio Fiscal eliminado correctamente.");
+                        cargarTablaEjercicio();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            }
+        }
     }//GEN-LAST:event_btnDeleteFiscalActionPerformed
 
+    private void btnEditFiscalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditFiscalActionPerformed
+   if (tblEjercicioFiscal.getSelectedRow() == -1) {
+            JOptionPane.showMessageDialog(this, "Selecciona un Ejercicio Fiscal para editar.");
+            return;
+        }
+        mostrarDialogoFiscal(true);
+    }//GEN-LAST:event_btnEditFiscalActionPerformed
+private void mostrarDialogoFiscal(boolean modoEdicion) {
+        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
+        String tituloVentana = modoEdicion ? "Modificar Período" : "Agregar Período";
 
+        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
+        dialogo.setSize(560, 520); 
+        dialogo.setLayout(null);
+        dialogo.setResizable(false);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    DefaultTableModel mod = new DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    JTable tabla = new JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(250);
+
+                    javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    JScrollPane scroll = new JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(320, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dCias = cargarDatos.apply("SELECT CIA, NCIA FROM tmcias ORDER BY CIA");
+
+        // --- ENCABEZADO ---
+        JLabel lblCia = new JLabel("Compañía");
+        lblCia.setBounds(20, 20, 70, 25);
+        
+        JTextField txtCia = new JTextField();
+        txtCia.setBounds(90, 20, 50, 25);
+        JButton btnCia = new JButton("▼");
+        btnCia.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCia.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCia.setBounds(140, 20, 20, 25);
+        buscador.configurar(txtCia, null, btnCia, dCias);
+
+        JLabel lblAno = new JLabel("Año");
+        lblAno.setBounds(180, 20, 30, 25);
+        JTextField txtAno = new JTextField();
+        txtAno.setBounds(220, 20, 60, 25);
+
+        JLabel lblFini = new JLabel("Fecha de Inicio");
+        lblFini.setBounds(310, 20, 90, 25);
+        
+        JDateChooser txtFini = new JDateChooser();
+        txtFini.setDateFormatString("yyyy-MM-dd");
+        txtFini.setBounds(400, 20, 110, 25);
+
+        dialogo.add(lblCia); dialogo.add(txtCia); dialogo.add(btnCia);
+        dialogo.add(lblAno); dialogo.add(txtAno);
+        dialogo.add(lblFini); dialogo.add(txtFini);
+
+        // --- PANEL DE LOS 14 PERIODOS ---
+        JPanel pnlPeriodos = new JPanel(null);
+        pnlPeriodos.setBorder(BorderFactory.createTitledBorder("Período Fiscal"));
+        pnlPeriodos.setBounds(20, 60, 500, 360);
+
+        JDateChooser[] txtP = new JDateChooser[14];
+        JCheckBox[] chkP = new JCheckBox[14];
+
+        for (int i = 0; i < 14; i++) {
+            JLabel lblP = new JLabel(String.format("Período %02d:", i + 1));
+            
+            txtP[i] = new JDateChooser();
+            txtP[i].setDateFormatString("yyyy-MM-dd");
+            chkP[i] = new JCheckBox();
+
+            if (i < 12) {
+                lblP.setBounds(30, 30 + (i * 25), 80, 20);
+                txtP[i].setBounds(110, 30 + (i * 25), 110, 20); 
+                chkP[i].setBounds(230, 30 + (i * 25), 20, 20);
+            } else {
+                lblP.setBounds(280, 100 + ((i - 12) * 25), 80, 20);
+                txtP[i].setBounds(360, 100 + ((i - 12) * 25), 110, 20);
+                chkP[i].setBounds(480, 100 + ((i - 12) * 25), 20, 20);
+            }
+            pnlPeriodos.add(lblP);
+            pnlPeriodos.add(txtP[i]);
+            pnlPeriodos.add(chkP[i]);
+        }
+        dialogo.add(pnlPeriodos);
+
+        // --- BOTONES INFERIORES ---
+        JButton btnAceptar = new JButton("Aceptar");
+        btnAceptar.setBounds(160, 435, 100, 35);
+        JButton btnSalir = new JButton("Salir");
+        btnSalir.setBounds(290, 435, 100, 35);
+
+        dialogo.add(btnAceptar);
+        dialogo.add(btnSalir);
+
+        // --- SI ES EDICIÓN: BLOQUEAMOS LLAVES Y CARGAMOS DATOS ---
+        if (modoEdicion) {
+            txtCia.setEditable(false);
+            btnCia.setEnabled(false);
+            txtAno.setEditable(false);
+
+            int fila = tblEjercicioFiscal.getSelectedRow();
+            String selCia = tblEjercicioFiscal.getValueAt(fila, 0).toString();
+            int selAno = Integer.parseInt(tblEjercicioFiscal.getValueAt(fila, 1).toString());
+
+            txtCia.setText(selCia);
+            txtAno.setText(String.valueOf(selAno));
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    String sql = "SELECT FINI, FF01, FF02, FF03, FF04, FF05, FF06, FF07, FF08, FF09, FF10, FF11, FF12, FF13, FF14, "
+                            + "CA01, CA02, CA03, CA04, CA05, CA06, CA07, CA08, CA09, CA10, CA11, CA12, CA13, CA14 "
+                            + "FROM tgefi WHERE CIA = ? AND ANO = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, selCia);
+                    ps.setInt(2, selAno);
+                    ResultSet rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        try {
+                            if(rs.getString("FINI") != null && !rs.getString("FINI").isEmpty()) {
+                                txtFini.setDate(sdf.parse(rs.getString("FINI")));
+                            }
+                        } catch(Exception ex) {} 
+                        
+                        for (int i = 0; i < 14; i++) {
+                            String colFecha = String.format("FF%02d", i + 1); 
+                            String colCheck = String.format("CA%02d", i + 1); 
+                            
+                            try {
+                                if(rs.getString(colFecha) != null && !rs.getString(colFecha).isEmpty()) {
+                                    txtP[i].setDate(sdf.parse(rs.getString(colFecha)));
+                                }
+                            } catch(Exception ex) {}
+                            
+                            chkP[i].setSelected(rs.getInt(colCheck) == 1);
+                        }
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {}
+        }
+
+        // --- EVENTOS DE GUARDAR ---
+        btnSalir.addActionListener(e -> dialogo.dispose());
+
+        btnAceptar.addActionListener(e -> {
+            String cia = txtCia.getText().trim();
+            String anoStr = txtAno.getText().trim();
+            
+            String fini = txtFini.getDate() != null ? sdf.format(txtFini.getDate()) : "";
+
+            if (cia.isEmpty() || anoStr.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La Compañía y el Año son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            int ano = 0;
+            try {
+                ano = Integer.parseInt(anoStr);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialogo, "El Año debe ser un valor numérico válido.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+
+                    // 3. VALIDACIÓN DE DUPLICADOS EN MODO ALTA
+                    if (!modoEdicion) {
+                        String sqlCheck = "SELECT 1 FROM tgefi WHERE CIA = ? AND ANO = ?";
+                        PreparedStatement psCheck = con.prepareStatement(sqlCheck);
+                        psCheck.setString(1, cia);
+                        psCheck.setInt(2, ano);
+                        ResultSet rsCheck = psCheck.executeQuery();
+                        if (rsCheck.next()) {
+                            JOptionPane.showMessageDialog(dialogo, "El Ejercicio Fiscal " + ano + " ya existe para la Compañía " + cia + ".", "Registro Duplicado", JOptionPane.WARNING_MESSAGE);
+                            rsCheck.close(); psCheck.close(); db.Cerrar();
+                            return;
+                        }
+                        rsCheck.close(); psCheck.close();
+                    }
+
+                    PreparedStatement ps;
+                    if (modoEdicion) {
+                        // 1. INCLUYE AUDITORÍA (USER, FEAC, HOAC)
+                        String sql = "UPDATE tgefi SET FINI=?, FF01=?, FF02=?, FF03=?, FF04=?, FF05=?, FF06=?, FF07=?, FF08=?, FF09=?, FF10=?, FF11=?, FF12=?, FF13=?, FF14=?, "
+                                + "CA01=?, CA02=?, CA03=?, CA04=?, CA05=?, CA06=?, CA07=?, CA08=?, CA09=?, CA10=?, CA11=?, CA12=?, CA13=?, CA14=?, "
+                                + "USER='Admin', FEAC=CURDATE(), HOAC=DATE_FORMAT(NOW(), '%r') "
+                                + "WHERE CIA=? AND ANO=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, fini);
+                        
+                        for (int i = 0; i < 14; i++) { 
+                            String fechaPeriodo = txtP[i].getDate() != null ? sdf.format(txtP[i].getDate()) : null;
+                            ps.setString(2 + i, fechaPeriodo); 
+                        }
+                        for (int i = 0; i < 14; i++) { ps.setInt(16 + i, chkP[i].isSelected() ? 1 : 0); }
+                        
+                        ps.setString(30, cia);
+                        ps.setInt(31, ano); // Manejo estricto de ANO como INT
+                    } else {
+                        // 1. INCLUYE AUDITORÍA (USER, FEAC, HOAC)
+                        String sql = "INSERT INTO tgefi (CIA, ANO, FINI, FF01, FF02, FF03, FF04, FF05, FF06, FF07, FF08, FF09, FF10, FF11, FF12, FF13, FF14, "
+                                + "CA01, CA02, CA03, CA04, CA05, CA06, CA07, CA08, CA09, CA10, CA11, CA12, CA13, CA14, USER, FEAC, HOAC) "
+                                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Admin', CURDATE(), DATE_FORMAT(NOW(), '%r'))";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, cia);
+                        ps.setInt(2, ano); // Manejo estricto de ANO como INT
+                        ps.setString(3, fini);
+                        
+                        for (int i = 0; i < 14; i++) { 
+                            String fechaPeriodo = txtP[i].getDate() != null ? sdf.format(txtP[i].getDate()) : null;
+                            ps.setString(4 + i, fechaPeriodo); 
+                        }
+                        for (int i = 0; i < 14; i++) { ps.setInt(18 + i, chkP[i].isSelected() ? 1 : 0); }
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Ejercicio Fiscal guardado con éxito.");
+                        dialogo.dispose();
+                        cargarTablaEjercicio(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // --- MOSTRAR ---
+        dialogo.setLocationRelativeTo(this);
+        dialogo.setVisible(true);
+    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddFiscal;
     private javax.swing.JButton btnDeleteFiscal;

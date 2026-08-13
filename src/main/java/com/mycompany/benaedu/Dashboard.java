@@ -15,7 +15,6 @@ import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
-
 /**
  *
  * @author b17za
@@ -24,61 +23,64 @@ public class Dashboard extends javax.swing.JFrame {
 
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Dashboard.class.getName());
     // Mapa que guardará el nombre de la opción y la acción que debe ejecutar
- private final java.util.Map<String, Runnable> opcionesSistema = new java.util.LinkedHashMap<>();
-    
+    private final java.util.Map<String, Runnable> opcionesSistema = new java.util.LinkedHashMap<>();
+
     // El menú flotante que mostrará los resultados de búsqueda
     private final javax.swing.JPopupMenu menuResultadosBusqueda = new javax.swing.JPopupMenu();
     private String usuarioActual = "Usuario";
-    
+private String usuarioCodigo = "Admin"; // Guarda el alias de login
+
     private int indiceSeleccionadoBusqueda = -1;
-    
-    public Dashboard(String nombreUsuario) {
-     this.usuarioActual = nombreUsuario;
+
+    public Dashboard(String nombreUsuario,String usuarioCodigo) {
+       this.usuarioActual = nombreUsuario;
+    this.usuarioCodigo = usuarioCodigo;
+    initComponents();
+    InitStyles();
+    configurarFechaYHora();
+    configurarMensajeBienvenida();
+    initContent();
+
+    configurarMenuGeneral();
+    configurarMenuContabilidad();
+    configurarMenuEscolar();
+
+    configurarBuscador();
+    }
+public String getUsuarioCodigo() {
+    return this.usuarioCodigo != null ? this.usuarioCodigo : "Admin";
+}
+    /**
+     * Creates new form Dashboard
+     */
+    public Dashboard() {
         initComponents();
         InitStyles();
         configurarFechaYHora();
         configurarMensajeBienvenida();
         initContent();
-        
-        // Configuramos los 3 módulos principales
-        configurarMenuGeneral();
-        configurarMenuContabilidad();
-        configurarMenuEscolar();
-        
-        configurarBuscador();
-    }
 
-    /**
-     * Creates new form Dashboard
-     */
-    public Dashboard() {
-      initComponents();
-        InitStyles();
-        configurarFechaYHora();
-        configurarMensajeBienvenida();
-        initContent();
-        
         // Configuramos los 3 módulos principales
         configurarMenuGeneral();
         configurarMenuContabilidad();
         configurarMenuEscolar();
-        
+
         configurarBuscador();
     }
 
     private void InitStyles() {
         lblMessage.putClientProperty("FlatLaf.style", "font: bold 30");
-        lblMessage.setForeground(new Color(179,207,229));
+        lblMessage.setForeground(new Color(179, 207, 229));
         lblDate.putClientProperty("FlatLaf.style", "font: bold 30 ");
-        lblDate.setForeground(new Color(179,207,229));
+        lblDate.setForeground(new Color(179, 207, 229));
         lblTime.putClientProperty("FlatLaf.style", "font: bold 30 ");
-        lblTime.setForeground(new Color(179,207,229));
+        lblTime.setForeground(new Color(179, 207, 229));
         lblTitleInfo.putClientProperty("FlatLaf.style", "font: bold 24");
-        lblTitleInfo.setForeground(new Color(179,207,229));
+        lblTitleInfo.setForeground(new Color(179, 207, 229));
 
     }
 
-  private void configurarMenuGeneral() {
+    private void configurarMenuGeneral() {
         btnInfoMaestra.setText("General"); // Cambiamos el nombre del botón
         javax.swing.JPopupMenu menuGeneral = new javax.swing.JPopupMenu();
 
@@ -96,9 +98,14 @@ public class Dashboard extends javax.swing.JFrame {
         javax.swing.JMenuItem iClasificaciones = new javax.swing.JMenuItem("Tabla de Clasificaciones");
         javax.swing.JMenuItem iContactos = new javax.swing.JMenuItem("Catálogo de Contactos");
 
-        menuInfoMaestra.add(iCompanias); menuInfoMaestra.add(iCentros); menuInfoMaestra.add(iParametros);
-        menuInfoMaestra.add(iFiscal); menuInfoMaestra.add(iEmpleados); menuInfoMaestra.add(iDirecciones);
-        menuInfoMaestra.add(iClasificaciones); menuInfoMaestra.add(iContactos);
+        menuInfoMaestra.add(iCompanias);
+        menuInfoMaestra.add(iCentros);
+        menuInfoMaestra.add(iParametros);
+        menuInfoMaestra.add(iFiscal);
+        menuInfoMaestra.add(iEmpleados);
+        menuInfoMaestra.add(iDirecciones);
+        menuInfoMaestra.add(iClasificaciones);
+        menuInfoMaestra.add(iContactos);
 
         // Opciones "30 Transacciones"
         javax.swing.JMenuItem iCambioD = new javax.swing.JMenuItem("Tipos de Cambio Diario");
@@ -107,8 +114,11 @@ public class Dashboard extends javax.swing.JFrame {
         javax.swing.JMenuItem iCambioM = new javax.swing.JMenuItem("Tipo de Cambio Mensual");
         javax.swing.JMenuItem iUnidad = new javax.swing.JMenuItem("Convertir Unidad de Medida");
 
-        menuTransacciones.add(iCambioD); menuTransacciones.add(iCondiciones); menuTransacciones.add(iImpuestos);
-        menuTransacciones.add(iCambioM); menuTransacciones.add(iUnidad);
+        menuTransacciones.add(iCambioD);
+        menuTransacciones.add(iCondiciones);
+        menuTransacciones.add(iImpuestos);
+        menuTransacciones.add(iCambioM);
+        menuTransacciones.add(iUnidad);
 
         menuGeneral.add(menuInfoMaestra);
         menuGeneral.add(menuTransacciones);
@@ -122,19 +132,21 @@ public class Dashboard extends javax.swing.JFrame {
         });
 
         java.awt.event.MouseAdapter evtOcultar = crearEventoOcultar();
-        btnInfoMaestra.addMouseListener(evtOcultar); menuGeneral.addMouseListener(evtOcultar);
-        menuInfoMaestra.addMouseListener(evtOcultar); menuTransacciones.addMouseListener(evtOcultar);
+        btnInfoMaestra.addMouseListener(evtOcultar);
+        menuGeneral.addMouseListener(evtOcultar);
+        menuInfoMaestra.addMouseListener(evtOcultar);
+        menuTransacciones.addMouseListener(evtOcultar);
 
         // Acciones
         iCompanias.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Companias(), "Catálogo de Compañías"));
         iCentros.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Centros_costos(), "Catálogo de Centros de Costo"));
-        iParametros.addActionListener(e -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción...")); // FALTANTE
+        iParametros.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Parametros_Compañia(), "Parametros por Compañia"));
         iFiscal.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Ejercicio_Fiscal(), "Ejercicio Fiscal"));
         iEmpleados.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Empleados(), "Catálogo de Empleados"));
         iDirecciones.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Direcciones_Entrega(), "Direcciones de Entrega"));
         iClasificaciones.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Clasificaciones(), "Tabla de Clasificaciones"));
         iContactos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos(), "Catálogo de Contactos"));
-        
+
         iCambioD.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Cambio_Diario(), "Tipos de Cambio Diario"));
         iCondiciones.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Condiciones_Pago(), "Condiciones de Pago"));
         iImpuestos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Impuestos(), "Clave de Impuestos"));
@@ -155,13 +167,16 @@ public class Dashboard extends javax.swing.JFrame {
         javax.swing.JMenu m80 = new javax.swing.JMenu("80 Utilerías");
 
         // 20
-        javax.swing.JMenuItem iCtas = new javax.swing.JMenuItem("Catálogo de Cuentas"); m20.add(iCtas);
+        javax.swing.JMenuItem iCtas = new javax.swing.JMenuItem("Catálogo de Cuentas");
+        m20.add(iCtas);
         // 30
-        javax.swing.JMenuItem iPolizas = new javax.swing.JMenuItem("Captura de Pólizas"); m30.add(iPolizas);
+        javax.swing.JMenuItem iPolizas = new javax.swing.JMenuItem("Captura de Pólizas");
+        m30.add(iPolizas);
         // 40
-        javax.swing.JMenuItem iAux = new javax.swing.JMenuItem("Auxiliar de Movimientos"); 
-        javax.swing.JMenuItem iPolDia = new javax.swing.JMenuItem("Póliza de Diario"); 
-        m40.add(iAux); m40.add(iPolDia);
+        javax.swing.JMenuItem iAux = new javax.swing.JMenuItem("Auxiliar de Movimientos");
+        javax.swing.JMenuItem iPolDia = new javax.swing.JMenuItem("Póliza de Diario");
+        m40.add(iAux);
+        m40.add(iPolDia);
         // 50
         javax.swing.JMenuItem iBalanza = new javax.swing.JMenuItem("Balanza de Comprobación");
         javax.swing.JMenuItem iBalanzaSsc = new javax.swing.JMenuItem("Balanza de Comprobación Ssc");
@@ -171,27 +186,51 @@ public class Dashboard extends javax.swing.JFrame {
         javax.swing.JMenuItem iLDiario = new javax.swing.JMenuItem("Libro de Diario");
         javax.swing.JMenuItem iLMayor = new javax.swing.JMenuItem("Libro Mayor");
         javax.swing.JMenuItem iImpPol = new javax.swing.JMenuItem("Impresión de Póliza");
-        m50.add(iBalanza); m50.add(iBalanzaSsc); m50.add(iBalance); m50.add(iResGpo); 
-        m50.add(iRes); m50.add(iLDiario); m50.add(iLMayor); m50.add(iImpPol);
+        m50.add(iBalanza);
+        m50.add(iBalanzaSsc);
+        m50.add(iBalance);
+        m50.add(iResGpo);
+        m50.add(iRes);
+        m50.add(iLDiario);
+        m50.add(iLMayor);
+        m50.add(iImpPol);
         // 60, 70, 80
-        javax.swing.JMenuItem iCMes = new javax.swing.JMenuItem("Cierre de Mes"); m60.add(iCMes);
-        javax.swing.JMenuItem iCAnual = new javax.swing.JMenuItem("Cierre Anual"); m70.add(iCAnual);
-        javax.swing.JMenuItem iAct = new javax.swing.JMenuItem("Actualización de Saldos"); m80.add(iAct);
+        javax.swing.JMenuItem iCMes = new javax.swing.JMenuItem("Cierre de Mes");
+        m60.add(iCMes);
+        javax.swing.JMenuItem iCAnual = new javax.swing.JMenuItem("Cierre Anual");
+        m70.add(iCAnual);
+        javax.swing.JMenuItem iAct = new javax.swing.JMenuItem("Actualización de Saldos");
+        m80.add(iAct);
+        javax.swing.JMenuItem iFel = new javax.swing.JMenuItem("FEL");
+        m80.add(iFel);
 
-        menuContab.add(m20); menuContab.add(m30); menuContab.add(m40); menuContab.add(m50);
-        menuContab.add(m60); menuContab.add(m70); menuContab.add(m80);
+        menuContab.add(m20);
+        menuContab.add(m30);
+        menuContab.add(m40);
+        menuContab.add(m50);
+        menuContab.add(m60);
+        menuContab.add(m70);
+        menuContab.add(m80);
 
         btnTransacciones.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) { menuContab.show(btnTransacciones, 0, btnTransacciones.getHeight()); }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                menuContab.show(btnTransacciones, 0, btnTransacciones.getHeight());
+            }
         });
 
         java.awt.event.MouseAdapter evtOcultar = crearEventoOcultar();
-        btnTransacciones.addMouseListener(evtOcultar); menuContab.addMouseListener(evtOcultar);
-        m20.addMouseListener(evtOcultar); m30.addMouseListener(evtOcultar); m40.addMouseListener(evtOcultar);
-        m50.addMouseListener(evtOcultar); m60.addMouseListener(evtOcultar); m70.addMouseListener(evtOcultar); m80.addMouseListener(evtOcultar);
+        btnTransacciones.addMouseListener(evtOcultar);
+        menuContab.addMouseListener(evtOcultar);
+        m20.addMouseListener(evtOcultar);
+        m30.addMouseListener(evtOcultar);
+        m40.addMouseListener(evtOcultar);
+        m50.addMouseListener(evtOcultar);
+        m60.addMouseListener(evtOcultar);
+        m70.addMouseListener(evtOcultar);
+        m80.addMouseListener(evtOcultar);
 
         // Acciones
-        iCtas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(), "Cátalogo de Cuentas")); 
+        iCtas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(), "Cátalogo de Cuentas"));
         iPolizas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Captura_Polizas(), "Captura de Pólizas"));
         iAux.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Auxiliar_Movimientos(), "Auxiliar de Movimientos"));
         iPolDia.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Poliza_Diario(), "Póliza de Diario"));
@@ -206,6 +245,7 @@ public class Dashboard extends javax.swing.JFrame {
         iCMes.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cierre_Mes(), "Cierre de Mes"));
         iCAnual.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cierre_Anual(), "Cierre Anual"));
         iAct.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Actualizacion_Saldo(), "Actualización de Saldos"));
+        iFel.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Actualización de Saldos"));
     }
 
     private void configurarMenuEscolar() {
@@ -217,6 +257,7 @@ public class Dashboard extends javax.swing.JFrame {
         javax.swing.JMenu m30 = new javax.swing.JMenu("30 Transacciones");
         javax.swing.JMenu m40 = new javax.swing.JMenu("40 Consultas");
         javax.swing.JMenu m50 = new javax.swing.JMenu("50 Reportes");
+        javax.swing.JMenu m80 = new javax.swing.JMenu("80 Utilerías"); // Nuevo Submenú
 
         // 10
         javax.swing.JMenuItem iCiclos = new javax.swing.JMenuItem("Ciclos Escolares");
@@ -224,14 +265,21 @@ public class Dashboard extends javax.swing.JFrame {
         javax.swing.JMenuItem iBecas = new javax.swing.JMenuItem("Registro de Becas y Convenios");
         javax.swing.JMenuItem iConEsc = new javax.swing.JMenuItem("Conceptos Escolares");
         javax.swing.JMenuItem iPlanes = new javax.swing.JMenuItem("Planes de Pago");
-        m10.add(iCiclos); m10.add(iGrados); m10.add(iBecas); m10.add(iConEsc); m10.add(iPlanes);
+        m10.add(iCiclos);
+        m10.add(iGrados);
+        m10.add(iBecas);
+        m10.add(iConEsc);
+        m10.add(iPlanes);
 
         // 20
         javax.swing.JMenuItem iCtasBan = new javax.swing.JMenuItem("Cuentas Bancarias");
         javax.swing.JMenuItem iTiposAl = new javax.swing.JMenuItem("Catalogo Tipos de Alumno");
         javax.swing.JMenuItem iCajeros = new javax.swing.JMenuItem("Catalogo de Cajeros");
         javax.swing.JMenuItem iAlumnos = new javax.swing.JMenuItem("Catalogo de Alumnos");
-        m20.add(iCtasBan); m20.add(iTiposAl); m20.add(iCajeros); m20.add(iAlumnos);
+        m20.add(iCtasBan);
+        m20.add(iTiposAl);
+        m20.add(iCajeros);
+        m20.add(iAlumnos);
 
         // 30
         javax.swing.JMenuItem iCobranza = new javax.swing.JMenuItem("Cobranza Escolar");
@@ -242,43 +290,83 @@ public class Dashboard extends javax.swing.JFrame {
         javax.swing.JMenuItem iCanRec = new javax.swing.JMenuItem("Cancelación de Recibos");
         javax.swing.JMenuItem iCanCorte = new javax.swing.JMenuItem("Cancela Contabilizacion de Corte de Caja");
         javax.swing.JMenuItem iCanDep = new javax.swing.JMenuItem("Cancela Contabilizacion de Reg Deposito");
-        m30.add(iCobranza); m30.add(iCorte); m30.add(iFacturas); m30.add(iDep); 
-        m30.add(iCanCon); m30.add(iCanRec); m30.add(iCanCorte); m30.add(iCanDep);
+        m30.add(iCobranza);
+        m30.add(iCorte);
+        m30.add(iFacturas);
+        m30.add(iDep);
+        m30.add(iCanCon);
+        m30.add(iCanRec);
+        m30.add(iCanCorte);
+        m30.add(iCanDep);
 
         // 40
         javax.swing.JMenuItem iEdoAl = new javax.swing.JMenuItem("Estado de Cuenta Alumnos");
         javax.swing.JMenuItem iConsPag = new javax.swing.JMenuItem("Consulta de Pagos");
         javax.swing.JMenuItem iEdoDet = new javax.swing.JMenuItem("Estado de Cuenta Detallado");
-        m40.add(iEdoAl); m40.add(iConsPag); m40.add(iEdoDet);
+        m40.add(iEdoAl);
+        m40.add(iConsPag);
+        m40.add(iEdoDet);
 
-        // 50
+        // 50 - Reportes
         javax.swing.JMenuItem iResIns = new javax.swing.JMenuItem("Resumen de Inscripciones");
         javax.swing.JMenuItem iResNoIns = new javax.swing.JMenuItem("Resumen de Alumnos No Inscritos");
         javax.swing.JMenuItem iReiRec = new javax.swing.JMenuItem("Reimpresión de Recibos");
         javax.swing.JMenuItem iReiFac = new javax.swing.JMenuItem("Reimpresión de Facturas");
         javax.swing.JMenuItem iResCon = new javax.swing.JMenuItem("Resumen de Conceptos Pagados");
         javax.swing.JMenuItem iDetCon = new javax.swing.JMenuItem("Detalle de Conceptos Pagados");
+        javax.swing.JMenuItem iAlumBec = new javax.swing.JMenuItem("Imprime Alumnos Becados"); // Agregado
         javax.swing.JMenuItem iIngPer = new javax.swing.JMenuItem("Ingresos por Periodo");
-        m50.add(iResIns); m50.add(iResNoIns); m50.add(iReiRec); m50.add(iReiFac); 
-        m50.add(iResCon); m50.add(iDetCon); m50.add(iIngPer);
+        m50.add(iResIns);
+        m50.add(iResNoIns);
+        m50.add(iReiRec);
+        m50.add(iReiFac);
+        m50.add(iResCon);
+        m50.add(iDetCon);
+        m50.add(iAlumBec);
+        m50.add(iIngPer);
 
-        menuEscolar.add(m10); menuEscolar.add(m20); menuEscolar.add(m30); menuEscolar.add(m40); menuEscolar.add(m50);
+        // 80 - Utilerías (Nuevo)
+        javax.swing.JMenuItem iProcRef = new javax.swing.JMenuItem("Procesa Referencias Bancarias BCM");
+        javax.swing.JMenuItem iIntBcm = new javax.swing.JMenuItem("Interfase Bancaria BCM");
+        javax.swing.JMenuItem iIntFel = new javax.swing.JMenuItem("Interfase Factura FEL");
+        javax.swing.JMenuItem iIntFelGlobal = new javax.swing.JMenuItem("Interfase Factura Global FEL");
+        javax.swing.JMenuItem iSubCla = new javax.swing.JMenuItem("Subclasificaciones");
+        m80.add(iProcRef);
+        m80.add(iIntBcm);
+        m80.add(iIntFel);
+        m80.add(iIntFelGlobal);
+        m80.add(iSubCla);
+
+        menuEscolar.add(m10);
+        menuEscolar.add(m20);
+        menuEscolar.add(m30);
+        menuEscolar.add(m40);
+        menuEscolar.add(m50);
+        menuEscolar.add(m80);
 
         btnEscolar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) { menuEscolar.show(btnEscolar, 0, btnEscolar.getHeight()); }
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                menuEscolar.show(btnEscolar, 0, btnEscolar.getHeight());
+            }
         });
 
         java.awt.event.MouseAdapter evtOcultar = crearEventoOcultar();
-        btnEscolar.addMouseListener(evtOcultar); menuEscolar.addMouseListener(evtOcultar);
-        m10.addMouseListener(evtOcultar); m20.addMouseListener(evtOcultar); m30.addMouseListener(evtOcultar); m40.addMouseListener(evtOcultar); m50.addMouseListener(evtOcultar);
+        btnEscolar.addMouseListener(evtOcultar);
+        menuEscolar.addMouseListener(evtOcultar);
+        m10.addMouseListener(evtOcultar);
+        m20.addMouseListener(evtOcultar);
+        m30.addMouseListener(evtOcultar);
+        m40.addMouseListener(evtOcultar);
+        m50.addMouseListener(evtOcultar);
+        m80.addMouseListener(evtOcultar);
 
-        // Acciones
+        // Acciones de Reportes
         iCiclos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Ciclos_Escolares(), "Ciclos Escolares"));
         iGrados.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Grados_Escolares(), "Grados Escolares"));
-        iBecas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Becas(), "Registro de Becas y Convenios"));
+        iBecas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Becas_Convenio(), "Registro de Becas y Convenios"));
         iConEsc.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
         iPlanes.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(), "Planes de Pago"));
-        
+
         iCtasBan.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas_Bancarias(), "Cuentas Bancarias"));
         iTiposAl.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Tipo_Alumno(), "Catalogo Tipos de Alumno"));
         iCajeros.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cajeros(), "Catalogo de Cajeros"));
@@ -293,7 +381,7 @@ public class Dashboard extends javax.swing.JFrame {
         iCanCorte.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Corte(), "Cancela Contabilizacion de Corte de Caja"));
         iCanDep.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Deposito(), "Cancela Contabilizacion de Reg Deposito"));
 
-        iEdoAl.addActionListener(e -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción...")); // FALTANTE
+        iEdoAl.addActionListener(e -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción..."));
         iConsPag.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Consulta_Pagos(), "Consulta de Pagos"));
         iEdoDet.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(), "Estado de Cuenta Detallado"));
 
@@ -303,7 +391,14 @@ public class Dashboard extends javax.swing.JFrame {
         iReiFac.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Reeimpresion_Facturas(), "Reimpresión de Facturas"));
         iResCon.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Conceptos_Pagados(), "Resumen de Conceptos Pagados"));
         iDetCon.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Detalle_Conceptos_Pagos(), "Detalle de Conceptos Pagados"));
+        iAlumBec.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Alumnos_Becados(), "Imprime Alumnos Becados")); // Acción nueva
         iIngPer.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Ingresos_Periodo(), "Ingresos por Periodo"));
+
+        // Acciones de Utilerías (Nuevas)
+        iProcRef.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Procesa_Referencias_Bancarias(), "Procesa Referencias Bancarias BCM"));
+        iIntBcm.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(), "Interfase Bancaria BCM"));
+        iIntFel.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Interfase Factura FEL"));
+        iIntFelGlobal.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL_Global(), "Interfase Factura Global FEL"));
     }
 
     private void configurarFechaYHora() {
@@ -341,6 +436,7 @@ public class Dashboard extends javax.swing.JFrame {
         // Iniciamos el reloj
         timerReloj.start();
     }
+
     private void configurarMensajeBienvenida() {
         // Obtenemos la hora actual de la computadora
         java.time.LocalTime horaActual = java.time.LocalTime.now();
@@ -359,62 +455,59 @@ public class Dashboard extends javax.swing.JFrame {
         // Actualizamos la etiqueta (lblMessage)
         lblMessage.setText(saludo + ", " + usuarioActual);
     }
-    
- 
 
-
-
-  private void initContent() {
+    private void initContent() {
         Principal pl = new Principal();
-        
+
         // 1. ELIMINAR el tamaño fijo y la posición. El Layout se encargará de esto.
         // pl.setSize(750,430); 
         // pl.setLocation(0, 0);
-        
         // 2. FORZAR a jpContainer a usar BorderLayout para que el panel se expanda
         jpContainer.setLayout(new java.awt.BorderLayout());
-        
+
         // 3. Limpiar, agregar en el CENTRO, y recargar la vista
         jpContainer.removeAll();
         jpContainer.add(pl, java.awt.BorderLayout.CENTER);
         jpContainer.revalidate();
         jpContainer.repaint();
-        
+
         mostrarPanel(pl, "Principal");
     }
-  
-  // Este método recibe cualquier JPanel y lo muestra en tu jpContainer
+
+    // Este método recibe cualquier JPanel y lo muestra en tu jpContainer
     private void mostrarPanel(javax.swing.JPanel p, String titulo) {
         jpContainer.removeAll();
         jpContainer.add(p, java.awt.BorderLayout.CENTER);
         jpContainer.revalidate();
         jpContainer.repaint();
-        
+
         lblTitleInfo.setText(titulo);
     }
-    
-   private void configurarBuscador() {
 
-   menuResultadosBusqueda.setFocusable(false);
+    private void configurarBuscador() {
+
+        menuResultadosBusqueda.setFocusable(false);
         opcionesSistema.clear(); // Limpiar por si acaso
 
         // --- GENERAL ---
         opcionesSistema.put("Catálogo de Compañías", () -> mostrarPanel(new com.mycompany.benaedu.views.Companias(), "Catálogo de Compañías"));
         opcionesSistema.put("Catálogo de Centros de Costo", () -> mostrarPanel(new com.mycompany.benaedu.views.Centros_costos(), "Catálogo de Centros de Costo"));
-        opcionesSistema.put("Parámetros por Compañía", () -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción..."));
-        opcionesSistema.put("Ejercicio Fiscal", () -> mostrarPanel(new com.mycompany.benaedu.views.Ejercicio_Fiscal(),"Ejercicio Fiscal"));
-        opcionesSistema.put("Catálogo de Empleados", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Empleados(),"Catálogo de Empleados"));
-        opcionesSistema.put("Direcciones de Entrega", () -> mostrarPanel(new com.mycompany.benaedu.views.Direcciones_Entrega(),"Direcciones de Entrega"));
-        opcionesSistema.put("Tabla de Clasificaciones", () -> mostrarPanel(new com.mycompany.benaedu.views.Clasificaciones(),"Tabla de Clasificaciones"));
-        opcionesSistema.put("Catálogo de Contactos", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos(),"Catálogo de Contactos"));
+        opcionesSistema.put("Parámetros por Compañía", () -> mostrarPanel(new com.mycompany.benaedu.views.Parametros_Compañia(), "Parametros por Compañia"));
+        opcionesSistema.put("Ejercicio Fiscal", () -> mostrarPanel(new com.mycompany.benaedu.views.Ejercicio_Fiscal(), "Ejercicio Fiscal"));
+        opcionesSistema.put("Catálogo de Empleados", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Empleados(), "Catálogo de Empleados"));
+        opcionesSistema.put("Direcciones de Entrega", () -> mostrarPanel(new com.mycompany.benaedu.views.Direcciones_Entrega(), "Direcciones de Entrega"));
+        opcionesSistema.put("Tabla de Clasificaciones", () -> mostrarPanel(new com.mycompany.benaedu.views.Clasificaciones(), "Tabla de Clasificaciones"));
+        opcionesSistema.put("Catálogo de Contactos", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos(), "Catálogo de Contactos"));
         opcionesSistema.put("Tipos de Cambio Diario", () -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Cambio_Diario(), "Tipos de Cambio Diario"));
         opcionesSistema.put("Condiciones de Pago", () -> mostrarPanel(new com.mycompany.benaedu.views.Condiciones_Pago(), "Condiciones de Pago"));
         opcionesSistema.put("Clave de Impuestos", () -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Impuestos(), "Clave de Impuestos"));
         opcionesSistema.put("Tipo de Cambio Mensual", () -> mostrarPanel(new com.mycompany.benaedu.views.Tipo_Cambio(), "Tipo de Cambio Mensual"));
         opcionesSistema.put("Convertir Unidad de Medida", () -> mostrarPanel(new com.mycompany.benaedu.views.Factores_Convercion_Unidad(), "Convertir Unidad de Medida"));
+        opcionesSistema.put("Subclasificaciones", () ->  mostrarPanel(new com.mycompany.benaedu.views.Subclasificaciones(), "Subclasificaciones"));
+
 
         // --- CONTABILIDAD ---
-        opcionesSistema.put("Catálogo de Cuentas", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(),"Catálogo de Cuentas"));
+        opcionesSistema.put("Catálogo de Cuentas", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(), "Catálogo de Cuentas"));
         opcionesSistema.put("Captura de Pólizas", () -> mostrarPanel(new com.mycompany.benaedu.views.Captura_Polizas(), "Captura de Pólizas"));
         opcionesSistema.put("Auxiliar de Movimientos", () -> mostrarPanel(new com.mycompany.benaedu.views.Auxiliar_Movimientos(), "Auxiliar de Movimientos"));
         opcionesSistema.put("Póliza de Diario", () -> mostrarPanel(new com.mycompany.benaedu.views.Poliza_Diario(), "Póliza de Diario"));
@@ -429,11 +522,12 @@ public class Dashboard extends javax.swing.JFrame {
         opcionesSistema.put("Cierre de Mes", () -> mostrarPanel(new com.mycompany.benaedu.views.Cierre_Mes(), "Cierre de Mes"));
         opcionesSistema.put("Cierre Anual", () -> mostrarPanel(new com.mycompany.benaedu.views.Cierre_Anual(), "Cierre Anual"));
         opcionesSistema.put("Actualización de Saldos", () -> mostrarPanel(new com.mycompany.benaedu.views.Actualizacion_Saldo(), "Actualización de Saldos"));
+        opcionesSistema.put("FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "FEL"));
 
         // --- ESCOLAR ---
         opcionesSistema.put("Ciclos Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Ciclos_Escolares(), "Ciclos Escolares"));
         opcionesSistema.put("Grados Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Grados_Escolares(), "Grados Escolares"));
-        opcionesSistema.put("Registro de Becas y Convenios", () -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Becas(), "Registro de Becas y Convenios"));
+        opcionesSistema.put("Registro de Becas y Convenios", () -> mostrarPanel(new com.mycompany.benaedu.views.Becas_Convenio(), "Registro de Becas y Convenios"));
         opcionesSistema.put("Conceptos Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
         opcionesSistema.put("Planes de Pago", () -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(), "Planes de Pago"));
         opcionesSistema.put("Cuentas Bancarias", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas_Bancarias(), "Cuentas Bancarias"));
@@ -458,174 +552,181 @@ public class Dashboard extends javax.swing.JFrame {
         opcionesSistema.put("Resumen de Conceptos Pagados", () -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Conceptos_Pagados(), "Resumen de Conceptos Pagados"));
         opcionesSistema.put("Detalle de Conceptos Pagados", () -> mostrarPanel(new com.mycompany.benaedu.views.Detalle_Conceptos_Pagos(), "Detalle de Conceptos Pagados"));
         opcionesSistema.put("Ingresos por Periodo", () -> mostrarPanel(new com.mycompany.benaedu.views.Ingresos_Periodo(), "Ingresos por Periodo"));
+        opcionesSistema.put("Imprime Alumnos Becados", () -> mostrarPanel(new com.mycompany.benaedu.views.Alumnos_Becados(), "Imprime Alumnos Becados"));
+        opcionesSistema.put("Procesa Referencias Bancarias BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Procesa_Referencias_Bancarias(), "Procesa Referencias Bancarias BCM"));
+        opcionesSistema.put("Interfase Bancaria BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(), "Interfase Bancaria BCM"));
+        opcionesSistema.put("Interfase Factura FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Interfase Factura FEL"));
+        opcionesSistema.put("Interfase Factura Global FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL_Global(), "Interfase Factura Global FEL"));
 
-    txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-        @Override
-        public void insertUpdate(javax.swing.event.DocumentEvent e) {
-            buscarOpciones(txtSearch.getText());
-        }
-
-        @Override
-        public void removeUpdate(javax.swing.event.DocumentEvent e) {
-            buscarOpciones(txtSearch.getText());
-        }
-
-        @Override
-        public void changedUpdate(javax.swing.event.DocumentEvent e) {
-            buscarOpciones(txtSearch.getText());
-        }
-    });
-
-    txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
-        @Override
-        public void keyPressed(java.awt.event.KeyEvent evt) {
-
-            int key = evt.getKeyCode();
-
-            if (key == java.awt.event.KeyEvent.VK_DOWN) {
-                evt.consume();
-
-                if (menuResultadosBusqueda.isVisible()
-                        && menuResultadosBusqueda.getComponentCount() > 0) {
-
-                    indiceSeleccionadoBusqueda++;
-
-                    if (indiceSeleccionadoBusqueda >= menuResultadosBusqueda.getComponentCount()) {
-                        indiceSeleccionadoBusqueda = 0;
-                    }
-
-                    seleccionarItemBusqueda(indiceSeleccionadoBusqueda);
-                }
+        txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                buscarOpciones(txtSearch.getText());
             }
 
-            if (key == java.awt.event.KeyEvent.VK_UP) {
-                evt.consume();
-
-                if (menuResultadosBusqueda.isVisible()
-                        && menuResultadosBusqueda.getComponentCount() > 0) {
-
-                    indiceSeleccionadoBusqueda--;
-
-                    if (indiceSeleccionadoBusqueda < 0) {
-                        indiceSeleccionadoBusqueda = menuResultadosBusqueda.getComponentCount() - 1;
-                    }
-
-                    seleccionarItemBusqueda(indiceSeleccionadoBusqueda);
-                }
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                buscarOpciones(txtSearch.getText());
             }
 
-            if (key == java.awt.event.KeyEvent.VK_ENTER) {
-                evt.consume();
-
-                if (menuResultadosBusqueda.isVisible()
-                        && menuResultadosBusqueda.getComponentCount() > 0) {
-
-                    if (indiceSeleccionadoBusqueda < 0) {
-                        indiceSeleccionadoBusqueda = 0;
-                    }
-
-                    java.awt.Component comp = menuResultadosBusqueda.getComponent(indiceSeleccionadoBusqueda);
-
-                    if (comp instanceof javax.swing.JMenuItem item) {
-                        item.doClick();
-                    }
-                }
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                buscarOpciones(txtSearch.getText());
             }
-
-            if (key == java.awt.event.KeyEvent.VK_ESCAPE) {
-                menuResultadosBusqueda.setVisible(false);
-                indiceSeleccionadoBusqueda = -1;
-            }
-        }
-    });
-}
-private void buscarOpciones(String texto) {
-    // 1. Ocultamos y limpiamos el menú para reconstruirlo desde cero y evitar huecos
-    menuResultadosBusqueda.setVisible(false);
-    menuResultadosBusqueda.removeAll();
-    indiceSeleccionadoBusqueda = -1;
-
-    texto = texto.trim();
-
-    if (texto.isEmpty()) {
-        return; // Si no hay texto, se queda oculto
-    }
-
-    String textoBusqueda = texto.toLowerCase();
-    int coincidencias = 0;
-
-    for (java.util.Map.Entry<String, Runnable> opcion : opcionesSistema.entrySet()) {
-        String nombreOpcion = opcion.getKey();
-
-        if (nombreOpcion.toLowerCase().contains(textoBusqueda)) {
-            javax.swing.JMenuItem itemResultado = new javax.swing.JMenuItem(nombreOpcion);
-            itemResultado.setFocusable(false);
-            
-            // Le damos un pequeño margen para que no se vea amontonado
-            itemResultado.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 10));
-
-            itemResultado.addActionListener(e -> {
-                opcion.getValue().run();
-                txtSearch.setText("");
-                menuResultadosBusqueda.setVisible(false);
-                indiceSeleccionadoBusqueda = -1;
-
-                javax.swing.SwingUtilities.invokeLater(() -> {
-                    txtSearch.requestFocusInWindow();
-                });
-            });
-
-            menuResultadosBusqueda.add(itemResultado);
-            coincidencias++;
-            
-            // TRUCO 1: Limitamos a 8 resultados máximo para que el menú no crezca 
-            // tanto que Java decida voltearlo hacia arriba tapando tu buscador.
-            if (coincidencias >= 8) {
-                break; 
-            }
-        }
-    }
-
-    if (coincidencias > 0) {
-        // TRUCO 2: pack() obliga al menú a encogerse al tamaño exacto de sus items.
-        // Esto elimina todo el espacio en blanco gigante que tenías.
-        menuResultadosBusqueda.pack(); 
-        
-        // TRUCO 3: Obligamos al menú a tener el mismo ancho exacto que la barra de búsqueda txtSearch
-        menuResultadosBusqueda.setPopupSize(txtSearch.getWidth(), menuResultadosBusqueda.getPreferredSize().height);
-
-        // Mostramos el menú 2 pixeles por debajo del buscador para que no lo tape
-        menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight() + 2);
-
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            txtSearch.requestFocusInWindow();
         });
 
-    } else {
-        menuResultadosBusqueda.setVisible(false);
+        txtSearch.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+
+                int key = evt.getKeyCode();
+
+                if (key == java.awt.event.KeyEvent.VK_DOWN) {
+                    evt.consume();
+
+                    if (menuResultadosBusqueda.isVisible()
+                            && menuResultadosBusqueda.getComponentCount() > 0) {
+
+                        indiceSeleccionadoBusqueda++;
+
+                        if (indiceSeleccionadoBusqueda >= menuResultadosBusqueda.getComponentCount()) {
+                            indiceSeleccionadoBusqueda = 0;
+                        }
+
+                        seleccionarItemBusqueda(indiceSeleccionadoBusqueda);
+                    }
+                }
+
+                if (key == java.awt.event.KeyEvent.VK_UP) {
+                    evt.consume();
+
+                    if (menuResultadosBusqueda.isVisible()
+                            && menuResultadosBusqueda.getComponentCount() > 0) {
+
+                        indiceSeleccionadoBusqueda--;
+
+                        if (indiceSeleccionadoBusqueda < 0) {
+                            indiceSeleccionadoBusqueda = menuResultadosBusqueda.getComponentCount() - 1;
+                        }
+
+                        seleccionarItemBusqueda(indiceSeleccionadoBusqueda);
+                    }
+                }
+
+                if (key == java.awt.event.KeyEvent.VK_ENTER) {
+                    evt.consume();
+
+                    if (menuResultadosBusqueda.isVisible()
+                            && menuResultadosBusqueda.getComponentCount() > 0) {
+
+                        if (indiceSeleccionadoBusqueda < 0) {
+                            indiceSeleccionadoBusqueda = 0;
+                        }
+
+                        java.awt.Component comp = menuResultadosBusqueda.getComponent(indiceSeleccionadoBusqueda);
+
+                        if (comp instanceof javax.swing.JMenuItem item) {
+                            item.doClick();
+                        }
+                    }
+                }
+
+                if (key == java.awt.event.KeyEvent.VK_ESCAPE) {
+                    menuResultadosBusqueda.setVisible(false);
+                    indiceSeleccionadoBusqueda = -1;
+                }
+            }
+        });
     }
-}
- 
- private void seleccionarItemBusqueda(int indice) {
 
-    for (int i = 0; i < menuResultadosBusqueda.getComponentCount(); i++) {
+    private void buscarOpciones(String texto) {
+        // 1. Ocultamos y limpiamos el menú para reconstruirlo desde cero y evitar huecos
+        menuResultadosBusqueda.setVisible(false);
+        menuResultadosBusqueda.removeAll();
+        indiceSeleccionadoBusqueda = -1;
 
-        java.awt.Component comp = menuResultadosBusqueda.getComponent(i);
+        texto = texto.trim();
 
-        if (comp instanceof javax.swing.JMenuItem item) {
+        if (texto.isEmpty()) {
+            return; // Si no hay texto, se queda oculto
+        }
 
-            if (i == indice) {
-                item.setArmed(true);
-                item.setBackground(new java.awt.Color(95, 143, 255));
-                item.setForeground(java.awt.Color.WHITE);
-            } else {
-                item.setArmed(false);
-                item.setBackground(java.awt.Color.WHITE);
-                item.setForeground(java.awt.Color.BLACK);
+        String textoBusqueda = texto.toLowerCase();
+        int coincidencias = 0;
+
+        for (java.util.Map.Entry<String, Runnable> opcion : opcionesSistema.entrySet()) {
+            String nombreOpcion = opcion.getKey();
+
+            if (nombreOpcion.toLowerCase().contains(textoBusqueda)) {
+                javax.swing.JMenuItem itemResultado = new javax.swing.JMenuItem(nombreOpcion);
+                itemResultado.setFocusable(false);
+
+                // Le damos un pequeño margen para que no se vea amontonado
+                itemResultado.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+                itemResultado.addActionListener(e -> {
+                    opcion.getValue().run();
+                    txtSearch.setText("");
+                    menuResultadosBusqueda.setVisible(false);
+                    indiceSeleccionadoBusqueda = -1;
+
+                    javax.swing.SwingUtilities.invokeLater(() -> {
+                        txtSearch.requestFocusInWindow();
+                    });
+                });
+
+                menuResultadosBusqueda.add(itemResultado);
+                coincidencias++;
+
+                // TRUCO 1: Limitamos a 8 resultados máximo para que el menú no crezca 
+                // tanto que Java decida voltearlo hacia arriba tapando tu buscador.
+                if (coincidencias >= 8) {
+                    break;
+                }
+            }
+        }
+
+        if (coincidencias > 0) {
+            // TRUCO 2: pack() obliga al menú a encogerse al tamaño exacto de sus items.
+            // Esto elimina todo el espacio en blanco gigante que tenías.
+            menuResultadosBusqueda.pack();
+
+            // TRUCO 3: Obligamos al menú a tener el mismo ancho exacto que la barra de búsqueda txtSearch
+            menuResultadosBusqueda.setPopupSize(txtSearch.getWidth(), menuResultadosBusqueda.getPreferredSize().height);
+
+            // Mostramos el menú 2 pixeles por debajo del buscador para que no lo tape
+            menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight() + 2);
+
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                txtSearch.requestFocusInWindow();
+            });
+
+        } else {
+            menuResultadosBusqueda.setVisible(false);
+        }
+    }
+
+    private void seleccionarItemBusqueda(int indice) {
+
+        for (int i = 0; i < menuResultadosBusqueda.getComponentCount(); i++) {
+
+            java.awt.Component comp = menuResultadosBusqueda.getComponent(i);
+
+            if (comp instanceof javax.swing.JMenuItem item) {
+
+                if (i == indice) {
+                    item.setArmed(true);
+                    item.setBackground(new java.awt.Color(95, 143, 255));
+                    item.setForeground(java.awt.Color.WHITE);
+                } else {
+                    item.setArmed(false);
+                    item.setBackground(java.awt.Color.WHITE);
+                    item.setForeground(java.awt.Color.BLACK);
+                }
             }
         }
     }
-}
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -895,6 +996,7 @@ private void buscarOpciones(String texto) {
             }
         };
     }
+
     /**
      * @param args the command line arguments
      */

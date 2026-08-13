@@ -20,6 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.JTable;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 /**
@@ -117,7 +119,15 @@ private void cargarTablaCuentas() {
             new String [] {
                 "Compañia", "Cuenta Contable", "Descripcion", "Banco", "Cuenta Bancaria", "Cheque Sig.", "Moneda", "Usuario Mod.", "Fecha Mod.", "Hora Mod."
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jScrollPane1.setViewportView(tblCCBancarias);
 
         javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
@@ -216,6 +226,83 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL PARA REUTILIZAR EL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    javax.swing.table.DefaultTableModel mod = new javax.swing.table.DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    javax.swing.JTable tabla = new javax.swing.JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(100);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(220);
+
+                    javax.swing.table.TableRowSorter<javax.swing.table.DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(340, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA LOS BUSCADORES ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        // Filtros y consultas según los requerimientos
+        Object[][] dCtaContable = cargarDatos.apply("SELECT CCTA, CDES FROM tmctas WHERE CCTA NOT LIKE 'MODEL%' ORDER BY CCTA");
+        Object[][] dBanco = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'BCOS' ORDER BY CVE");
+        Object[][] dMoneda = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TMON' ORDER BY CVE");
+        Object[][] dAplicaA = cargarDatos.apply("SELECT CVE, DES1 FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400', '12500') ORDER BY CVE");
+
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblCia = new JLabel("Compañía");
         lblCia.setBounds(20, 15, 100, 25);
@@ -224,40 +311,56 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
         lblCiaDesc.setBounds(210, 15, 250, 25);
 
+        // Buscador Cuenta Contable
         JLabel lblCtaContable = new JLabel("Cuenta Contable");
         lblCtaContable.setBounds(20, 45, 100, 25);
-        JComboBox<String> cmbCtaContable = new JComboBox<>(new String[]{"12-1010201-013", "12-1010201-014", ""});
-        cmbCtaContable.setEditable(true); 
-        cmbCtaContable.setBounds(130, 45, 130, 25);
-        JLabel lblCtaDesc = new JLabel("");
-        lblCtaDesc.setBounds(270, 45, 250, 25);
+        JTextField txtCtaContable = new JTextField();
+        txtCtaContable.setBounds(130, 45, 110, 25);
+        JButton btnCtaContable = new JButton("▼");
+        btnCtaContable.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCtaContable.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCtaContable.setBounds(240, 45, 20, 25);
+        JTextField txtCtaDesc = new JTextField();
+        txtCtaDesc.setBounds(265, 45, 255, 25);
+        txtCtaDesc.setEditable(false); txtCtaDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtCtaContable, txtCtaDesc, btnCtaContable, dCtaContable);
 
         // Bloqueamos llaves primarias en edición
         if (modoEdicion) {
             cmbCia.setEnabled(false);
-            cmbCtaContable.setEnabled(false);
+            txtCtaContable.setEditable(false);
+            btnCtaContable.setEnabled(false);
         }
 
         dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
-        dialogo.add(lblCtaContable); dialogo.add(cmbCtaContable); dialogo.add(lblCtaDesc);
+        dialogo.add(lblCtaContable); dialogo.add(txtCtaContable); dialogo.add(btnCtaContable); dialogo.add(txtCtaDesc);
 
         // --- 2. PESTAÑAS (TABS) ---
         JTabbedPane pestanas = new JTabbedPane();
-        pestanas.setBounds(15, 90, 500, 330);
+        pestanas.setBounds(15, 90, 505, 330);
 
+        // ==========================================
+        // >> PESTAÑA 1: DATOS GENERALES
+        // ==========================================
         JPanel pnlGenerales = new JPanel(null);
 
-        // >> Marco: Información de Cuenta
         JPanel pnlInfo = new JPanel(null);
         pnlInfo.setBorder(BorderFactory.createTitledBorder("Información de Cuenta"));
-        pnlInfo.setBounds(10, 10, 475, 180);
+        pnlInfo.setBounds(10, 10, 480, 180);
 
+        // Buscador Banco
         JLabel lblBanco = new JLabel("Banco");
         lblBanco.setBounds(20, 25, 100, 25);
-        JComboBox<String> cmbBanco = new JComboBox<>(new String[]{"BCM", "AFI", "SAN"});
-        cmbBanco.setBounds(130, 25, 70, 25);
-        JLabel lblBancoDesc = new JLabel("BANCO");
-        lblBancoDesc.setBounds(210, 25, 200, 25);
+        JTextField txtBanco = new JTextField();
+        txtBanco.setBounds(130, 25, 50, 25);
+        JButton btnBanco = new JButton("▼");
+        btnBanco.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnBanco.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnBanco.setBounds(180, 25, 20, 25);
+        JTextField txtBancoDesc = new JTextField();
+        txtBancoDesc.setBounds(205, 25, 260, 25);
+        txtBancoDesc.setEditable(false); txtBancoDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtBanco, txtBancoDesc, btnBanco, dBanco);
 
         JLabel lblCtaBan = new JLabel("Cuenta Bancaria");
         lblCtaBan.setBounds(20, 60, 100, 25);
@@ -274,21 +377,29 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         JTextField txtCheque = new JTextField("0");
         txtCheque.setBounds(130, 135, 80, 25);
 
+        // Buscador Moneda
         JLabel lblMoneda = new JLabel("Moneda");
-        lblMoneda.setBounds(310, 135, 60, 25);
-        JComboBox<String> cmbMoneda = new JComboBox<>(new String[]{"MXP", "USD"});
-        cmbMoneda.setBounds(370, 135, 80, 25);
+        lblMoneda.setBounds(225, 135, 50, 25);
+        JTextField txtMoneda = new JTextField();
+        txtMoneda.setBounds(280, 135, 45, 25);
+        JButton btnMoneda = new JButton("▼");
+        btnMoneda.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnMoneda.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnMoneda.setBounds(325, 135, 20, 25);
+        JTextField txtMonedaDesc = new JTextField();
+        txtMonedaDesc.setBounds(350, 135, 115, 25);
+        txtMonedaDesc.setEditable(false); txtMonedaDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtMoneda, txtMonedaDesc, btnMoneda, dMoneda);
 
-        pnlInfo.add(lblBanco); pnlInfo.add(cmbBanco); pnlInfo.add(lblBancoDesc);
+        pnlInfo.add(lblBanco); pnlInfo.add(txtBanco); pnlInfo.add(btnBanco); pnlInfo.add(txtBancoDesc);
         pnlInfo.add(lblCtaBan); pnlInfo.add(txtCtaBan);
         pnlInfo.add(lblSucursal); pnlInfo.add(txtSucursal);
         pnlInfo.add(lblCheque); pnlInfo.add(txtCheque);
-        pnlInfo.add(lblMoneda); pnlInfo.add(cmbMoneda);
+        pnlInfo.add(lblMoneda); pnlInfo.add(txtMoneda); pnlInfo.add(btnMoneda); pnlInfo.add(txtMonedaDesc);
 
-        // >> Marco: Formato
         JPanel pnlFormato = new JPanel(null);
         pnlFormato.setBorder(BorderFactory.createTitledBorder("Formato"));
-        pnlFormato.setBounds(10, 200, 475, 80);
+        pnlFormato.setBounds(10, 200, 480, 80);
 
         JLabel lblFormato = new JLabel("Formato de Cheque");
         lblFormato.setBounds(20, 30, 120, 25);
@@ -302,8 +413,60 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
         pnlGenerales.add(pnlInfo);
         pnlGenerales.add(pnlFormato);
 
+        // ==========================================
+        // >> PESTAÑA 2: CONTRATOS Y/O CONVENIOS
+        // ==========================================
+        JPanel pnlContratos = new JPanel(null);
+        
+        JPanel pnlCapturaContrato = new JPanel(null);
+        pnlCapturaContrato.setBorder(BorderFactory.createEtchedBorder());
+        pnlCapturaContrato.setBounds(10, 10, 480, 280);
+
+        // Títulos de columnas
+        JLabel lblSec = new JLabel("Sec"); lblSec.setBounds(10, 10, 30, 20);
+        JLabel lblContrato = new JLabel("Contrato o Convenio"); lblContrato.setBounds(50, 10, 120, 20);
+        JLabel lblAplica = new JLabel("Aplica a"); lblAplica.setBounds(180, 10, 80, 20);
+        
+        pnlCapturaContrato.add(lblSec); pnlCapturaContrato.add(lblContrato); pnlCapturaContrato.add(lblAplica);
+
+        // Cajas de entrada
+        JTextField txtSec = new JTextField(); txtSec.setBounds(10, 30, 35, 25);
+        JComboBox<String> cmbContrato = new JComboBox<>(new String[]{"", "CONTRATO 1", "CONVENIO A"}); cmbContrato.setEditable(true);
+        cmbContrato.setBounds(50, 30, 120, 25);
+        
+        // Buscador Aplica a (Centro de Costos)
+        JTextField txtAplicaCC = new JTextField();
+        txtAplicaCC.setBounds(175, 30, 50, 25);
+        JButton btnAplicaCC = new JButton("▼");
+        btnAplicaCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnAplicaCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnAplicaCC.setBounds(225, 30, 20, 25);
+        JTextField txtAplicaDesc = new JTextField();
+        txtAplicaDesc.setBounds(250, 30, 160, 25);
+        txtAplicaDesc.setEditable(false); txtAplicaDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtAplicaCC, txtAplicaDesc, btnAplicaCC, dAplicaA);
+        
+        JButton btnOkContrato = new JButton("OK"); btnOkContrato.setBounds(415, 30, 50, 25);
+
+        pnlCapturaContrato.add(txtSec); pnlCapturaContrato.add(cmbContrato); 
+        pnlCapturaContrato.add(txtAplicaCC); pnlCapturaContrato.add(btnAplicaCC); pnlCapturaContrato.add(txtAplicaDesc); 
+        pnlCapturaContrato.add(btnOkContrato);
+
+        // Tabla interna de contratos
+        DefaultTableModel modContratos = new DefaultTableModel(new Object[][]{}, new String[]{"Sec", "Contrato", "Ctro Ctos", "Descripción"}) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        JTable tblContratos = new JTable(modContratos);
+        JScrollPane scrollContratos = new JScrollPane(tblContratos);
+        scrollContratos.setBounds(10, 65, 460, 200);
+        
+        pnlCapturaContrato.add(scrollContratos);
+        pnlContratos.add(pnlCapturaContrato);
+
+        // Añadir pestañas
         pestanas.addTab("Datos Generales", pnlGenerales);
-        pestanas.addTab("Contratos y/o Convenios", new JPanel()); 
+        pestanas.addTab("Contratos y/o Convenios", pnlContratos); 
 
         dialogo.add(pestanas);
 
@@ -324,13 +487,12 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
             String ctaContable = tblCCBancarias.getValueAt(fila, 1) != null ? tblCCBancarias.getValueAt(fila, 1).toString() : "";
             
             cmbCia.setSelectedItem(cia);
-            cmbCtaContable.setSelectedItem(ctaContable);
-            cmbBanco.setSelectedItem(tblCCBancarias.getValueAt(fila, 3) != null ? tblCCBancarias.getValueAt(fila, 3).toString() : "");
+            txtCtaContable.setText(ctaContable);
+            txtBanco.setText(tblCCBancarias.getValueAt(fila, 3) != null ? tblCCBancarias.getValueAt(fila, 3).toString() : "");
             txtCtaBan.setText(tblCCBancarias.getValueAt(fila, 4) != null ? tblCCBancarias.getValueAt(fila, 4).toString() : "");
             txtCheque.setText(tblCCBancarias.getValueAt(fila, 5) != null ? tblCCBancarias.getValueAt(fila, 5).toString() : "0");
-            cmbMoneda.setSelectedItem(tblCCBancarias.getValueAt(fila, 6) != null ? tblCCBancarias.getValueAt(fila, 6).toString() : "");
+            txtMoneda.setText(tblCCBancarias.getValueAt(fila, 6) != null ? tblCCBancarias.getValueAt(fila, 6).toString() : "");
 
-            // Buscamos los datos extra (Sucursal y Formato) directo en la BD
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
@@ -343,24 +505,58 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
                         txtSucursal.setText(rs.getString("SBAN") != null ? rs.getString("SBAN") : "");
                         cmbFormato.setSelectedItem(rs.getString("TFIC") != null ? rs.getString("TFIC") : "");
                     }
-                    rs.close(); ps.close(); db.Cerrar();
+                    rs.close(); ps.close();
+
+                    // Cargar descripciones para los buscadores
+                    try {
+                        PreparedStatement p1 = con.prepareStatement("SELECT CDES FROM tmctas WHERE CCTA=?");
+                        p1.setString(1, txtCtaContable.getText()); ResultSet r1 = p1.executeQuery();
+                        if(r1.next()) txtCtaDesc.setText(r1.getString("CDES")); r1.close(); p1.close();
+
+                        PreparedStatement p2 = con.prepareStatement("SELECT DES FROM tmclas WHERE TBL='BCOS' AND CVE=?");
+                        p2.setString(1, txtBanco.getText()); ResultSet r2 = p2.executeQuery();
+                        if(r2.next()) txtBancoDesc.setText(r2.getString("DES")); r2.close(); p2.close();
+
+                        PreparedStatement p3 = con.prepareStatement("SELECT DES FROM tmclas WHERE TBL='TMON' AND CVE=?");
+                        p3.setString(1, txtMoneda.getText()); ResultSet r3 = p3.executeQuery();
+                        if(r3.next()) txtMonedaDesc.setText(r3.getString("DES")); r3.close(); p3.close();
+                    } catch(Exception ignored) {}
+
+                    db.Cerrar();
                 }
-            } catch (Exception e) {
-                // Ignorar si no se pudieron cargar los datos adicionales
-            }
+            } catch (Exception e) {}
         }
 
         // --- 5. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
+        // Evento para el botón OK de Contratos
+        btnOkContrato.addActionListener(e -> {
+            String sec = txtSec.getText().trim();
+            String contrato = cmbContrato.getSelectedItem() != null ? cmbContrato.getSelectedItem().toString().trim() : "";
+            String ctroCtos = txtAplicaCC.getText().trim();
+            String desc = txtAplicaDesc.getText().trim();
+
+            if (!sec.isEmpty() && !contrato.isEmpty()) {
+                modContratos.addRow(new Object[]{sec, contrato, ctroCtos, desc});
+                // Limpiamos los campos
+                txtSec.setText("");
+                cmbContrato.setSelectedIndex(0);
+                txtAplicaCC.setText("");
+                txtAplicaDesc.setText("");
+            } else {
+                JOptionPane.showMessageDialog(dialogo, "La secuencia (Sec) y el Contrato son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
         btnAceptar.addActionListener(e -> {
             String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
-            String ctaContable = cmbCtaContable.getSelectedItem() != null ? cmbCtaContable.getSelectedItem().toString() : "";
-            String banco = cmbBanco.getSelectedItem() != null ? cmbBanco.getSelectedItem().toString() : "";
+            String ctaContable = txtCtaContable.getText().trim();
+            String banco = txtBanco.getText().trim();
             String ctaBan = txtCtaBan.getText().trim();
             String sucursal = txtSucursal.getText().trim();
             String cheque = txtCheque.getText().trim().isEmpty() ? "0" : txtCheque.getText().trim();
-            String moneda = cmbMoneda.getSelectedItem() != null ? cmbMoneda.getSelectedItem().toString() : "";
+            String moneda = txtMoneda.getText().trim();
             String formato = cmbFormato.getSelectedItem() != null ? cmbFormato.getSelectedItem().toString() : "";
 
             if (cia.isEmpty() || ctaContable.isEmpty() || ctaBan.isEmpty()) {
@@ -375,7 +571,6 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
                     PreparedStatement ps;
                     
                     if (modoEdicion) {
-                        // UPDATE 
                         String sql = "UPDATE tmcban SET CBCO=?, CBAN=?, SBAN=?, CSIG=?, CMON=?, TFIC=? WHERE CIA=? AND CCTA=?";
                         ps = con.prepareStatement(sql);
                         ps.setString(1, banco);
@@ -387,7 +582,6 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
                         ps.setString(7, cia);
                         ps.setString(8, ctaContable);
                     } else {
-                        // INSERT
                         String sql = "INSERT INTO tmcban (CIA, CCTA, CBCO, CBAN, SBAN, CSIG, CMON, TFIC) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                         ps = con.prepareStatement(sql);
                         ps.setString(1, cia);

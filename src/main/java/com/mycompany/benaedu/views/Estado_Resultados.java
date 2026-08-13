@@ -5,6 +5,8 @@
 package com.mycompany.benaedu.views;
 import com.mycompany.benaedu.db.ConDB;
 import java.awt.Window;
+import java.io.File;
+import java.io.FileWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +16,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -34,18 +37,456 @@ public class Estado_Resultados extends javax.swing.JPanel {
      */
     public Estado_Resultados() {
         initComponents();
+         construirInterfazEstadoResultados();
     }
-private void configurarTablaBitacora() {
-        DefaultTableModel modelo = new DefaultTableModel(
-            new Object[][] {}, 
-            new String[] {"Fecha Consulta", "Año/Periodo", "Nivel", "Detalle CC", "Usuario"}
-        ) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false; 
+private void construirInterfazEstadoResultados() {
+        this.removeAll();
+        this.setLayout(null);
+        this.setBackground(new java.awt.Color(255, 255, 255));
+
+        // --- CLASE LOCAL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos, String[] columnas, int[] anchos) {
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    DefaultTableModel mod = new DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    JTable tabla = new JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    for (int i = 0; i < anchos.length; i++) {
+                        tabla.getColumnModel().getColumn(i).setPreferredWidth(anchos[i]);
+                    }
+
+                    javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null && mod.getColumnCount() >= 2) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    
+                    int widthTotal = 0; for(int w : anchos) widthTotal += w;
+                    JScrollPane scroll = new JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(widthTotal + 20, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
             }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        java.util.function.BiFunction<String, Integer, Object[][]> cargarDatosMultiple = (query, numCols) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) {
+                        Object[] row = new Object[numCols];
+                        for(int i=0; i<numCols; i++) row[i] = rs.getString(i+1);
+                        lista.add(row);
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
         };
-        tblEResultados.setModel(modelo);
+
+        Object[][] dContab = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TCONT' ORDER BY CVE", 2);
+
+        // --- PANEL DE FILTROS SUPERIOR ---
+        JPanel pnlSel = new JPanel(null);
+        pnlSel.setBorder(BorderFactory.createEtchedBorder());
+        pnlSel.setBounds(10, 10, 915, 140);
+
+        pnlSel.add(new JLabel("Compañía")).setBounds(20, 15, 80, 25);
+        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        cmbCia.setBounds(100, 15, 60, 25);
+        JLabel lblCiaDesc = new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.");
+        lblCiaDesc.setBounds(170, 15, 250, 25);
+
+        try {
+            ConDB db = new ConDB();
+            Connection con = db.Conectar();
+            if (con != null) {
+                ResultSet rsCia = con.prepareStatement("SELECT CIA, NCIA FROM tmcias ORDER BY CIA").executeQuery();
+                if(rsCia.next()) {
+                    cmbCia.removeAllItems();
+                    cmbCia.addItem(rsCia.getString("CIA"));
+                    lblCiaDesc.setText(rsCia.getString("NCIA"));
+                }
+                rsCia.close(); db.Cerrar();
+            }
+        } catch (Exception ex) {}
+
+        pnlSel.add(cmbCia); pnlSel.add(lblCiaDesc);
+
+        pnlSel.add(new JLabel("Año")).setBounds(20, 50, 50, 25);
+        JTextField txtAno = new JTextField("2026"); txtAno.setBounds(100, 50, 60, 25);
+        pnlSel.add(txtAno);
+
+        pnlSel.add(new JLabel("Período")).setBounds(180, 50, 50, 25);
+        JTextField txtPeriodo = new JTextField("6"); txtPeriodo.setBounds(230, 50, 50, 25);
+        pnlSel.add(txtPeriodo);
+
+        pnlSel.add(new JLabel("Tipo Contab.")).setBounds(300, 50, 80, 25);
+        JTextField txtContab = new JTextField("MN"); txtContab.setBounds(380, 50, 50, 25);
+        JButton btnContab = new JButton("▼"); btnContab.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnContab.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnContab.setBounds(430, 50, 20, 25);
+        buscador.configurar(txtContab, null, btnContab, dContab, new String[]{"Clave", "Descripción"}, new int[]{60, 200});
+        pnlSel.add(txtContab); pnlSel.add(btnContab);
+
+        // Nivel RadioButtons
+        pnlSel.add(new JLabel("Nivel")).setBounds(20, 90, 50, 25);
+        ButtonGroup bgNivel = new ButtonGroup();
+        JRadioButton[] rbsNivel = new JRadioButton[10];
+        int xPosNivel = 70;
+        for (int i = 1; i <= 9; i++) {
+            rbsNivel[i] = new JRadioButton(String.valueOf(i));
+            if (i == 9) rbsNivel[i].setSelected(true);
+            rbsNivel[i].setBounds(xPosNivel, 90, 40, 25);
+            bgNivel.add(rbsNivel[i]);
+            pnlSel.add(rbsNivel[i]);
+            xPosNivel += 45;
+        }
+
+        JCheckBox chkDetalleCC = new JCheckBox("Ver Detalle por Centro de Costo");
+        chkDetalleCC.setBounds(500, 15, 220, 25);
+        pnlSel.add(chkDetalleCC);
+
+        JCheckBox chkCeros = new JCheckBox("Incluir Cuentas en Ceros");
+        chkCeros.setBounds(500, 45, 200, 25);
+        pnlSel.add(chkCeros);
+
+        JButton btnFiltra = new JButton("Filtrar Información");
+        btnFiltra.setBounds(730, 90, 165, 35);
+        pnlSel.add(btnFiltra);
+
+        this.add(pnlSel);
+
+        // --- TABLA DE ESTADO DE RESULTADOS ---
+        DefaultTableModel modResultados = new DefaultTableModel(
+            new Object[][]{}, 
+            new String[]{"Clave / Rubro", "Descripción de Cuenta / Agrupador", "Importe Mes", "% Mes", "Acumulado Año", "% Acum"}
+        ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
+
+        JTable tblResultados = new JTable(modResultados);
+        tblResultados.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tblResultados.getColumnModel().getColumn(0).setPreferredWidth(120);
+        tblResultados.getColumnModel().getColumn(1).setPreferredWidth(360);
+        tblResultados.getColumnModel().getColumn(2).setPreferredWidth(110);
+        tblResultados.getColumnModel().getColumn(3).setPreferredWidth(70);
+        tblResultados.getColumnModel().getColumn(4).setPreferredWidth(120);
+        tblResultados.getColumnModel().getColumn(5).setPreferredWidth(70);
+
+        JPanel pnlTabla = new JPanel(null);
+        pnlTabla.setBorder(BorderFactory.createEtchedBorder());
+        pnlTabla.setBounds(10, 160, 915, 390);
+
+        JScrollPane scrollResultados = new JScrollPane(tblResultados);
+        scrollResultados.setBounds(10, 10, 895, 370);
+        pnlTabla.add(scrollResultados);
+
+        this.add(pnlTabla);
+
+        // --- BOTONES INFERIORES ---
+        JButton btnExportar = new JButton("Exportar CSV");
+        btnExportar.setBounds(340, 560, 110, 35);
+        JButton btnImprimir = new JButton("Imprimir");
+        btnImprimir.setBounds(460, 560, 110, 35);
+
+        this.add(btnExportar);
+        this.add(btnImprimir);
+
+        // --- LÓGICA DE CONSULTA Y CÁLCULO ---
+        btnFiltra.addActionListener(e -> {
+            modResultados.setRowCount(0);
+
+            String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "12";
+            String ano = txtAno.getText().trim();
+            String periodoStr = txtPeriodo.getText().trim();
+            String contab = txtContab.getText().trim();
+            boolean inclCeros = chkCeros.isSelected();
+
+            int periodo = 1;
+            try { periodo = Integer.parseInt(periodoStr); } catch(Exception ex) {}
+
+            int nivelSeleccionado = 9;
+            for (int i = 1; i <= 9; i++) {
+                if (rbsNivel[i].isSelected()) { nivelSeleccionado = i; break; }
+            }
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    String colMesActual = String.format("MN%02d", periodo);
+
+                    StringBuilder sumAcumulado = new StringBuilder();
+                    for (int m = 1; m <= periodo; m++) {
+                        sumAcumulado.append(m == 1 ? "" : " + ").append(String.format("s.MN%02d", m));
+                    }
+
+                    // 1. Obtener los Rubros de tgrub para agrupar el Estado de Resultados
+                    String sqlRubros = "SELECT RUB, DRUB, COBJI, COBJF FROM tgrub ORDER BY RUB ASC";
+                    PreparedStatement psRub = con.prepareStatement(sqlRubros);
+                    ResultSet rsRub = psRub.executeQuery();
+
+                    java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
+                    java.text.DecimalFormat dfPorc = new java.text.DecimalFormat("0.00%");
+
+                    double totalVentasMes = 0.0;
+                    double totalVentasAcum = 0.0;
+
+                    // Primero obtenemos las ventas base para calcular porcentajes relacionales
+                    String sqlVentasBase = "SELECT SUM(s." + colMesActual + ") AS MES_VENTAS, SUM(" + sumAcumulado + ") AS ACUM_VENTAS " +
+                                           "FROM tsctas s INNER JOIN tmctas c ON s.CCTA = c.CCTA " +
+                                           "WHERE s.CIA = ? AND s.ANO = ? AND c.CCTA LIKE '4%'";
+                    PreparedStatement psVentas = con.prepareStatement(sqlVentasBase);
+                    psVentas.setString(1, cia);
+                    psVentas.setString(2, ano);
+                    ResultSet rsVentas = psVentas.executeQuery();
+                    if (rsVentas.next()) {
+                        totalVentasMes = Math.abs(rsVentas.getDouble("MES_VENTAS"));
+                        totalVentasAcum = Math.abs(rsVentas.getDouble("ACUM_VENTAS"));
+                    }
+                    rsVentas.close(); psVentas.close();
+
+                    boolean hayDatos = false;
+
+                    while (rsRub.next()) {
+                        String rubroKey = rsRub.getString("RUB");
+                        String rubroDesc = rsRub.getString("DRUB");
+                        String ctaIni = rsRub.getString("COBJI");
+                        String ctaFin = rsRub.getString("COBJF");
+
+                        // Fila Encabezado de Rubro
+                        modResultados.addRow(new Object[]{"--- " + rubroKey + " ---", rubroDesc.toUpperCase(), "", "", "", ""});
+
+                        StringBuilder sqlCtas = new StringBuilder(
+                            "SELECT s.CCTA, c.CDES, c.NATCTA, s." + colMesActual + " AS MES_ACTUAL, (" + sumAcumulado + ") AS ACUM_ANUAL " +
+                            "FROM tsctas s " +
+                            "INNER JOIN tmctas c ON s.CCTA = c.CCTA " +
+                            "WHERE s.CIA = ? AND s.ANO = ? AND c.CNIV <= ? "
+                        );
+
+                        if (ctaIni != null && !ctaIni.isEmpty() && ctaFin != null && !ctaFin.isEmpty()) {
+                            sqlCtas.append(" AND s.CCTA BETWEEN ? AND ? ");
+                        } else if (ctaIni != null && !ctaIni.isEmpty()) {
+                            sqlCtas.append(" AND s.CCTA >= ? ");
+                        }
+
+                        if (!contab.isEmpty()) sqlCtas.append(" AND s.TCONT = ? ");
+                        sqlCtas.append(" ORDER BY s.CCTA ASC");
+
+                        PreparedStatement psDet = con.prepareStatement(sqlCtas.toString());
+                        int pIdx = 1;
+                        psDet.setString(pIdx++, cia);
+                        psDet.setString(pIdx++, ano);
+                        psDet.setInt(pIdx++, nivelSeleccionado);
+
+                        if (ctaIni != null && !ctaIni.isEmpty() && ctaFin != null && !ctaFin.isEmpty()) {
+                            psDet.setString(pIdx++, ctaIni);
+                            psDet.setString(pIdx++, ctaFin);
+                        } else if (ctaIni != null && !ctaIni.isEmpty()) {
+                            psDet.setString(pIdx++, ctaIni);
+                        }
+
+                        if (!contab.isEmpty()) psDet.setString(pIdx++, contab);
+
+                        ResultSet rsDet = psDet.executeQuery();
+
+                        double subtotalRubroMes = 0.0;
+                        double subtotalRubroAcum = 0.0;
+
+                        while (rsDet.next()) {
+                            double mActual = rsDet.getDouble("MES_ACTUAL");
+                            double mAcum = rsDet.getDouble("ACUM_ANUAL");
+                            String nat = rsDet.getString("NATCTA");
+
+                            // Ajuste de signo según la naturaleza contable
+                            if ("A".equalsIgnoreCase(nat) || "C".equalsIgnoreCase(nat)) {
+                                mActual = -mActual;
+                                mAcum = -mAcum;
+                            }
+
+                            if (!inclCeros && mActual == 0 && mAcum == 0) continue;
+
+                            double porcMes = totalVentasMes > 0 ? (mActual / totalVentasMes) : 0.0;
+                            double porcAcum = totalVentasAcum > 0 ? (mAcum / totalVentasAcum) : 0.0;
+
+                            subtotalRubroMes += mActual;
+                            subtotalRubroAcum += mAcum;
+                            hayDatos = true;
+
+                            modResultados.addRow(new Object[]{
+                                rsDet.getString("CCTA"),
+                                "  " + rsDet.getString("CDES"),
+                                df.format(mActual),
+                                dfPorc.format(porcMes),
+                                df.format(mAcum),
+                                dfPorc.format(porcAcum)
+                            });
+                        }
+                        rsDet.close(); psDet.close();
+
+                        // Subtotal de Rubro
+                        double subPorcMes = totalVentasMes > 0 ? (subtotalRubroMes / totalVentasMes) : 0.0;
+                        double subPorcAcum = totalVentasAcum > 0 ? (subtotalRubroAcum / totalVentasAcum) : 0.0;
+
+                        modResultados.addRow(new Object[]{
+                            "TOTAL " + rubroKey,
+                            "SUBTOTAL " + rubroDesc,
+                            df.format(subtotalRubroMes),
+                            dfPorc.format(subPorcMes),
+                            df.format(subtotalRubroAcum),
+                            dfPorc.format(subPorcAcum)
+                        });
+                        modResultados.addRow(new Object[]{"", "", "", "", "", ""}); // Renglón de separación
+                    }
+
+                    rsRub.close(); psRub.close(); db.Cerrar();
+
+                    if (!hayDatos) {
+                        JOptionPane.showMessageDialog(this, "No se encontraron saldos contables para generar el Estado de Resultados.", "Información", JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error al generar Estado de Resultados: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Evento Exportar a CSV
+        btnExportar.addActionListener(e -> {
+            if (modResultados.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, "No hay información para exportar.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            JFileChooser chooser = new JFileChooser();
+            chooser.setSelectedFile(new File("Estado_de_Resultados.csv"));
+            int sel = chooser.showSaveDialog(this);
+
+            if (sel == JFileChooser.APPROVE_OPTION) {
+                try (FileWriter writer = new FileWriter(chooser.getSelectedFile())) {
+                    for (int i = 0; i < modResultados.getColumnCount(); i++) {
+                        writer.write(modResultados.getColumnName(i) + (i == modResultados.getColumnCount() - 1 ? "" : ","));
+                    }
+                    writer.write("\n");
+
+                    for (int r = 0; r < modResultados.getRowCount(); r++) {
+                        for (int c = 0; c < modResultados.getColumnCount(); c++) {
+                            Object val = modResultados.getValueAt(r, c);
+                            writer.write((val != null ? val.toString().replace(",", "") : "") + (c == modResultados.getColumnCount() - 1 ? "" : ","));
+                        }
+                        writer.write("\n");
+                    }
+
+                    JOptionPane.showMessageDialog(this, "Estado de Resultados exportado con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Error al exportar reporte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        // Evento Imprimir
+        btnImprimir.addActionListener(e -> {
+            if (modResultados.getRowCount() == 0) {
+                JOptionPane.showMessageDialog(this, "No hay datos para imprimir.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
+                job.setJobName("Estado de Resultados");
+
+                job.setPrintable((g, pf, pageIndex) -> {
+                    int filasPorPagina = 28;
+                    int totalPaginas = (int) Math.ceil((double) modResultados.getRowCount() / filasPorPagina);
+                    if (totalPaginas == 0) totalPaginas = 1;
+
+                    if (pageIndex >= totalPaginas) return java.awt.print.Printable.NO_SUCH_PAGE;
+
+                    java.awt.Graphics2D g2d = (java.awt.Graphics2D) g;
+                    g2d.translate(pf.getImageableX(), pf.getImageableY());
+
+                    int y = 40;
+                    g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
+                    g2d.drawString("UNIDAD ESCOLAR BENAVENTE, A.C.", 40, y); y += 20;
+                    g2d.drawString("ESTADO DE RESULTADOS - AÑO " + txtAno.getText() + " / PERÍODO " + txtPeriodo.getText(), 40, y); y += 15;
+                    g2d.drawLine(40, y, 530, y); y += 15;
+
+                    g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 8));
+                    g2d.drawString("CLAVE", 40, y);
+                    g2d.drawString("DESCRIPCIÓN DE CUENTA / RUBRO", 120, y);
+                    g2d.drawString("MES", 350, y);
+                    g2d.drawString("% MES", 410, y);
+                    g2d.drawString("ACUMULADO", 450, y);
+                    g2d.drawString("% ACUM", 510, y);
+                    y += 5;
+                    g2d.drawLine(40, y, 530, y); y += 12;
+
+                    g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 7));
+                    int inicioRow = pageIndex * filasPorPagina;
+                    int finRow = Math.min(inicioRow + filasPorPagina, modResultados.getRowCount());
+
+                    for (int r = inicioRow; r < finRow; r++) {
+                        String colClave = modResultados.getValueAt(r, 0) != null ? modResultados.getValueAt(r, 0).toString() : "";
+                        String colDesc = modResultados.getValueAt(r, 1) != null ? modResultados.getValueAt(r, 1).toString() : "";
+
+                        if (colDesc.length() > 38) colDesc = colDesc.substring(0, 35) + "...";
+
+                        g2d.drawString(colClave, 40, y);
+                        g2d.drawString(colDesc, 120, y);
+                        g2d.drawString(modResultados.getValueAt(r, 2) != null ? modResultados.getValueAt(r, 2).toString() : "", 350, y);
+                        g2d.drawString(modResultados.getValueAt(r, 3) != null ? modResultados.getValueAt(r, 3).toString() : "", 410, y);
+                        g2d.drawString(modResultados.getValueAt(r, 4) != null ? modResultados.getValueAt(r, 4).toString() : "", 450, y);
+                        g2d.drawString(modResultados.getValueAt(r, 5) != null ? modResultados.getValueAt(r, 5).toString() : "", 510, y);
+                        y += 12;
+                    }
+
+                    g2d.drawString("Página " + (pageIndex + 1) + " de " + totalPaginas, 450, 750);
+                    return java.awt.print.Printable.PAGE_EXISTS;
+                });
+
+                if (job.printDialog()) {
+                    job.print();
+                    JOptionPane.showMessageDialog(this, "Estado de Resultados enviado a la impresora.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Error al imprimir reporte: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        this.revalidate();
+        this.repaint();
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -137,133 +578,16 @@ private void configurarTablaBitacora() {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddEResultadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddEResultadosActionPerformed
-    mostrarDialogoEstadoResultados();
     }//GEN-LAST:event_btnAddEResultadosActionPerformed
 
     private void btnEditEResultadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditEResultadosActionPerformed
         
-JOptionPane.showMessageDialog(this, "El Estado de Resultados es un reporte calculado, no permite edición manual.");
     }//GEN-LAST:event_btnEditEResultadosActionPerformed
 
     private void btnDeleteEResultadosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteEResultadosActionPerformed
-    JOptionPane.showMessageDialog(this, "No se pueden eliminar registros contables desde el visor de reportes.");
     }//GEN-LAST:event_btnDeleteEResultadosActionPerformed
 
-private void mostrarDialogoEstadoResultados() {
-        Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
-        JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, "Estado de Resultados", true);
-        dialogo.setSize(950, 680);
-        dialogo.setLayout(null);
-        dialogo.setResizable(false);
 
-        // --- 1. DATOS DE SELECCIÓN (Panel Superior) ---
-        JPanel pnlSel = new JPanel(null);
-        pnlSel.setBorder(BorderFactory.createEtchedBorder());
-        pnlSel.setBounds(10, 10, 915, 140);
-
-        // Bloque Izquierdo
-        pnlSel.add(new JLabel("Compañía")).setBounds(20, 15, 70, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"12"})).setBounds(90, 15, 60, 25);
-        pnlSel.add(new JLabel("UNIDAD ESCOLAR BENAVENTE, A.C.")).setBounds(160, 15, 250, 25);
-
-        pnlSel.add(new JLabel("Año")).setBounds(20, 45, 50, 25);
-        pnlSel.add(new JTextField("2026")).setBounds(90, 45, 60, 25);
-
-        pnlSel.add(new JLabel("Periodo")).setBounds(20, 75, 60, 25);
-        pnlSel.add(new JTextField("5")).setBounds(90, 75, 60, 25);
-
-        // Niveles (1 al 9)
-        pnlSel.add(new JLabel("Nivel")).setBounds(20, 105, 40, 25);
-        ButtonGroup bgNivel = new ButtonGroup();
-        int xPosNivel = 70;
-        for (int i = 1; i <= 9; i++) {
-            JRadioButton rb = new JRadioButton(String.valueOf(i));
-            if(i == 3) rb.setSelected(true); // Seleccionado el nivel 3 por defecto
-            rb.setBounds(xPosNivel, 105, 40, 25);
-            bgNivel.add(rb);
-            pnlSel.add(rb);
-            xPosNivel += 45;
-        }
-
-        // Bloque Central (Tipos de Contabilidad)
-        pnlSel.add(new JLabel("Tipo de Cont. Real")).setBounds(420, 45, 130, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"MN"})).setBounds(560, 45, 60, 25);
-
-        pnlSel.add(new JLabel("Tipo de Cont. Presupuesto")).setBounds(420, 75, 140, 25);
-        pnlSel.add(new JComboBox<>(new String[]{"PL"})).setBounds(560, 75, 60, 25);
-
-        // Bloque Derecho (Casilla Detalle y Botones)
-        JPanel pnlDetalle = new JPanel(null);
-        pnlDetalle.setBorder(BorderFactory.createEtchedBorder());
-        pnlDetalle.setBounds(730, 10, 165, 50);
-        JCheckBox chkDetalle = new JCheckBox("Ver Detalle x CC");
-        chkDetalle.setBounds(10, 15, 140, 20);
-        pnlDetalle.add(chkDetalle);
-        pnlSel.add(pnlDetalle);
-
-        JButton btnSelecciona = new JButton("Selecciona");
-        btnSelecciona.setBounds(730, 70, 165, 25);
-        pnlSel.add(btnSelecciona);
-
-        JButton btnFiltra = new JButton("Filtrar Información");
-        btnFiltra.setBounds(730, 105, 165, 25);
-        pnlSel.add(btnFiltra);
-
-        dialogo.add(pnlSel);
-
-        // --- 2. TABLA DE RESULTADOS ---
-        JTable tblResultados = new JTable(new DefaultTableModel(
-            new Object[][]{}, 
-            new String[]{"Mes", "Presupuesto", "Diferencia", "Cuentas", "Acum. Año", "Ppto. Año"}
-        ));
-        tblResultados.setAutoResizeMode(JTable.AUTO_RESIZE_OFF); 
-        
-        JPanel pnlTabla = new JPanel(null);
-        pnlTabla.setBorder(BorderFactory.createEtchedBorder());
-        pnlTabla.setBounds(10, 160, 915, 390);
-        
-        JScrollPane scrollResultados = new JScrollPane(tblResultados);
-        scrollResultados.setBounds(10, 10, 895, 370);
-        pnlTabla.add(scrollResultados);
-        
-        dialogo.add(pnlTabla);
-
-        // --- 3. BOTONES INFERIORES ---
-        JButton btnExportar = new JButton("Exporta");
-        btnExportar.setBounds(300, 570, 100, 40);
-        JButton btnImprimir = new JButton("Imprimir");
-        btnImprimir.setBounds(420, 570, 100, 40);
-        JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(540, 570, 100, 40);
-
-        dialogo.add(btnExportar);
-        dialogo.add(btnImprimir);
-        dialogo.add(btnSalir);
-
-        // --- 4. EVENTOS ---
-        btnSalir.addActionListener(e -> dialogo.dispose());
-
-        btnSelecciona.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Abre ventana para seleccionar cuentas de resultados... (Simulación)");
-        });
-
-        btnFiltra.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Calculando Estado de Resultados General... (Simulación)");
-            // Aquí iría la lógica SQL para llenar tblResultados
-        });
-
-        btnExportar.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Exportando Estado de Resultados a Excel (.xlsx)... (Simulación)");
-        });
-
-        btnImprimir.addActionListener(e -> {
-            JOptionPane.showMessageDialog(dialogo, "Enviando reporte a la impresora... (Simulación)");
-        });
-
-        // --- 5. MOSTRAR ---
-        dialogo.setLocationRelativeTo(this);
-        dialogo.setVisible(true);
-    }
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddEResultados;
     private javax.swing.JButton btnDeleteEResultados;

@@ -21,6 +21,9 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.JCheckBox;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 /**
  *
  * @author b17za
@@ -32,8 +35,8 @@ public class Tipos_Impuestos extends javax.swing.JPanel {
      */
     public Tipos_Impuestos() {
         initComponents();
+        cargarTablaImpuestos();
     }
-    
     private void cargarTablaImpuestos() {
         DefaultTableModel modelo = (DefaultTableModel) tblTImpuestos.getModel();
         modelo.setRowCount(0); 
@@ -43,30 +46,53 @@ public class Tipos_Impuestos extends javax.swing.JPanel {
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_impuestos' por tu tabla real
-                String sql = "SELECT clave, descripcion, pct_iva, cta_iva, pct_ret_isr, cta_ret_isr, pct_ret_iva, cta_ret_iva, usuario, fecha_mod, hora_mod FROM tabla_impuestos";
+                // Se consulta PIMP para la columna de % IVA
+                String sql = "SELECT CIMP, DIMP, PIMP, CCTA, PRET, CTAISRR, PIRE, CRET, USER, FEAC, HOAC FROM tgimp ORDER BY CIMP";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
+                java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
 
                 while (rs.next()) {
                     Object[] fila = new Object[11]; 
-                    fila[0] = rs.getString("clave");
-                    fila[1] = rs.getString("descripcion");
-                    fila[2] = rs.getString("pct_iva");
-                    fila[3] = rs.getString("cta_iva");
-                    fila[4] = rs.getString("pct_ret_isr");
-                    fila[5] = rs.getString("cta_ret_isr");
-                    fila[6] = rs.getString("pct_ret_iva");
-                    fila[7] = rs.getString("cta_ret_iva");
-                    fila[8] = rs.getString("usuario");
-                    fila[9] = rs.getString("fecha_mod");
-                    fila[10] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("CIMP");
+                    fila[1] = rs.getString("DIMP");
+                    fila[2] = df.format(rs.getDouble("PIMP")); // PIMP en lugar de DIVA
+                    fila[3] = rs.getString("CCTA") != null ? rs.getString("CCTA") : "";
+                    fila[4] = df.format(rs.getDouble("PRET"));
+                    fila[5] = rs.getString("CTAISRR") != null ? rs.getString("CTAISRR") : "";
+                    fila[6] = df.format(rs.getDouble("PIRE"));
+                    fila[7] = rs.getString("CRET") != null ? rs.getString("CRET") : "";
+                    fila[8] = rs.getString("USER") != null ? rs.getString("USER") : "";
+                    fila[9] = rs.getString("FEAC") != null ? rs.getString("FEAC") : "";
+                    fila[10] = rs.getString("HOAC") != null ? rs.getString("HOAC") : "";
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
+                
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
+        }
+    }
+
+    private void adaptarTamañoColumnas() {
+        tblTImpuestos.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        
+        for (int i = 0; i < tblTImpuestos.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblTImpuestos.getColumnModel().getColumn(i);
+            int anchoPreferido = 50; 
+            
+            java.awt.Component compCabecera = tblTImpuestos.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblTImpuestos, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+            
+            for (int r = 0; r < tblTImpuestos.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblTImpuestos.getCellRenderer(r, i);
+                java.awt.Component c = tblTImpuestos.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            columna.setPreferredWidth(anchoPreferido); 
         }
     }
 
@@ -164,7 +190,7 @@ public class Tipos_Impuestos extends javax.swing.JPanel {
     }//GEN-LAST:event_btnAddTImpuestosActionPerformed
 
     private void btnDeleteTImpuestosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteTImpuestosActionPerformed
-       int fila = tblTImpuestos.getSelectedRow();
+    int fila = tblTImpuestos.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona una clave de impuestos para eliminar.");
             return;
@@ -173,19 +199,20 @@ public class Tipos_Impuestos extends javax.swing.JPanel {
         String clave = tblTImpuestos.getValueAt(fila, 0).toString();
         String desc = tblTImpuestos.getValueAt(fila, 1).toString();
         
-        int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el impuesto: " + desc + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar el impuesto: " + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // ATENCIÓN: Cambia por el nombre real de tu tabla
-                    PreparedStatement ps = con.prepareStatement("DELETE FROM tabla_impuestos WHERE clave = ?");
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM tgimp WHERE CIMP = ?");
                     ps.setString(1, clave);
                     if (ps.executeUpdate() > 0) {
-                        JOptionPane.showMessageDialog(this, "Impuesto eliminado.");
+                        JOptionPane.showMessageDialog(this, "Impuesto eliminado correctamente.");
                         cargarTablaImpuestos();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -196,7 +223,7 @@ public class Tipos_Impuestos extends javax.swing.JPanel {
     }//GEN-LAST:event_btnDeleteTImpuestosActionPerformed
 
     private void btnEditTImpuestosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditTImpuestosActionPerformed
-      if (tblTImpuestos.getSelectedRow() == -1) {
+  if (tblTImpuestos.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un registro para editar.");
             return;
         }
@@ -211,12 +238,88 @@ private void mostrarDialogoImpuesto(boolean modoEdicion) {
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
+        // --- CLASE LOCAL BUSCADOR FLOTANTE ---
+        class BuscadorFlotante {
+            void configurar(JTextField txtClave, JTextField txtDesc, JButton boton, Object[][] datos) {
+                String[] columnas = {"Clave", "Descripción"};
+                Runnable mostrarPopup = () -> {
+                    javax.swing.JPopupMenu popup = new javax.swing.JPopupMenu();
+                    popup.setFocusable(false);
+                    DefaultTableModel mod = new DefaultTableModel(datos, columnas) {
+                        @Override public boolean isCellEditable(int r, int c) { return false; }
+                    };
+                    JTable tabla = new JTable(mod);
+                    tabla.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+                    tabla.getColumnModel().getColumn(0).setPreferredWidth(80);
+                    tabla.getColumnModel().getColumn(1).setPreferredWidth(220);
+
+                    javax.swing.table.TableRowSorter<DefaultTableModel> sorter = new javax.swing.table.TableRowSorter<>(mod);
+                    tabla.setRowSorter(sorter);
+
+                    tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseReleased(java.awt.event.MouseEvent me) {
+                            int viewRow = tabla.getSelectedRow();
+                            if (viewRow != -1) {
+                                int modelRow = tabla.convertRowIndexToModel(viewRow);
+                                txtClave.setText(mod.getValueAt(modelRow, 0).toString());
+                                if (txtDesc != null) {
+                                    txtDesc.setText(mod.getValueAt(modelRow, 1).toString());
+                                }
+                                popup.setVisible(false);
+                            }
+                        }
+                    });
+                    JScrollPane scroll = new JScrollPane(tabla);
+                    scroll.setPreferredSize(new java.awt.Dimension(320, 150));
+                    popup.add(scroll);
+
+                    String texto = txtClave.getText().trim();
+                    if (!texto.isEmpty()) sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
+                    popup.show(txtClave, 0, txtClave.getHeight());
+                    txtClave.requestFocus();
+                };
+
+                boton.addActionListener(e -> { txtClave.setText(""); mostrarPopup.run(); });
+                txtClave.addKeyListener(new java.awt.event.KeyAdapter() {
+                    @Override
+                    public void keyReleased(java.awt.event.KeyEvent e) {
+                        int c = e.getKeyCode();
+                        if (c == 27 || c == 10 || c == 38 || c == 40 || c == 37 || c == 39 || c == 9) return;
+                        mostrarPopup.run();
+                    }
+                });
+            }
+        }
+        BuscadorFlotante buscador = new BuscadorFlotante();
+
+        // --- CARGA DE DATOS PARA BUSCADORES ---
+        java.util.function.Function<String, Object[][]> cargarDatos = (query) -> {
+            java.util.List<Object[]> lista = new java.util.ArrayList<>();
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    PreparedStatement ps = con.prepareStatement(query);
+                    ResultSet rs = ps.executeQuery();
+                    while(rs.next()) lista.add(new Object[]{rs.getString(1), rs.getString(2)});
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch(Exception e) {}
+            return lista.toArray(new Object[0][0]);
+        };
+
+        Object[][] dCC = cargarDatos.apply("SELECT CVE, DES1 FROM tgcc ORDER BY CVE");
+        Object[][] dCtas = cargarDatos.apply("SELECT CCTA, CDES FROM tmctas ORDER BY CCTA");
+        Object[][] dObjImp = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CSOI' ORDER BY CVE");
+        Object[][] dTipoImpSAT = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CSTI' ORDER BY CVE");
+        Object[][] dTipoFacSAT = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'CSTF' ORDER BY CVE");
+
         // --- 1. SECCIÓN SUPERIOR ---
         JLabel lblClave = new JLabel("Clave de Impuesto");
         lblClave.setBounds(20, 15, 120, 25);
         JTextField txtClave = new JTextField();
         txtClave.setBounds(140, 15, 80, 25);
-        if (modoEdicion) txtClave.setEditable(false);
 
         JLabel lblDesc = new JLabel("Descripción");
         lblDesc.setBounds(20, 45, 120, 25);
@@ -230,84 +333,130 @@ private void mostrarDialogoImpuesto(boolean modoEdicion) {
         JTabbedPane pestanas = new JTabbedPane();
         pestanas.setBounds(15, 85, 500, 330);
 
-        // >> Pestaña 1: Datos Generales
+        // ==========================================
+        // >> PESTAÑA 1: DATOS GENERALES
+        // ==========================================
         JPanel pnlGenerales = new JPanel(null);
 
-        // IVA
+        // IVA (% IVA -> PIMP)
         JLabel lblIva = new JLabel("% IVA");
         lblIva.setBounds(20, 15, 120, 25);
-        JTextField txtIva = new JTextField("0.0000");
+        JTextField txtIva = new JTextField("0");
         txtIva.setBounds(150, 15, 80, 25);
         JLabel lblIvaSym = new JLabel("%");
         lblIvaSym.setBounds(240, 15, 20, 25);
         
         JLabel lblCtaIva = new JLabel("Cuenta IVA");
         lblCtaIva.setBounds(20, 45, 120, 25);
-        JComboBox<String> cmbCtaIva1 = new JComboBox<>(new String[]{""});
-        cmbCtaIva1.setBounds(150, 45, 80, 25);
-        JComboBox<String> cmbCtaIva2 = new JComboBox<>(new String[]{"6060600-001"});
-        cmbCtaIva2.setBounds(240, 45, 100, 25);
-        JLabel lblCtaIvaDesc = new JLabel("IVA 15%");
-        lblCtaIvaDesc.setBounds(350, 45, 130, 25);
+        
+        // CCIVA (txtCtaIvaCC)
+        JTextField txtCtaIvaCC = new JTextField();
+        txtCtaIvaCC.setBounds(150, 45, 60, 25);
+        JButton btnCtaIvaCC = new JButton("▼");
+        btnCtaIvaCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCtaIvaCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCtaIvaCC.setBounds(210, 45, 20, 25);
+        buscador.configurar(txtCtaIvaCC, null, btnCtaIvaCC, dCC);
+        
+        // CCTA (txtCtaIva)
+        JTextField txtCtaIva = new JTextField();
+        txtCtaIva.setBounds(240, 45, 100, 25);
+        JButton btnCtaIva = new JButton("▼");
+        btnCtaIva.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCtaIva.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCtaIva.setBounds(340, 45, 20, 25);
+        buscador.configurar(txtCtaIva, null, btnCtaIva, dCtas);
 
         // Retención ISR
         JLabel lblRetIsr = new JLabel("% Retención ISR");
         lblRetIsr.setBounds(20, 85, 120, 25);
-        JTextField txtRetIsr = new JTextField("0.0000");
+        JTextField txtRetIsr = new JTextField("0");
         txtRetIsr.setBounds(150, 85, 80, 25);
         JLabel lblIsrSym = new JLabel("%");
         lblIsrSym.setBounds(240, 85, 20, 25);
 
         JLabel lblCtaRetIsr = new JLabel("Cuenta Retención ISR");
         lblCtaRetIsr.setBounds(20, 115, 130, 25);
-        JComboBox<String> cmbCtaRetIsr1 = new JComboBox<>(new String[]{""});
-        cmbCtaRetIsr1.setBounds(150, 115, 80, 25);
-        JComboBox<String> cmbCtaRetIsr2 = new JComboBox<>(new String[]{""});
-        cmbCtaRetIsr2.setBounds(240, 115, 100, 25);
+        
+        // CCISRR (txtCtaRetIsrCC)
+        JTextField txtCtaRetIsrCC = new JTextField();
+        txtCtaRetIsrCC.setBounds(150, 115, 60, 25);
+        JButton btnCtaRetIsrCC = new JButton("▼");
+        btnCtaRetIsrCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCtaRetIsrCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCtaRetIsrCC.setBounds(210, 115, 20, 25);
+        buscador.configurar(txtCtaRetIsrCC, null, btnCtaRetIsrCC, dCC);
+
+        // CTAISRR (txtCtaRetIsr)
+        JTextField txtCtaRetIsr = new JTextField();
+        txtCtaRetIsr.setBounds(240, 115, 100, 25);
+        JButton btnCtaRetIsr = new JButton("▼");
+        btnCtaRetIsr.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCtaRetIsr.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCtaRetIsr.setBounds(340, 115, 20, 25);
+        buscador.configurar(txtCtaRetIsr, null, btnCtaRetIsr, dCtas);
 
         // Retención IVA
         JLabel lblRetIva = new JLabel("% Retención IVA");
         lblRetIva.setBounds(20, 155, 120, 25);
-        JTextField txtRetIva = new JTextField("0.0000");
+        JTextField txtRetIva = new JTextField("0");
         txtRetIva.setBounds(150, 155, 80, 25);
         JLabel lblRetIvaSym = new JLabel("%");
         lblRetIvaSym.setBounds(240, 155, 20, 25);
 
         JLabel lblCtaRetIva = new JLabel("Cuenta Retención IVA");
         lblCtaRetIva.setBounds(20, 185, 130, 25);
-        JComboBox<String> cmbCtaRetIva1 = new JComboBox<>(new String[]{""});
-        cmbCtaRetIva1.setBounds(150, 185, 80, 25);
-        JComboBox<String> cmbCtaRetIva2 = new JComboBox<>(new String[]{""});
-        cmbCtaRetIva2.setBounds(240, 185, 100, 25);
 
-        // Objeto de Impuesto
+        // CCRET (txtCtaRetIvaCC)
+        JTextField txtCtaRetIvaCC = new JTextField();
+        txtCtaRetIvaCC.setBounds(150, 185, 60, 25);
+        JButton btnCtaRetIvaCC = new JButton("▼");
+        btnCtaRetIvaCC.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCtaRetIvaCC.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCtaRetIvaCC.setBounds(210, 185, 20, 25);
+        buscador.configurar(txtCtaRetIvaCC, null, btnCtaRetIvaCC, dCC);
+
+        // CRET (txtCtaRetIva)
+        JTextField txtCtaRetIva = new JTextField();
+        txtCtaRetIva.setBounds(240, 185, 100, 25);
+        JButton btnCtaRetIva = new JButton("▼");
+        btnCtaRetIva.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnCtaRetIva.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnCtaRetIva.setBounds(340, 185, 20, 25);
+        buscador.configurar(txtCtaRetIva, null, btnCtaRetIva, dCtas);
+
+        // Objeto de Impuesto (OBJIMP)
         JLabel lblObjImp = new JLabel("Objeto de Impuesto");
         lblObjImp.setBounds(20, 225, 120, 25);
-        JComboBox<String> cmbObjImp = new JComboBox<>(new String[]{"02"});
-        cmbObjImp.setBounds(150, 225, 80, 25);
-        JLabel lblObjImpDesc = new JLabel("SÍ OBJETO DE IMPUESTO");
-        lblObjImpDesc.setBounds(240, 225, 180, 25);
+        JTextField txtObjImp = new JTextField();
+        txtObjImp.setBounds(150, 225, 60, 25);
+        JButton btnObjImp = new JButton("▼");
+        btnObjImp.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnObjImp.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnObjImp.setBounds(210, 225, 20, 25);
+        JTextField txtObjImpDesc = new JTextField();
+        txtObjImpDesc.setBounds(235, 225, 240, 25);
+        txtObjImpDesc.setEditable(false); txtObjImpDesc.setBackground(new java.awt.Color(240,240,240));
+        buscador.configurar(txtObjImp, txtObjImpDesc, btnObjImp, dObjImp);
 
-        // Agregamos todo al panel de Generales
         pnlGenerales.add(lblIva); pnlGenerales.add(txtIva); pnlGenerales.add(lblIvaSym);
-        pnlGenerales.add(lblCtaIva); pnlGenerales.add(cmbCtaIva1); pnlGenerales.add(cmbCtaIva2); pnlGenerales.add(lblCtaIvaDesc);
+        pnlGenerales.add(lblCtaIva); pnlGenerales.add(txtCtaIvaCC); pnlGenerales.add(btnCtaIvaCC); pnlGenerales.add(txtCtaIva); pnlGenerales.add(btnCtaIva);
         pnlGenerales.add(lblRetIsr); pnlGenerales.add(txtRetIsr); pnlGenerales.add(lblIsrSym);
-        pnlGenerales.add(lblCtaRetIsr); pnlGenerales.add(cmbCtaRetIsr1); pnlGenerales.add(cmbCtaRetIsr2);
+        pnlGenerales.add(lblCtaRetIsr); pnlGenerales.add(txtCtaRetIsrCC); pnlGenerales.add(btnCtaRetIsrCC); pnlGenerales.add(txtCtaRetIsr); pnlGenerales.add(btnCtaRetIsr);
         pnlGenerales.add(lblRetIva); pnlGenerales.add(txtRetIva); pnlGenerales.add(lblRetIvaSym);
-        pnlGenerales.add(lblCtaRetIva); pnlGenerales.add(cmbCtaRetIva1); pnlGenerales.add(cmbCtaRetIva2);
-        pnlGenerales.add(lblObjImp); pnlGenerales.add(cmbObjImp); pnlGenerales.add(lblObjImpDesc);
+        pnlGenerales.add(lblCtaRetIva); pnlGenerales.add(txtCtaRetIvaCC); pnlGenerales.add(btnCtaRetIvaCC); pnlGenerales.add(txtCtaRetIva); pnlGenerales.add(btnCtaRetIva);
+        pnlGenerales.add(lblObjImp); pnlGenerales.add(txtObjImp); pnlGenerales.add(btnObjImp); pnlGenerales.add(txtObjImpDesc);
 
-        // Marco: Tipo de Impuesto (Radio Buttons)
+        // Clasificación (CLAS)
         JPanel pnlTipoImp = new JPanel(null);
         pnlTipoImp.setBorder(BorderFactory.createTitledBorder("Tipo de Impuesto"));
         pnlTipoImp.setBounds(15, 255, 465, 45);
 
-        JRadioButton rbGasto = new JRadioButton("Gasto", true); // Seleccionado por defecto
+        JRadioButton rbGasto = new JRadioButton("Gasto", true);
         rbGasto.setBounds(150, 15, 80, 20);
         JRadioButton rbVenta = new JRadioButton("Venta");
         rbVenta.setBounds(280, 15, 80, 20);
 
-        // Agrupamos los RadioButtons para que solo se seleccione uno a la vez
         ButtonGroup grupoTipo = new ButtonGroup();
         grupoTipo.add(rbGasto);
         grupoTipo.add(rbVenta);
@@ -315,14 +464,78 @@ private void mostrarDialogoImpuesto(boolean modoEdicion) {
         pnlTipoImp.add(rbGasto); pnlTipoImp.add(rbVenta);
         pnlGenerales.add(pnlTipoImp);
 
-        // >> Pestaña 2 y 3: Adicionales y SAT (Vacías por ahora)
+        // ==========================================
+        // >> PESTAÑA 2: INFORMACIÓN ADICIONAL
+        // ==========================================
         JPanel pnlAdicional = new JPanel(null);
-        JPanel pnlSAT = new JPanel(null);
+        
+        JPanel pnlDescAlternativas = new JPanel(null);
+        pnlDescAlternativas.setBorder(BorderFactory.createTitledBorder("Descripciones Alternativas"));
+        pnlDescAlternativas.setBounds(15, 15, 465, 270);
+
+        JLabel lblDivaAlt = new JLabel("Descripción IVA");
+        lblDivaAlt.setBounds(20, 40, 150, 25);
+        JTextField txtDivaAlt = new JTextField(); // DIVA
+        txtDivaAlt.setBounds(170, 40, 270, 25);
+
+        JLabel lblDisrAlt = new JLabel("Descripción Ret. ISR");
+        lblDisrAlt.setBounds(20, 95, 150, 25);
+        JTextField txtDisrAlt = new JTextField(); // DRISR
+        txtDisrAlt.setBounds(170, 95, 270, 25);
+
+        JLabel lblDivaRetAlt = new JLabel("Descripción Ret. IVA");
+        lblDivaRetAlt.setBounds(20, 150, 150, 25);
+        JTextField txtDivaRetAlt = new JTextField(); // DRIVA
+        txtDivaRetAlt.setBounds(170, 150, 270, 25);
+
+        pnlDescAlternativas.add(lblDivaAlt); pnlDescAlternativas.add(txtDivaAlt);
+        pnlDescAlternativas.add(lblDisrAlt); pnlDescAlternativas.add(txtDisrAlt);
+        pnlDescAlternativas.add(lblDivaRetAlt); pnlDescAlternativas.add(txtDivaRetAlt);
+        pnlAdicional.add(pnlDescAlternativas);
+
+        // ==========================================
+        // >> PESTAÑA 3: CÓDIGOS SAT
+        // ==========================================
+        JPanel pnlSat = new JPanel(null);
+
+        JPanel pnlInnerSat = new JPanel(null);
+        pnlInnerSat.setBorder(BorderFactory.createEtchedBorder());
+        pnlInnerSat.setBounds(15, 15, 465, 270);
+
+        // TPOIMP (txtTipoImpSAT)
+        JLabel lblTipoImpSAT = new JLabel("Tipo de Impuesto");
+        lblTipoImpSAT.setBounds(20, 30, 120, 25);
+        JTextField txtTipoImpSAT = new JTextField();
+        txtTipoImpSAT.setBounds(150, 30, 100, 25);
+        JButton btnTipoImpSAT = new JButton("▼");
+        btnTipoImpSAT.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnTipoImpSAT.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTipoImpSAT.setBounds(250, 30, 20, 25);
+        buscador.configurar(txtTipoImpSAT, null, btnTipoImpSAT, dTipoImpSAT);
+
+        // TFACTOR (txtTipoFacSAT)
+        JLabel lblTipoFacSAT = new JLabel("Tipo de Factor");
+        lblTipoFacSAT.setBounds(20, 70, 120, 25);
+        JTextField txtTipoFacSAT = new JTextField();
+        txtTipoFacSAT.setBounds(150, 70, 100, 25);
+        JButton btnTipoFacSAT = new JButton("▼");
+        btnTipoFacSAT.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10));
+        btnTipoFacSAT.setMargin(new java.awt.Insets(0, 0, 0, 0));
+        btnTipoFacSAT.setBounds(250, 70, 20, 25);
+        buscador.configurar(txtTipoFacSAT, null, btnTipoFacSAT, dTipoFacSAT);
+
+        // EXENTO (chkExento)
+        JCheckBox chkExento = new JCheckBox("Exento");
+        chkExento.setBounds(370, 70, 80, 25);
+
+        pnlInnerSat.add(lblTipoImpSAT); pnlInnerSat.add(txtTipoImpSAT); pnlInnerSat.add(btnTipoImpSAT);
+        pnlInnerSat.add(lblTipoFacSAT); pnlInnerSat.add(txtTipoFacSAT); pnlInnerSat.add(btnTipoFacSAT);
+        pnlInnerSat.add(chkExento);
+        pnlSat.add(pnlInnerSat);
 
         pestanas.addTab("Datos Generales", pnlGenerales);
         pestanas.addTab("Información Adicional", pnlAdicional);
-        pestanas.addTab("Códigos SAT", pnlSAT);
-
+        pestanas.addTab("Códigos SAT", pnlSat);
         dialogo.add(pestanas);
 
         // --- 3. BOTONES INFERIORES ---
@@ -334,12 +547,59 @@ private void mostrarDialogoImpuesto(boolean modoEdicion) {
         dialogo.add(btnAceptar);
         dialogo.add(btnSalir);
 
-        // --- 4. SI ES MODO EDICIÓN, CARGAMOS LOS DATOS ---
+        // --- 4. CARGA DE DATOS PARA EDICIÓN ---
         if (modoEdicion) {
+            txtClave.setEditable(false);
             int fila = tblTImpuestos.getSelectedRow();
-            txtClave.setText(tblTImpuestos.getValueAt(fila, 0).toString());
-            txtDesc.setText(tblTImpuestos.getValueAt(fila, 1).toString());
-            // Lógica para llenar los campos de % IVA, Cuentas, etc...
+            String claveSel = tblTImpuestos.getValueAt(fila, 0).toString();
+            
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+                    String sql = "SELECT CIMP, DIMP, PIMP, CCIVA, CCTA, PRET, CCISRR, CTAISRR, PIRE, CCRET, CRET, OBJIMP, CLAS, "
+                               + "DIVA, DRISR, DRIVA, TPOIMP, TFACTOR, EXENTO FROM tgimp WHERE CIMP = ?";
+                    PreparedStatement ps = con.prepareStatement(sql);
+                    ps.setString(1, claveSel);
+                    ResultSet rs = ps.executeQuery();
+                    
+                    if (rs.next()) {
+                        txtClave.setText(rs.getString("CIMP"));
+                        txtDesc.setText(rs.getString("DIMP"));
+                        txtIva.setText(String.valueOf(rs.getDouble("PIMP")));
+                        txtCtaIvaCC.setText(rs.getString("CCIVA") != null ? rs.getString("CCIVA") : "");
+                        txtCtaIva.setText(rs.getString("CCTA") != null ? rs.getString("CCTA") : "");
+                        
+                        txtRetIsr.setText(String.valueOf(rs.getDouble("PRET")));
+                        txtCtaRetIsrCC.setText(rs.getString("CCISRR") != null ? rs.getString("CCISRR") : "");
+                        txtCtaRetIsr.setText(rs.getString("CTAISRR") != null ? rs.getString("CTAISRR") : "");
+                        
+                        txtRetIva.setText(String.valueOf(rs.getDouble("PIRE")));
+                        txtCtaRetIvaCC.setText(rs.getString("CCRET") != null ? rs.getString("CCRET") : "");
+                        txtCtaRetIva.setText(rs.getString("CRET") != null ? rs.getString("CRET") : "");
+                        
+                        txtObjImp.setText(rs.getString("OBJIMP") != null ? rs.getString("OBJIMP") : "");
+                        
+                        String clasificacion = rs.getString("CLAS");
+                        if ("V".equalsIgnoreCase(clasificacion)) {
+                            rbVenta.setSelected(true);
+                        } else {
+                            rbGasto.setSelected(true);
+                        }
+
+                        // Información Adicional
+                        txtDivaAlt.setText(rs.getString("DIVA") != null ? rs.getString("DIVA") : "");
+                        txtDisrAlt.setText(rs.getString("DRISR") != null ? rs.getString("DRISR") : "");
+                        txtDivaRetAlt.setText(rs.getString("DRIVA") != null ? rs.getString("DRIVA") : "");
+
+                        // Códigos SAT
+                        txtTipoImpSAT.setText(rs.getString("TPOIMP") != null ? rs.getString("TPOIMP") : "");
+                        txtTipoFacSAT.setText(rs.getString("TFACTOR") != null ? rs.getString("TFACTOR") : "");
+                        chkExento.setSelected("S".equalsIgnoreCase(rs.getString("EXENTO")));
+                    }
+                    rs.close(); ps.close(); db.Cerrar();
+                }
+            } catch (Exception e) {}
         }
 
         // --- 5. EVENTOS ---
@@ -347,17 +607,114 @@ private void mostrarDialogoImpuesto(boolean modoEdicion) {
 
         btnAceptar.addActionListener(e -> {
             String clave = txtClave.getText().trim();
-            if (clave.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "La clave no puede estar vacía.");
+            String desc = txtDesc.getText().trim();
+            
+            double pimp = 0.0, pret = 0.0, pire = 0.0;
+            try { pimp = Double.parseDouble(txtIva.getText().trim().replace(",", "")); } catch(Exception ex) {}
+            try { pret = Double.parseDouble(txtRetIsr.getText().trim().replace(",", "")); } catch(Exception ex) {}
+            try { pire = Double.parseDouble(txtRetIva.getText().trim().replace(",", "")); } catch(Exception ex) {}
+
+            String ccIva = txtCtaIvaCC.getText().trim();
+            String ctaIva = txtCtaIva.getText().trim();
+            String ccIsr = txtCtaRetIsrCC.getText().trim();
+            String ctaRetIsr = txtCtaRetIsr.getText().trim();
+            String ccIvaRet = txtCtaRetIvaCC.getText().trim();
+            String ctaRetIva = txtCtaRetIva.getText().trim();
+            String objImp = txtObjImp.getText().trim();
+            String clasificacion = rbVenta.isSelected() ? "V" : "G";
+            
+            String divaAlt = txtDivaAlt.getText().trim();
+            String drIsr = txtDisrAlt.getText().trim();
+            String drIva = txtDivaRetAlt.getText().trim();
+            String tpoImp = txtTipoImpSAT.getText().trim();
+            String tFactor = txtTipoFacSAT.getText().trim();
+            String exento = chkExento.isSelected() ? "S" : "N";
+
+            if (clave.isEmpty() || desc.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La clave y la descripción son obligatorias.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va tu código SQL INSERT o UPDATE
-            // Para saber qué radio button se seleccionó: boolean esGasto = rbGasto.isSelected();
-            
-            JOptionPane.showMessageDialog(dialogo, "Impuesto guardado (Simulación).");
-            dialogo.dispose();
-            cargarTablaImpuestos(); 
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+
+                    // VALIDACIÓN DE DUPLICADOS EN MODO ALTA
+                    if (!modoEdicion) {
+                        PreparedStatement psCheck = con.prepareStatement("SELECT 1 FROM tgimp WHERE CIMP = ?");
+                        psCheck.setString(1, clave);
+                        ResultSet rsCheck = psCheck.executeQuery();
+                        if (rsCheck.next()) {
+                            JOptionPane.showMessageDialog(dialogo, "La clave de impuesto " + clave + " ya existe.", "Duplicado", JOptionPane.WARNING_MESSAGE);
+                            rsCheck.close(); psCheck.close(); db.Cerrar();
+                            return;
+                        }
+                        rsCheck.close(); psCheck.close();
+                    }
+
+                    PreparedStatement ps;
+                    if (modoEdicion) {
+                        String sql = "UPDATE tgimp SET DIMP=?, PIMP=?, CCIVA=?, CCTA=?, PRET=?, CCISRR=?, CTAISRR=?, PIRE=?, CCRET=?, CRET=?, OBJIMP=?, CLAS=?, "
+                                   + "DIVA=?, DRISR=?, DRIVA=?, TPOIMP=?, TFACTOR=?, EXENTO=?, USER='Admin', FEAC=CURDATE(), HOAC=DATE_FORMAT(NOW(), '%r') WHERE CIMP=?";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, desc); 
+                        ps.setDouble(2, pimp); 
+                        ps.setString(3, ccIva); 
+                        ps.setString(4, ctaIva); 
+                        ps.setDouble(5, pret);
+                        ps.setString(6, ccIsr); 
+                        ps.setString(7, ctaRetIsr); 
+                        ps.setDouble(8, pire); 
+                        ps.setString(9, ccIvaRet); 
+                        ps.setString(10, ctaRetIva); 
+                        ps.setString(11, objImp);
+                        ps.setString(12, clasificacion); 
+                        ps.setString(13, divaAlt); 
+                        ps.setString(14, drIsr); 
+                        ps.setString(15, drIva);
+                        ps.setString(16, tpoImp); 
+                        ps.setString(17, tFactor); 
+                        ps.setString(18, exento);
+                        ps.setString(19, clave);
+                    } else {
+                        String sql = "INSERT INTO tgimp (CIMP, DIMP, PIMP, CCIVA, CCTA, PRET, CCISRR, CTAISRR, PIRE, CCRET, CRET, OBJIMP, CLAS, "
+                                   + "DIVA, DRISR, DRIVA, TPOIMP, TFACTOR, EXENTO, USER, FEAC, HOAC) "
+                                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Admin', CURDATE(), DATE_FORMAT(NOW(), '%r'))";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, clave); 
+                        ps.setString(2, desc); 
+                        ps.setDouble(3, pimp); 
+                        ps.setString(4, ccIva); 
+                        ps.setString(5, ctaIva);
+                        ps.setDouble(6, pret); 
+                        ps.setString(7, ccIsr); 
+                        ps.setString(8, ctaRetIsr); 
+                        ps.setDouble(9, pire); 
+                        ps.setString(10, ccIvaRet); 
+                        ps.setString(11, ctaRetIva);
+                        ps.setString(12, objImp); 
+                        ps.setString(13, clasificacion); 
+                        ps.setString(14, divaAlt); 
+                        ps.setString(15, drIsr);
+                        ps.setString(16, drIva); 
+                        ps.setString(17, tpoImp); 
+                        ps.setString(18, tFactor); 
+                        ps.setString(19, exento);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Impuesto guardado con éxito.");
+                        dialogo.dispose();
+                        cargarTablaImpuestos(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 6. MOSTRAR ---

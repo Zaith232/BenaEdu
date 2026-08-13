@@ -4,10 +4,12 @@
  */
 package com.mycompany.benaedu.views;
 import com.mycompany.benaedu.db.ConDB;
+import com.toedter.calendar.JDateChooser;
 import java.awt.Window;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -27,9 +29,10 @@ public class Tipos_Cambio_Diario extends javax.swing.JPanel {
      */
     public Tipos_Cambio_Diario() {
         initComponents();
+         cargarTablaCambioDiario();
     }
     
-    private void cargarTablaCambioDiario() {
+private void cargarTablaCambioDiario() {
         DefaultTableModel modelo = (DefaultTableModel) tblCambioDiario.getModel();
         modelo.setRowCount(0); 
 
@@ -38,30 +41,51 @@ public class Tipos_Cambio_Diario extends javax.swing.JPanel {
             Connection con = db.Conectar();
 
             if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_cambio_diario' por el nombre de tu tabla real
-                String sql = "SELECT mon_origen, mon_destino, fecha, tipo_cambio, usuario, fecha_mod, hora_mod FROM tabla_cambio_diario";
+                String sql = "SELECT CMON, CDMD, FECA, TCAM, USER, FEAC, HOAC FROM tgtcd ORDER BY FECA DESC";
                 PreparedStatement ps = con.prepareStatement(sql);
                 ResultSet rs = ps.executeQuery();
+                java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.0000");
 
                 while (rs.next()) {
                     Object[] fila = new Object[7]; 
-                    fila[0] = rs.getString("mon_origen");
-                    fila[1] = rs.getString("mon_destino");
-                    fila[2] = rs.getString("fecha");
-                    fila[3] = rs.getString("tipo_cambio");
-                    fila[4] = rs.getString("usuario");
-                    fila[5] = rs.getString("fecha_mod");
-                    fila[6] = rs.getString("hora_mod");
+                    fila[0] = rs.getString("CMON");
+                    fila[1] = rs.getString("CDMD");
+                    fila[2] = rs.getString("FECA");
+                    fila[3] = df.format(rs.getDouble("TCAM")); // TCAM a formato double
+                    fila[4] = rs.getString("USER") != null ? rs.getString("USER") : "";
+                    fila[5] = rs.getString("FEAC") != null ? rs.getString("FEAC") : "";
+                    fila[6] = rs.getString("HOAC") != null ? rs.getString("HOAC") : "";
 
                     modelo.addRow(fila);
                 }
                 rs.close(); ps.close(); db.Cerrar();
+                
+                adaptarTamañoColumnas();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
         }
     }
 
+    private void adaptarTamañoColumnas() {
+        tblCambioDiario.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_OFF); 
+        
+        for (int i = 0; i < tblCambioDiario.getColumnCount(); i++) {
+            javax.swing.table.TableColumn columna = tblCambioDiario.getColumnModel().getColumn(i);
+            int anchoPreferido = 50; 
+            
+            java.awt.Component compCabecera = tblCambioDiario.getTableHeader().getDefaultRenderer()
+                    .getTableCellRendererComponent(tblCambioDiario, columna.getHeaderValue(), false, false, 0, i);
+            anchoPreferido = Math.max(anchoPreferido, compCabecera.getPreferredSize().width + 10);
+            
+            for (int r = 0; r < tblCambioDiario.getRowCount(); r++) {
+                javax.swing.table.TableCellRenderer renderizador = tblCambioDiario.getCellRenderer(r, i);
+                java.awt.Component c = tblCambioDiario.prepareRenderer(renderizador, r, i);
+                anchoPreferido = Math.max(anchoPreferido, c.getPreferredSize().width + 15); 
+            }
+            columna.setPreferredWidth(anchoPreferido); 
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -152,31 +176,39 @@ public class Tipos_Cambio_Diario extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCDiarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCDiarioActionPerformed
-        mostrarDialogoCambioDiario(false);
+       mostrarDialogoCambioDiario(false);
     }//GEN-LAST:event_btnAddCDiarioActionPerformed
 
     private void btnDeleteCDiarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteCDiarioActionPerformed
-        int fila = tblCambioDiario.getSelectedRow();
+     int fila = tblCambioDiario.getSelectedRow();
         if (fila == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un registro para eliminar.");
             return;
         }
 
+        // Tomamos las llaves compuestas: Moneda Origen, Destino y Fecha
+        String monOrigen = tblCambioDiario.getValueAt(fila, 0).toString();
+        String monDestino = tblCambioDiario.getValueAt(fila, 1).toString();
         String fechaSel = tblCambioDiario.getValueAt(fila, 2).toString();
-        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar el tipo de cambio del " + fechaSel + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        
+        int resp = JOptionPane.showConfirmDialog(this, "¿Seguro que deseas eliminar el tipo de cambio del " + fechaSel + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
             try {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    // Cambia 'tabla_cambio_diario' por tu nombre de tabla real
-                    PreparedStatement ps = con.prepareStatement("DELETE FROM tabla_cambio_diario WHERE fecha = ?");
-                    ps.setString(1, fechaSel);
+                    // Eliminamos usando las 3 llaves
+                    PreparedStatement ps = con.prepareStatement("DELETE FROM tgtcd WHERE CMON = ? AND CDMD = ? AND FECA = ?");
+                    ps.setString(1, monOrigen);
+                    ps.setString(2, monDestino);
+                    ps.setString(3, fechaSel);
                     
                     if (ps.executeUpdate() > 0) {
                         JOptionPane.showMessageDialog(this, "Registro eliminado.");
                         cargarTablaCambioDiario();
+                    } else {
+                        JOptionPane.showMessageDialog(this, "No se pudo eliminar el registro.");
                     }
                     ps.close(); db.Cerrar();
                 }
@@ -187,47 +219,51 @@ public class Tipos_Cambio_Diario extends javax.swing.JPanel {
     }//GEN-LAST:event_btnDeleteCDiarioActionPerformed
 
     private void btnEditCDiarioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditCDiarioActionPerformed
-     if (tblCambioDiario.getSelectedRow() == -1) {
+    if (tblCambioDiario.getSelectedRow() == -1) {
             JOptionPane.showMessageDialog(this, "Selecciona un registro para editar.");
             return;
         }
         mostrarDialogoCambioDiario(true);
     }//GEN-LAST:event_btnEditCDiarioActionPerformed
-private void mostrarDialogoCambioDiario(boolean modoEdicion) {
+ private void mostrarDialogoCambioDiario(boolean modoEdicion) {
         Window ventanaPadre = SwingUtilities.getWindowAncestor(this);
         String tituloVentana = modoEdicion ? "Modificar Tipo de Cambio" : "Agregar tipo de cambio";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
-        dialogo.setSize(450, 220);
+        dialogo.setSize(450, 230);
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
-        // --- 1. COMPONENTES ---
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        // --- 1. COMPONENTES --- 
         JLabel lblOrigen = new JLabel("Moneda Origen");
         lblOrigen.setBounds(30, 20, 100, 25);
-        JComboBox<String> cmbOrigen = new JComboBox<>(new String[]{"MXP", "USA", "EUR"});
+        JComboBox<String> cmbOrigen = new JComboBox<>(new String[]{"MXP", "USD", "EUR"});
         cmbOrigen.setBounds(140, 20, 70, 25);
         JLabel lblDescOrigen = new JLabel("PESOS"); 
         lblDescOrigen.setBounds(220, 20, 100, 25);
 
         JLabel lblDestino = new JLabel("Moneda Destino");
         lblDestino.setBounds(30, 55, 100, 25);
-        JComboBox<String> cmbDestino = new JComboBox<>(new String[]{"MXP", "USA", "EUR"});
+        JComboBox<String> cmbDestino = new JComboBox<>(new String[]{"MXP", "USD", "USA", "EUR"}); 
         cmbDestino.setBounds(140, 55, 70, 25);
-        JLabel lblDescDestino = new JLabel("PESOS");
+        JLabel lblDescDestino = new JLabel("DOLARES");
         lblDescDestino.setBounds(220, 55, 100, 25);
 
         JLabel lblFecha = new JLabel("Fecha");
         lblFecha.setBounds(30, 95, 50, 25);
-        JTextField txtFecha = new JTextField("04/06/2026"); 
-        txtFecha.setBounds(140, 95, 90, 25);
-        // Si se está editando, normalmente no se cambia la fecha origen
-        if (modoEdicion) txtFecha.setEditable(false); 
-
-        JLabel lblTCambio = new JLabel("Tipo de cambio");
-        lblTCambio.setBounds(240, 95, 100, 25);
-        JTextField txtTCambio = new JTextField("0.0000");
-        txtTCambio.setBounds(340, 95, 70, 25);
+        
+        // JDateChooser para la fecha (FECA)
+        JDateChooser txtFecha = new JDateChooser();
+        txtFecha.setDateFormatString("yyyy-MM-dd");
+        txtFecha.setDate(new java.util.Date());
+        txtFecha.setBounds(120, 95, 110, 25);
+        
+        JLabel lblTCambio = new JLabel("Tipo cambio");
+        lblTCambio.setBounds(240, 95, 80, 25);
+        JTextField txtTCambio = new JTextField();
+        txtTCambio.setBounds(325, 95, 85, 25);
 
         dialogo.add(lblOrigen); dialogo.add(cmbOrigen); dialogo.add(lblDescOrigen);
         dialogo.add(lblDestino); dialogo.add(cmbDestino); dialogo.add(lblDescDestino);
@@ -236,40 +272,107 @@ private void mostrarDialogoCambioDiario(boolean modoEdicion) {
 
         // --- 2. BOTONES ---
         JButton btnAceptar = new JButton("Aceptar");
-        btnAceptar.setBounds(110, 140, 100, 35);
+        btnAceptar.setBounds(110, 145, 100, 35);
         JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(230, 140, 100, 35);
+        btnSalir.setBounds(230, 145, 100, 35);
 
         dialogo.add(btnAceptar);
         dialogo.add(btnSalir);
 
-        // --- 3. SI ES EDICIÓN, LLENAMOS DATOS ---
+        // --- 3. SI ES EDICIÓN, CARGAMOS DATOS Y BLOQUEAMOS LLAVES ---
         if (modoEdicion) {
+            cmbOrigen.setEnabled(false);
+            cmbDestino.setEnabled(false);
+            txtFecha.setEnabled(false); 
+
             int fila = tblCambioDiario.getSelectedRow();
-            // Llenamos las cajas con los datos de la tabla (ajusta los índices si es necesario)
             cmbOrigen.setSelectedItem(tblCambioDiario.getValueAt(fila, 0).toString());
             cmbDestino.setSelectedItem(tblCambioDiario.getValueAt(fila, 1).toString());
-            txtFecha.setText(tblCambioDiario.getValueAt(fila, 2).toString());
-            txtTCambio.setText(tblCambioDiario.getValueAt(fila, 3).toString()); 
+            
+            try {
+                txtFecha.setDate(sdf.parse(tblCambioDiario.getValueAt(fila, 2).toString()));
+            } catch (Exception ex) {}
+            
+            txtTCambio.setText(tblCambioDiario.getValueAt(fila, 3).toString().replace(",", "")); 
         }
 
         // --- 4. EVENTOS ---
         btnSalir.addActionListener(e -> dialogo.dispose());
 
         btnAceptar.addActionListener(e -> {
-            String tipoCambio = txtTCambio.getText().trim();
-            String fecha = txtFecha.getText().trim();
+            String monOrigen = cmbOrigen.getSelectedItem().toString();
+            String monDestino = cmbDestino.getSelectedItem().toString();
+            String fechaStr = txtFecha.getDate() != null ? sdf.format(txtFecha.getDate()) : "";
+            String tipoCambioStr = txtTCambio.getText().trim();
             
-            if (tipoCambio.isEmpty() || fecha.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "La fecha y el tipo de cambio son obligatorios.");
+            if (tipoCambioStr.isEmpty() || fechaStr.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "La fecha y el tipo de cambio son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
-            // Aquí va la lógica de base de datos (INSERT INTO o UPDATE)
-            JOptionPane.showMessageDialog(dialogo, "Tipo de cambio diario guardado (Simulación).");
-            
-            dialogo.dispose();
-            cargarTablaCambioDiario(); // Refresca la tabla principal
+            double tipoCambio = 0.0;
+            try {
+                tipoCambio = Double.parseDouble(tipoCambioStr.replace(",", ""));
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialogo, "Ingrese un número válido para el tipo de cambio.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                ConDB db = new ConDB();
+                Connection con = db.Conectar();
+                if (con != null) {
+
+                    // VALIDACIÓN DE DUPLICADOS EN ALTA
+                    if (!modoEdicion) {
+                        String sqlCheck = "SELECT 1 FROM tgtcd WHERE CMON = ? AND CDMD = ? AND FECA = ?";
+                        PreparedStatement psCheck = con.prepareStatement(sqlCheck);
+                        psCheck.setString(1, monOrigen);
+                        psCheck.setString(2, monDestino);
+                        psCheck.setDate(3, java.sql.Date.valueOf(fechaStr));
+                        ResultSet rsCheck = psCheck.executeQuery();
+                        if (rsCheck.next()) {
+                            JOptionPane.showMessageDialog(dialogo, "Ya existe un tipo de cambio para " + monOrigen + "->" + monDestino + " en la fecha " + fechaStr + ".", "Duplicado", JOptionPane.WARNING_MESSAGE);
+                            rsCheck.close(); psCheck.close(); db.Cerrar();
+                            return;
+                        }
+                        rsCheck.close(); psCheck.close();
+                    }
+
+                    PreparedStatement ps;
+                    
+                    if (modoEdicion) {
+                        // UPDATE con Auditoría
+                        String sql = "UPDATE tgtcd SET TCAM = ?, USER = 'Admin', FEAC = CURDATE(), HOAC = DATE_FORMAT(NOW(), '%r') " +
+                                     "WHERE CMON = ? AND CDMD = ? AND FECA = ?";
+                        ps = con.prepareStatement(sql);
+                        ps.setDouble(1, tipoCambio);
+                        ps.setString(2, monOrigen);
+                        ps.setString(3, monDestino);
+                        ps.setDate(4, java.sql.Date.valueOf(fechaStr));
+                    } else {
+                        // INSERT con Auditoría
+                        String sql = "INSERT INTO tgtcd (CMON, CDMD, FECA, TCAM, USER, FEAC, HOAC) " +
+                                     "VALUES (?, ?, ?, ?, 'Admin', CURDATE(), DATE_FORMAT(NOW(), '%r'))";
+                        ps = con.prepareStatement(sql);
+                        ps.setString(1, monOrigen);
+                        ps.setString(2, monDestino);
+                        ps.setDate(3, java.sql.Date.valueOf(fechaStr));
+                        ps.setDouble(4, tipoCambio);
+                    }
+
+                    if (ps.executeUpdate() > 0) {
+                        JOptionPane.showMessageDialog(dialogo, "Tipo de Cambio guardado con éxito.");
+                        dialogo.dispose();
+                        cargarTablaCambioDiario(); 
+                    } else {
+                        JOptionPane.showMessageDialog(dialogo, "No se pudo guardar la información.");
+                    }
+                    ps.close(); db.Cerrar();
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         // --- 5. MOSTRAR ---

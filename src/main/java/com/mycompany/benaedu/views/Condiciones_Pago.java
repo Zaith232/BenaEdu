@@ -30,6 +30,7 @@ public class Condiciones_Pago extends javax.swing.JPanel {
      */
     public Condiciones_Pago() {
         initComponents();
+        cargarTablaCondicionesPago();
     }
 
   private void cargarTablaCondicionesPago() {
