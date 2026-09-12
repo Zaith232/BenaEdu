@@ -18,7 +18,7 @@ public class ConDB {
     private final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
     private final String DB_URL = "jdbc:mysql://localhost:3306/benaedu";
     private final String USER = "benavente";
-    private final String PASSWORD = "lf]]rV]kyfsxnetD";
+    private final String PASSWORD = "BenaEdu2026";
     
     /**
      * Establece la conexión con la base de datos utilizando variables de instancia.

@@ -43,74 +43,66 @@ public class RecuperarContraseña extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        pnlBg = new javax.swing.JPanel();
+        pnlBg = new javax.swing.JPanel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                super.paintComponent(g);
+                // Aquí le decimos a Java dónde está la imagen
+                java.net.URL url = getClass().getResource("/resources/fondoTest.png");
+
+                if (url != null) {
+                    java.awt.Image img = new javax.swing.ImageIcon(url).getImage();
+                    // Esto dibuja la imagen y la estira al tamaño exacto de la ventana
+                    g.drawImage(img, 0, 0, getWidth(), getHeight(), this);
+                } else {
+                    System.out.println("No se encontró la imagen en la ruta especificada.");
+                }
+            }
+        };
         lblTitulo = new javax.swing.JLabel();
         lblText = new javax.swing.JLabel();
         lblEmail = new javax.swing.JLabel();
         txtEmail = new javax.swing.JTextField();
         btnSend = new javax.swing.JButton();
         btnBack = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         pnlBg.setBackground(new java.awt.Color(255, 255, 255));
+        pnlBg.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        lblTitulo.setFont(new java.awt.Font("Segoe UI", 3, 48)); // NOI18N
         lblTitulo.setText("Recuperar Contraseña");
+        pnlBg.add(lblTitulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 60, 500, -1));
 
+        lblText.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
         lblText.setText("Ingrese el correo electronico del usuario");
+        pnlBg.add(lblText, new org.netbeans.lib.awtextra.AbsoluteConstraints(540, 200, -1, -1));
 
+        lblEmail.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
+        lblEmail.setIcon(new javax.swing.ImageIcon(getClass().getResource("/EmailN.png"))); // NOI18N
         lblEmail.setText("Correo:");
+        pnlBg.add(lblEmail, new org.netbeans.lib.awtextra.AbsoluteConstraints(420, 280, -1, -1));
 
+        txtEmail.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        pnlBg.add(txtEmail, new org.netbeans.lib.awtextra.AbsoluteConstraints(550, 270, 320, 40));
+
+        btnSend.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
         btnSend.setText("Enviar");
         btnSend.addActionListener(this::btnSendActionPerformed);
+        pnlBg.add(btnSend, new org.netbeans.lib.awtextra.AbsoluteConstraints(640, 390, -1, -1));
 
+        btnBack.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        btnBack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/RegresarN.png"))); // NOI18N
         btnBack.setText("Regresar");
         btnBack.addActionListener(this::btnBackActionPerformed);
+        pnlBg.add(btnBack, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 540, -1, -1));
 
-        javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
-        pnlBg.setLayout(pnlBgLayout);
-        pnlBgLayout.setHorizontalGroup(
-            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnlBgLayout.createSequentialGroup()
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlBgLayout.createSequentialGroup()
-                        .addGap(373, 373, 373)
-                        .addComponent(lblTitulo))
-                    .addGroup(pnlBgLayout.createSequentialGroup()
-                        .addGap(307, 307, 307)
-                        .addComponent(lblEmail)
-                        .addGap(57, 57, 57)
-                        .addComponent(txtEmail, javax.swing.GroupLayout.DEFAULT_SIZE, 260, Short.MAX_VALUE)))
-                .addGap(111, 111, 111)
-                .addComponent(btnBack)
-                .addGap(44, 44, 44))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
-                        .addComponent(lblText)
-                        .addGap(258, 258, 258))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
-                        .addComponent(btnSend)
-                        .addGap(341, 341, 341))))
-        );
-        pnlBgLayout.setVerticalGroup(
-            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnlBgLayout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(lblTitulo)
-                    .addComponent(btnBack))
-                .addGap(94, 94, 94)
-                .addComponent(lblText)
-                .addGap(11, 11, 11)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(lblEmail)
-                    .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(40, 40, 40)
-                .addComponent(btnSend)
-                .addContainerGap(284, Short.MAX_VALUE))
-        );
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 0, 24)); // NOI18N
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fondoTest4.png"))); // NOI18N
+        jLabel1.setToolTipText("");
+        pnlBg.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(-250, 0, 2010, 1240));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -249,6 +241,7 @@ public class RecuperarContraseña extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnSend;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel lblEmail;
     private javax.swing.JLabel lblText;
     private javax.swing.JLabel lblTitulo;
