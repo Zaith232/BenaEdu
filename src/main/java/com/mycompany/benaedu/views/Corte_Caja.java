@@ -206,7 +206,9 @@ private String usuarioLogueado = "Admin";
         Object[][] dCia    = cargarDatosMultiple.apply("SELECT CIA, NCIA FROM tmcias ORDER BY CIA", 2);
         Object[][] dCajero = cargarDatosMultiple.apply("SELECT t.NEMP, e.NOME FROM tescaj t LEFT JOIN tgemp e ON t.NEMP = e.NEMP ORDER BY t.NEMP", 2);
         Object[][] dCC     = cargarDatosMultiple.apply("SELECT CVE, DES1 FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE", 2);
-        Object[][] dCiclo  = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+        Object[][] dCiclo  = cargarDatosMultiple.apply(
+                "SELECT CESC, MAX(CDSC) FROM tescesc GROUP BY CESC "
+                + "ORDER BY MAX(CASE WHEN CURDATE() BETWEEN FINI AND FFIN THEN 1 ELSE 0 END) DESC, CESC DESC", 2);
 
         // --- 1. DATOS DE SELECCIÓN ---
         JPanel pnlSeleccion = new JPanel(null);
@@ -245,7 +247,8 @@ private String usuarioLogueado = "Admin";
 
         // Ciclo Escolar
         pnlSeleccion.add(new JLabel("Ciclo Escolar")).setBounds(400, 20, 80, 25);
-        txtCiclo = new JTextField("2526"); txtCiclo.setBounds(480, 20, 50, 25);
+        String cicloInicial = dCiclo.length > 0 && dCiclo[0][0] != null ? dCiclo[0][0].toString() : "";
+        txtCiclo = new JTextField(cicloInicial); txtCiclo.setBounds(480, 20, 50, 25);
         JButton btnCiclo = new JButton("▼"); btnCiclo.setFont(new Font("SansSerif", Font.PLAIN, 10)); btnCiclo.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnCiclo.setBounds(530, 20, 20, 25);
         buscador.configurar(txtCiclo, null, btnCiclo, dCiclo);
         pnlSeleccion.add(txtCiclo); pnlSeleccion.add(btnCiclo);
@@ -380,15 +383,23 @@ private String usuarioLogueado = "Admin";
             this.repaint();
         });
 
-        // --- 8. LÓGICA DE FILTRADO, POBLADO DE pasocortecaja Y CÁLCULOS ---
+        // --- 8. LÓGICA DE FILTRADO Y CÁLCULOS ---
         btnFiltra.addActionListener(e -> {
             modDetalle.setRowCount(0);
             listaReporte.clear();
+            txtTotRecibos.setText("0");
+            txtTotEfectivo.setText("0.00");
+            txtTotCheques.setText("0.00");
+            txtTotDep.setText("0.00");
+            txtTotTarjetas.setText("0.00");
+            txtTotTransf.setText("0.00");
+            txtTotGlobal.setText("0.00");
 
             String cia = txtCia.getText().trim();
             String cc = txtCC.getText().trim();
             String ciclo = txtCiclo.getText().trim();
             String cajeroEmp = txtCajero.getText().trim();
+            String tipoCuenta = rbPart.isSelected() ? "P" : "O";
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             String fIni = txtFecIni.getDate() != null ? sdf.format(txtFecIni.getDate()) : "";
@@ -396,9 +407,8 @@ private String usuarioLogueado = "Admin";
 
             try (Connection con = new ConDB().Conectar()) {
                 if (con != null) {
-                    con.setAutoCommit(false);
-
                     // A) Obtener nombre de la sección / centro de costo
+                    seccionNombreReporte = "TODOS";
                     if (!cc.isEmpty()) {
                         PreparedStatement psCC = con.prepareStatement("SELECT DES1 FROM tgcc WHERE CVE = ? LIMIT 1");
                         psCC.setString(1, cc);
@@ -424,46 +434,36 @@ private String usuarioLogueado = "Admin";
                         rsUser.close(); psUser.close();
                     }
 
-                    // 1. Limpiar pasocortecaja
-                    PreparedStatement psClean = con.prepareStatement("DELETE FROM pasocortecaja");
-                    psClean.executeUpdate();
-                    psClean.close();
-
-                    // 2. Poblar pasocortecaja desde tesralu con todas las columnas numéricas
-                    StringBuilder sqlPopulate = new StringBuilder(
-                        "INSERT INTO pasocortecaja (CIA, CC, SECC, CESC, MAT, NOMALU, GRADO, GRUPO, NREC, TREC, FREC, NCPTO, TCPTO, DCPTO, IMPMN, PBEC, IBECMN, PDSC, IDSCMN, PREC, IRECMN, IPAGMN, FVEN, NCAJ) " +
-                        "SELECT CIA, CC, SECC, CESC, MAT, NOMALU, GRADO, GRUPO, NREC, TREC, FREC, NCPTO, TCPTO, DCPTO, IMPMN, PBEC, IBECMN, PDSC, IDSCMN, PREC, IRECMN, IPAGMN, FVEN, NCAJ " +
-                        "FROM tesralu WHERE (MCAN IS NULL OR MCAN = '') AND IPAGMN > 0 "
+                    // 1. Consultar directamente los conceptos pagados; no se usa la tabla temporal compartida.
+                    StringBuilder sqlDetalle = new StringBuilder(
+                        "SELECT r.CIA, r.CC, r.CESC, r.NREC, r.TREC, r.MAT, r.NOMALU, r.GRADO, r.GRUPO, " +
+                        "r.NCPTO, r.DCPTO, r.FVEN, r.IMPMN, r.PBEC, r.IBECMN, r.PDSC, r.IDSCMN, " +
+                        "r.PREC, r.IRECMN, r.IPAGMN FROM tesralu r " +
+                        "WHERE COALESCE(r.MCAN, '') = '' AND COALESCE(r.IPAGMN, 0) > 0 " +
+                        "AND COALESCE(NULLIF(r.TCONT, ''), 'O') = ? "
                     );
 
-                    if (!cia.isEmpty()) sqlPopulate.append(" AND CIA = ? ");
-                    if (!cc.isEmpty()) sqlPopulate.append(" AND CC = ? ");
-                    if (!ciclo.isEmpty()) sqlPopulate.append(" AND CESC = ? ");
-                    if (!cajeroEmp.isEmpty()) sqlPopulate.append(" AND NCAJ = ? ");
-                    if (!fIni.isEmpty() && !fFin.isEmpty()) sqlPopulate.append(" AND FPAG BETWEEN ? AND ? ");
+                    if (!cia.isEmpty()) sqlDetalle.append(" AND r.CIA = ?");
+                    if (!cc.isEmpty()) sqlDetalle.append(" AND r.CC = ?");
+                    if (!ciclo.isEmpty()) sqlDetalle.append(" AND r.CESC = ?");
+                    if (!cajeroEmp.isEmpty()) sqlDetalle.append(" AND r.NCAJ = ?");
+                    if (!fIni.isEmpty()) sqlDetalle.append(" AND COALESCE(r.FPAG, r.FREC) >= ?");
+                    if (!fFin.isEmpty()) sqlDetalle.append(" AND COALESCE(r.FPAG, r.FREC) <= ?");
+                    sqlDetalle.append(" ORDER BY r.FREC ASC, r.NREC ASC, r.TREC ASC, r.NCPTO ASC");
 
-                    PreparedStatement psPopulate = con.prepareStatement(sqlPopulate.toString());
+                    PreparedStatement psRead = con.prepareStatement(sqlDetalle.toString());
                     int pIdx = 1;
-                    if (!cia.isEmpty()) psPopulate.setString(pIdx++, cia);
-                    if (!cc.isEmpty()) psPopulate.setString(pIdx++, cc);
-                    if (!ciclo.isEmpty()) psPopulate.setString(pIdx++, ciclo);
-                    if (!cajeroEmp.isEmpty()) psPopulate.setString(pIdx++, cajeroEmp);
-                    if (!fIni.isEmpty() && !fFin.isEmpty()) {
-                        psPopulate.setString(pIdx++, fIni);
-                        psPopulate.setString(pIdx++, fFin);
-                    }
+                    psRead.setString(pIdx++, tipoCuenta);
+                    if (!cia.isEmpty()) psRead.setString(pIdx++, cia);
+                    if (!cc.isEmpty()) psRead.setString(pIdx++, cc);
+                    if (!ciclo.isEmpty()) psRead.setString(pIdx++, ciclo);
+                    if (!cajeroEmp.isEmpty()) psRead.setString(pIdx++, cajeroEmp);
+                    if (!fIni.isEmpty()) psRead.setString(pIdx++, fIni);
+                    if (!fFin.isEmpty()) psRead.setString(pIdx++, fFin);
 
-                    psPopulate.executeUpdate();
-                    psPopulate.close();
-                    con.commit();
-
-                    // 3. Consultar pasocortecaja para la tabla y estructura del reporte
-                    PreparedStatement psRead = con.prepareStatement(
-                        "SELECT NREC, TREC, MAT, NOMALU, GRADO, GRUPO, NCPTO, DCPTO, FVEN, IMPMN, PBEC, IBECMN, PDSC, IDSCMN, PREC, IRECMN, IPAGMN " +
-                        "FROM pasocortecaja ORDER BY NREC ASC, NCPTO ASC"
-                    );
                     ResultSet rs = psRead.executeQuery();
                     DecimalFormat df = new DecimalFormat("#,##0.00");
+                    java.util.Set<String> recibosUnicos = new java.util.HashSet<>();
 
                     totImpBaseGlobal = 0.0;
                     totBecaGlobal = 0.0;
@@ -491,6 +491,10 @@ private String usuarioLogueado = "Admin";
                         f.irec = rs.getDouble("IRECMN");
                         f.ipag = rs.getDouble("IPAGMN");
 
+                        recibosUnicos.add(rs.getString("CIA") + "\u0000" + rs.getString("CC") + "\u0000"
+                                + rs.getString("CESC") + "\u0000" + f.matricula + "\u0000"
+                                + f.numRec + "\u0000" + f.tipoRec);
+
                         listaReporte.add(f);
 
                         totImpBaseGlobal += f.impte;
@@ -507,15 +511,32 @@ private String usuarioLogueado = "Admin";
                     }
                     rs.close(); psRead.close();
 
-                    // 4. CALCULAR FORMAS DE PAGO CON JOIN EXACTO A pasocortecaja
-                    String sqlPagos = "SELECT p.FMAPAG, SUM(p.IMPMN) AS TOTAL_FORMA " +
-                                     "FROM tespalu p " +
-                                     "INNER JOIN (SELECT DISTINCT CIA, NREC, MAT FROM pasocortecaja) pc " +
-                                     "ON p.CIA = pc.CIA AND p.NREC = pc.NREC AND p.MAT = pc.MAT " +
-                                     "WHERE (p.MCAN IS NULL OR p.MCAN = '') " +
-                                     "GROUP BY p.FMAPAG";
+                    // 2. Sumar cada instrumento una sola vez mediante la identidad completa del recibo.
+                    StringBuilder sqlPagos = new StringBuilder(
+                            "SELECT p.FMAPAG, SUM(COALESCE(p.IMPMN, 0)) AS TOTAL_FORMA FROM tespalu p " +
+                            "WHERE COALESCE(p.MCAN, '') = '' AND EXISTS (SELECT 1 FROM tesralu r " +
+                            "WHERE r.CIA = p.CIA AND r.CC = p.CC AND r.CESC = p.CESC AND r.MAT = p.MAT " +
+                            "AND r.NREC = p.NREC AND r.TREC <=> p.TREC " +
+                            "AND COALESCE(r.MCAN, '') = '' AND COALESCE(r.IPAGMN, 0) > 0 " +
+                            "AND COALESCE(NULLIF(r.TCONT, ''), 'O') = ?"
+                    );
+                    if (!cia.isEmpty()) sqlPagos.append(" AND r.CIA = ?");
+                    if (!cc.isEmpty()) sqlPagos.append(" AND r.CC = ?");
+                    if (!ciclo.isEmpty()) sqlPagos.append(" AND r.CESC = ?");
+                    if (!cajeroEmp.isEmpty()) sqlPagos.append(" AND r.NCAJ = ?");
+                    if (!fIni.isEmpty()) sqlPagos.append(" AND COALESCE(r.FPAG, r.FREC) >= ?");
+                    if (!fFin.isEmpty()) sqlPagos.append(" AND COALESCE(r.FPAG, r.FREC) <= ?");
+                    sqlPagos.append(") GROUP BY p.FMAPAG");
 
-                    PreparedStatement psPagos = con.prepareStatement(sqlPagos);
+                    PreparedStatement psPagos = con.prepareStatement(sqlPagos.toString());
+                    pIdx = 1;
+                    psPagos.setString(pIdx++, tipoCuenta);
+                    if (!cia.isEmpty()) psPagos.setString(pIdx++, cia);
+                    if (!cc.isEmpty()) psPagos.setString(pIdx++, cc);
+                    if (!ciclo.isEmpty()) psPagos.setString(pIdx++, ciclo);
+                    if (!cajeroEmp.isEmpty()) psPagos.setString(pIdx++, cajeroEmp);
+                    if (!fIni.isEmpty()) psPagos.setString(pIdx++, fIni);
+                    if (!fFin.isEmpty()) psPagos.setString(pIdx++, fFin);
                     ResultSet rsPagos = psPagos.executeQuery();
 
                     double totEf = 0, totCh = 0, totDp = 0, totTc = 0, totTe = 0;
@@ -540,21 +561,14 @@ private String usuarioLogueado = "Admin";
                         totEf = totPagadoGlobal;
                     }
 
-                    // Conteo de recibos únicos
-                    PreparedStatement psCountRec = con.prepareStatement("SELECT COUNT(DISTINCT NREC) FROM pasocortecaja");
-                    ResultSet rsC = psCountRec.executeQuery();
-                    int cantRecibosUnicos = 0;
-                    if (rsC.next()) cantRecibosUnicos = rsC.getInt(1);
-                    rsC.close(); psCountRec.close();
-
-                    // 5. Asignar Totales a la UI
-                    txtTotRecibos.setText(String.valueOf(cantRecibosUnicos));
+                    // 3. Asignar totales a la interfaz.
+                    txtTotRecibos.setText(String.valueOf(recibosUnicos.size()));
                     txtTotEfectivo.setText(df.format(totEf));
                     txtTotCheques.setText(df.format(totCh));
                     txtTotDep.setText(df.format(totDp));
                     txtTotTarjetas.setText(df.format(totTc));
                     txtTotTransf.setText(df.format(totTe));
-                    txtTotGlobal.setText(df.format(totPagadoGlobal));
+                    txtTotGlobal.setText(df.format(totEf + totCh + totDp + totTc + totTe));
 
                     if (modDetalle.getRowCount() == 0) {
                         JOptionPane.showMessageDialog(this, "No se encontraron movimientos para generar el corte.", "Información", JOptionPane.INFORMATION_MESSAGE);

@@ -365,25 +365,25 @@ public String getUsuarioCodigo() {
         iGrados.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Grados_Escolares(), "Grados Escolares"));
         iBecas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Becas_Convenio(), "Registro de Becas y Convenios"));
         iConEsc.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
-        iPlanes.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(), "Planes de Pago"));
+        iPlanes.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(getUsuarioCodigo()), "Planes de Pago"));
 
         iCtasBan.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas_Bancarias(), "Cuentas Bancarias"));
         iTiposAl.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Tipo_Alumno(), "Catalogo Tipos de Alumno"));
         iCajeros.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cajeros(), "Catalogo de Cajeros"));
-        iAlumnos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(), "Catalogo de Alumnos"));
+        iAlumnos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(getUsuarioCodigo()), "Catalogo de Alumnos"));
 
-        iCobranza.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cobranza_Escolar(), "Cobranza Escolar"));
+        iCobranza.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cobranza_Escolar(getUsuarioCodigo()), "Cobranza Escolar"));
         iCorte.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Corte_Caja(), "Corte de Caja"));
         iFacturas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Impresion_Facturas(), "Impresión de Facturas"));
         iDep.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Depositos(), "Registro de Depositos"));
         iCanCon.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Conceptos(), "Cancelación de Conceptos"));
-        iCanRec.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Recibos(), "Cancelación de Recibos"));
+        iCanRec.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Recibos(getUsuarioCodigo()), "Cancelación de Recibos"));
         iCanCorte.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Corte(), "Cancela Contabilizacion de Corte de Caja"));
         iCanDep.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Deposito(), "Cancela Contabilizacion de Reg Deposito"));
 
-        iEdoAl.addActionListener(e -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción..."));
+        iEdoAl.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(getUsuarioCodigo()), "Estado de Cuenta Alumnos"));
         iConsPag.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Consulta_Pagos(), "Consulta de Pagos"));
-        iEdoDet.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(), "Estado de Cuenta Detallado"));
+        iEdoDet.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(getUsuarioCodigo()), "Estado de Cuenta Detallado"));
 
         iResIns.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Inscripciones(), "Resumen de Inscripciones"));
         iResNoIns.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Alumnos_No_Inscritos(), "Resumen de Alumnos No Inscritos"));
@@ -529,22 +529,22 @@ public String getUsuarioCodigo() {
         opcionesSistema.put("Grados Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Grados_Escolares(), "Grados Escolares"));
         opcionesSistema.put("Registro de Becas y Convenios", () -> mostrarPanel(new com.mycompany.benaedu.views.Becas_Convenio(), "Registro de Becas y Convenios"));
         opcionesSistema.put("Conceptos Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
-        opcionesSistema.put("Planes de Pago", () -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(), "Planes de Pago"));
+        opcionesSistema.put("Planes de Pago", () -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(getUsuarioCodigo()), "Planes de Pago"));
         opcionesSistema.put("Cuentas Bancarias", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas_Bancarias(), "Cuentas Bancarias"));
         opcionesSistema.put("Catalogo Tipos de Alumno", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Tipo_Alumno(), "Catalogo Tipos de Alumno"));
         opcionesSistema.put("Catalogo de Cajeros", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cajeros(), "Catalogo de Cajeros"));
-        opcionesSistema.put("Catalogo de Alumnos", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(), "Catalogo de Alumnos"));
-        opcionesSistema.put("Cobranza Escolar", () -> mostrarPanel(new com.mycompany.benaedu.views.Cobranza_Escolar(), "Cobranza Escolar"));
+        opcionesSistema.put("Catalogo de Alumnos", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(getUsuarioCodigo()), "Catalogo de Alumnos"));
+        opcionesSistema.put("Cobranza Escolar", () -> mostrarPanel(new com.mycompany.benaedu.views.Cobranza_Escolar(getUsuarioCodigo()), "Cobranza Escolar"));
         opcionesSistema.put("Corte de Caja", () -> mostrarPanel(new com.mycompany.benaedu.views.Corte_Caja(), "Corte de Caja"));
         opcionesSistema.put("Impresión de Facturas", () -> mostrarPanel(new com.mycompany.benaedu.views.Impresion_Facturas(), "Impresión de Facturas"));
         opcionesSistema.put("Registro de Depositos", () -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Depositos(), "Registro de Depositos"));
         opcionesSistema.put("Cancelación de Conceptos", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Conceptos(), "Cancelación de Conceptos"));
-        opcionesSistema.put("Cancelación de Recibos", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Recibos(), "Cancelación de Recibos"));
+        opcionesSistema.put("Cancelación de Recibos", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Recibos(getUsuarioCodigo()), "Cancelación de Recibos"));
         opcionesSistema.put("Cancela Contabilizacion de Corte de Caja", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Corte(), "Cancela Contabilizacion de Corte de Caja"));
         opcionesSistema.put("Cancela Contabilizacion de Reg Deposito", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Deposito(), "Cancela Contabilizacion de Reg Deposito"));
-        opcionesSistema.put("Estado de Cuenta Alumnos", () -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción..."));
+        opcionesSistema.put("Estado de Cuenta Alumnos", () -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(getUsuarioCodigo()), "Estado de Cuenta Alumnos"));
         opcionesSistema.put("Consulta de Pagos", () -> mostrarPanel(new com.mycompany.benaedu.views.Consulta_Pagos(), "Consulta de Pagos"));
-        opcionesSistema.put("Estado de Cuenta Detallado", () -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(), "Estado de Cuenta Detallado"));
+        opcionesSistema.put("Estado de Cuenta Detallado", () -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(getUsuarioCodigo()), "Estado de Cuenta Detallado"));
         opcionesSistema.put("Resumen de Inscripciones", () -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Inscripciones(), "Resumen de Inscripciones"));
         opcionesSistema.put("Resumen de Alumnos No Inscritos", () -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Alumnos_No_Inscritos(), "Resumen de Alumnos No Inscritos"));
         opcionesSistema.put("Reimpresión de Recibos", () -> mostrarPanel(new com.mycompany.benaedu.views.Reeimpresion_Recibos(), "Reimpresión de Recibos"));

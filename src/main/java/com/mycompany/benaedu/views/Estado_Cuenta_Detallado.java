@@ -3,11 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
-import com.mycompany.benaedu.Dashboard;
 import com.mycompany.benaedu.db.ConDB;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterJob;
 import java.sql.Connection;
@@ -25,17 +22,22 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 /**
+ * Consulta e imprime los cargos, pagos y saldos de los alumnos.
  *
  * @author b17za
  */
 public class Estado_Cuenta_Detallado extends javax.swing.JPanel {
-private String usuarioLogueado = "Admin";
+    private String usuarioLogueado = "Admin";
 
-public Estado_Cuenta_Detallado(String usuarioLogueado) {
+    /**
+     * Crea el estado de cuenta para el usuario autenticado.
+     *
+     * @param usuarioLogueado alias del usuario que inició sesión
+     */
+    public Estado_Cuenta_Detallado(String usuarioLogueado) {
         if (usuarioLogueado != null && !usuarioLogueado.trim().isEmpty()) {
             this.usuarioLogueado = usuarioLogueado.trim();
         }
@@ -43,13 +45,17 @@ public Estado_Cuenta_Detallado(String usuarioLogueado) {
         construirInterfazEstadoCuenta();
     }
     /**
-     * Creates new form Estado_Cuenta_Detallado
+     * Crea el estado de cuenta usando el usuario predeterminado.
      */
     public Estado_Cuenta_Detallado() {
         initComponents();
-       construirInterfazEstadoCuenta();
+        construirInterfazEstadoCuenta();
     }
-private void construirInterfazEstadoCuenta() {
+
+    /**
+     * Construye los filtros, la tabla de movimientos y las acciones del reporte.
+     */
+    private void construirInterfazEstadoCuenta() {
         this.removeAll();
         this.setLayout(null);
         this.setBackground(new java.awt.Color(238, 238, 238)); // Fondo clásico Gris/Sistema
@@ -130,7 +136,10 @@ private void construirInterfazEstadoCuenta() {
             return lista.toArray(new Object[0][0]);
         };
 
-        Object[][] dMatricula = cargarDatosMultiple.apply("SELECT MAT, CONCAT(APATE, ' ', AMATE, ' ', NOMA) FROM tesalum ORDER BY MAT", 2);
+        Object[][] dMatricula = cargarDatosMultiple.apply(
+                "SELECT MAT,COALESCE(NULLIF(MAX(NOMCOM),'')," +
+                "CONCAT_WS(' ',MAX(APATE),MAX(AMATE),MAX(NOMA))) AS NOMBRE " +
+                "FROM tesalum GROUP BY MAT ORDER BY MAT", 2);
 
         // ==========================================
         // 1. PANEL SUPERIOR DE FILTROS
@@ -140,12 +149,12 @@ private void construirInterfazEstadoCuenta() {
         pnlTopFiltros.setBounds(10, 10, 620, 125);
 
         pnlTopFiltros.add(new JLabel("Compañía")).setBounds(15, 15, 70, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        JComboBox<String> cmbCia = new JComboBox<>();
         cmbCia.setBounds(85, 15, 110, 25);
         pnlTopFiltros.add(cmbCia);
 
         pnlTopFiltros.add(new JLabel("Ctro de Costo")).setBounds(210, 15, 80, 25);
-        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"", "12100", "12200", "12300", "12400"});
+        JComboBox<String> cmbCC = new JComboBox<>();
         cmbCC.setBounds(295, 15, 90, 25);
         pnlTopFiltros.add(cmbCC);
 
@@ -155,7 +164,7 @@ private void construirInterfazEstadoCuenta() {
         pnlTopFiltros.add(cmbCiclo);
 
         pnlTopFiltros.add(new JLabel("Grado")).setBounds(15, 50, 70, 25);
-        JComboBox<String> cmbGrado = new JComboBox<>(new String[]{"", "1J", "2J", "3J", "1P", "2P", "3P", "4P", "5P", "6P", "1S", "2S", "3S", "1B", "2B", "3B"});
+        JComboBox<String> cmbGrado = new JComboBox<>();
         cmbGrado.setBounds(85, 50, 110, 25);
         pnlTopFiltros.add(cmbGrado);
 
@@ -170,13 +179,27 @@ private void construirInterfazEstadoCuenta() {
             ConDB db = new ConDB(); Connection con = db.Conectar();
             if (con != null) {
                 ResultSet rsCia = con.prepareStatement("SELECT CIA FROM tmcias ORDER BY CIA").executeQuery();
-                cmbCia.removeAllItems();
                 while(rsCia.next()) cmbCia.addItem(rsCia.getString("CIA"));
                 rsCia.close();
 
-                ResultSet rsCesc = con.prepareStatement("SELECT CESC FROM tescesc ORDER BY CESC DESC").executeQuery();
+                cmbCC.addItem("");
+                ResultSet rsCC = con.prepareStatement(
+                        "SELECT DISTINCT CVE FROM tgcc WHERE COALESCE(CVE,'')<>'' ORDER BY CVE")
+                        .executeQuery();
+                while (rsCC.next()) cmbCC.addItem(rsCC.getString("CVE"));
+                rsCC.close();
+
+                cmbGrado.addItem("");
+                ResultSet rsGrado = con.prepareStatement(
+                        "SELECT DISTINCT CGRAD FROM tesgrad WHERE COALESCE(CGRAD,'')<>'' ORDER BY CGRAD")
+                        .executeQuery();
+                while (rsGrado.next()) cmbGrado.addItem(rsGrado.getString("CGRAD"));
+                rsGrado.close();
+
+                ResultSet rsCesc = con.prepareStatement("SELECT DISTINCT CESC FROM tescesc ORDER BY CESC DESC").executeQuery();
                 cmbCiclo.addItem("");
                 while(rsCesc.next()) cmbCiclo.addItem(rsCesc.getString("CESC"));
+                if (cmbCiclo.getItemCount() > 1) cmbCiclo.setSelectedIndex(1);
                 rsCesc.close(); db.Cerrar();
             }
         } catch(Exception ex) {}
@@ -218,12 +241,13 @@ private void construirInterfazEstadoCuenta() {
             new Object[][]{},
             new String[]{
                 "Matricula", "Concepto", "Descripcion", "Grad", "Gpo", 
-                "A Pagar", "Fec Venc", "Imp Pagado", "Fec Pago", "Ref Ban", "Saldo", "% Beca"
+                "A Pagar", "Fec Venc", "Imp Pagado", "Fec Pago", "Recibo", "Saldo", "% Beca"
             }
         ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
 
         JTable tblDetalle = new JTable(modDetalle);
         tblDetalle.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        tblDetalle.setAutoCreateRowSorter(true);
 
         tblDetalle.getColumnModel().getColumn(0).setPreferredWidth(75);  // Matricula
         tblDetalle.getColumnModel().getColumn(1).setPreferredWidth(65);  // Concepto
@@ -300,6 +324,9 @@ private void construirInterfazEstadoCuenta() {
 
         btnFiltrar.addActionListener(e -> {
             modDetalle.setRowCount(0);
+            txtTotAPagar.setText("0.00");
+            txtTotPagado.setText("0.00");
+            txtTotSaldo.setText("0.00");
 
             String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "12";
             String cc = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
@@ -307,68 +334,86 @@ private void construirInterfazEstadoCuenta() {
             String grado = cmbGrado.getSelectedItem() != null ? cmbGrado.getSelectedItem().toString() : "";
             String matricula = txtMat.getText().trim();
 
-            try {
-                ConDB db = new ConDB();
-                Connection con = db.Conectar();
+            if (ciclo.isEmpty() && matricula.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "Selecciona un ciclo escolar o una matrícula para consultar.",
+                        "Atención", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
-                if (con != null) {
+            try (Connection con = ConDB.getConnection()) {
                     StringBuilder sql = new StringBuilder(
-                        "SELECT c.MAT, c.NCPTO, c.DCPTO, x.GRADO, x.GRUPO, " +
+                        "SELECT c.MAT, c.NCPTO, c.DCPTO, c.GRADO, c.GRUPO, " +
                         "c.IMPTMN AS A_PAGAR, c.FVEN, c.IPAGMN AS IMP_PAGADO, " +
-                        "r.FREC AS FEC_PAGO, r.NREC AS REF_BAN, c.IPENMN AS SALDO, x.PBEC " +
+                        "r.FPAG AS FEC_PAGO, r.NREC AS RECIBO, c.IPENMN AS SALDO, c.PBEC " +
                         "FROM tescalu c " +
-                        "LEFT JOIN tesaxce x ON c.MAT = x.MAT AND c.CESC = x.CESC " +
-                        "LEFT JOIN tesralu r ON c.MAT = r.MAT AND c.IDCPT = r.IDCPT " +
-                        "WHERE c.CIA = ? "
+                        "LEFT JOIN (SELECT p.CIA,p.CC,p.CESC,p.MAT,p.IDCPT,p.FPAG,p.NREC FROM (" +
+                        "SELECT r.CIA,r.CC,r.CESC,r.MAT,r.IDCPT,r.FPAG,r.FREC,r.NREC," +
+                        "ROW_NUMBER() OVER (PARTITION BY r.CIA,r.CC,r.CESC,r.MAT,r.IDCPT " +
+                        "ORDER BY r.FPAG DESC,r.FREC DESC,r.NREC DESC) AS FILA FROM tesralu r " +
+                        "WHERE COALESCE(r.MCAN,'')='' AND r.CIA=? "
+                    );
+
+                    if (!cc.isEmpty()) sql.append(" AND r.CC=? ");
+                    if (!ciclo.isEmpty()) sql.append(" AND r.CESC=? ");
+                    if (!matricula.isEmpty()) sql.append(" AND r.MAT=? ");
+
+                    sql.append(
+                        ") p WHERE p.FILA=1) r " +
+                        "ON c.CIA=r.CIA AND c.CC=r.CC AND c.CESC=r.CESC " +
+                        "AND c.MAT=r.MAT AND c.IDCPT=r.IDCPT " +
+                        "WHERE c.CIA=? AND COALESCE(c.MCAN,'')='' "
                     );
 
                     if (!cc.isEmpty()) sql.append(" AND c.CC = ? ");
                     if (!ciclo.isEmpty()) sql.append(" AND c.CESC = ? ");
-                    if (!grado.isEmpty()) sql.append(" AND x.GRADO = ? ");
+                    if (!grado.isEmpty()) sql.append(" AND c.GRADO = ? ");
                     if (!matricula.isEmpty()) sql.append(" AND c.MAT = ? ");
+                    if (rbOficial.isSelected()) sql.append(" AND COALESCE(c.TCONT,'O')='O' ");
+                    if (rbParticular.isSelected()) sql.append(" AND c.TCONT='P' ");
 
-                    sql.append(" ORDER BY c.MAT, c.FVEN ASC");
+                    sql.append(" ORDER BY c.MAT,c.FVEN,c.IDCPT");
 
-                    PreparedStatement ps = con.prepareStatement(sql.toString());
-                    int p = 1;
-                    ps.setString(p++, cia);
-                    if (!cc.isEmpty()) ps.setString(p++, cc);
-                    if (!ciclo.isEmpty()) ps.setString(p++, ciclo);
-                    if (!grado.isEmpty()) ps.setString(p++, grado);
-                    if (!matricula.isEmpty()) ps.setString(p++, matricula);
-
-                    ResultSet rs = ps.executeQuery();
                     java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
+                    double sumAPagar = 0.0;
+                    double sumPagado = 0.0;
+                    double sumSaldo = 0.0;
 
-                    double sumAPagar = 0.0, sumPagado = 0.0, sumSaldo = 0.0;
+                    try (PreparedStatement ps = con.prepareStatement(sql.toString())) {
+                        int p = 1;
+                        ps.setString(p++, cia);
+                        if (!cc.isEmpty()) ps.setString(p++, cc);
+                        if (!ciclo.isEmpty()) ps.setString(p++, ciclo);
+                        if (!matricula.isEmpty()) ps.setString(p++, matricula);
 
-                    while (rs.next()) {
-                        double aPagar = rs.getDouble("A_PAGAR");
-                        double pagado = rs.getDouble("IMP_PAGADO");
-                        double saldo = rs.getDouble("SALDO");
+                        ps.setString(p++, cia);
+                        if (!cc.isEmpty()) ps.setString(p++, cc);
+                        if (!ciclo.isEmpty()) ps.setString(p++, ciclo);
+                        if (!grado.isEmpty()) ps.setString(p++, grado);
+                        if (!matricula.isEmpty()) ps.setString(p++, matricula);
 
-                        Object[] fila = new Object[12];
-                        fila[0] = rs.getString("MAT");
-                        fila[1] = rs.getString("NCPTO");
-                        fila[2] = rs.getString("DCPTO");
-                        fila[3] = rs.getString("GRADO");
-                        fila[4] = rs.getString("GRUPO");
-                        fila[5] = df.format(aPagar);
-                        fila[6] = rs.getString("FVEN");
-                        fila[7] = df.format(pagado);
-                        fila[8] = rs.getString("FEC_PAGO") != null ? rs.getString("FEC_PAGO") : "";
-                        fila[9] = rs.getString("REF_BAN") != null ? rs.getString("REF_BAN") : "";
-                        fila[10] = df.format(saldo);
-                        fila[11] = rs.getString("PBEC") != null ? rs.getString("PBEC") + "%" : "0%";
+                        try (ResultSet rs = ps.executeQuery()) {
+                            while (rs.next()) {
+                                double aPagar = rs.getDouble("A_PAGAR");
+                                double pagado = rs.getDouble("IMP_PAGADO");
+                                double saldo = rs.getDouble("SALDO");
 
-                        sumAPagar += aPagar;
-                        sumPagado += pagado;
-                        sumSaldo += saldo;
+                                modDetalle.addRow(new Object[]{
+                                    rs.getString("MAT"), rs.getString("NCPTO"), rs.getString("DCPTO"),
+                                    rs.getString("GRADO"), rs.getString("GRUPO"), df.format(aPagar),
+                                    rs.getString("FVEN"), df.format(pagado),
+                                    rs.getString("FEC_PAGO") != null ? rs.getString("FEC_PAGO") : "",
+                                    rs.getString("RECIBO") != null ? rs.getString("RECIBO") : "",
+                                    df.format(saldo),
+                                    rs.getString("PBEC") != null ? rs.getString("PBEC") + "%" : "0%"
+                                });
 
-                        modDetalle.addRow(fila);
+                                sumAPagar += aPagar;
+                                sumPagado += pagado;
+                                sumSaldo += saldo;
+                            }
+                        }
                     }
-
-                    rs.close(); ps.close(); db.Cerrar();
 
                     txtTotAPagar.setText(df.format(sumAPagar));
                     txtTotPagado.setText(df.format(sumPagado));
@@ -377,7 +422,6 @@ private void construirInterfazEstadoCuenta() {
                     if (modDetalle.getRowCount() == 0) {
                         JOptionPane.showMessageDialog(this, "No se encontraron registros con los criterios especificados.", "Información", JOptionPane.INFORMATION_MESSAGE);
                     }
-                }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error al consultar estado de cuenta: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -408,6 +452,9 @@ private void construirInterfazEstadoCuenta() {
                     g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
                     g2d.drawString("UNIDAD ESCOLAR BENAVENTE, A.C.", 40, y); y += 20;
                     g2d.drawString("ESTADO DE CUENTA DETALLADO", 40, y); y += 15;
+                    g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 8));
+                    g2d.drawString("Ciclo: " + cmbCiclo.getSelectedItem()
+                            + " | Usuario: " + usuarioLogueado, 40, y); y += 12;
                     g2d.drawLine(40, y, 530, y); y += 15;
 
                     g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 8));

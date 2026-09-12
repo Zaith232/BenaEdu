@@ -112,7 +112,9 @@ private void construirInterfazAlumnosBecados() {
             return lista.toArray(new Object[0][0]);
         };
 
-        Object[][] dCiclo = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+        Object[][] dCiclo = cargarDatosMultiple.apply(
+                "SELECT CESC, MAX(CDSC) FROM tescesc GROUP BY CESC "
+                + "ORDER BY MAX(CASE WHEN CURDATE() BETWEEN FINI AND FFIN THEN 1 ELSE 0 END) DESC, CESC DESC", 2);
         Object[][] dBeca  = cargarDatosMultiple.apply("SELECT CBECA, DBECA FROM tesbege ORDER BY CBECA", 2);
 
         // --- 1. DATOS DE SELECCIÓN ---
@@ -146,7 +148,8 @@ private void construirInterfazAlumnosBecados() {
 
         // Ciclo Escolar
         pnlSel.add(new JLabel("Ciclo Escolar")).setBounds(335, 20, 80, 25);
-        JTextField txtCiclo = new JTextField("2526"); txtCiclo.setBounds(415, 20, 60, 25);
+        String cicloInicial = dCiclo.length > 0 && dCiclo[0][0] != null ? dCiclo[0][0].toString() : "";
+        JTextField txtCiclo = new JTextField(cicloInicial); txtCiclo.setBounds(415, 20, 60, 25);
         JButton btnCiclo = new JButton("▼"); btnCiclo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnCiclo.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnCiclo.setBounds(475, 20, 20, 25);
         buscador.configurar(txtCiclo, null, btnCiclo, dCiclo, new String[]{"Clave", "Descripción"}, new int[]{60, 200});
         pnlSel.add(txtCiclo); pnlSel.add(btnCiclo);
@@ -217,31 +220,31 @@ private void construirInterfazAlumnosBecados() {
 
         JLabel lblLblTotales = new JLabel("Totales");
         lblLblTotales.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 12));
-        lblLblTotales.setBounds(200, 10, 60, 25);
+        lblLblTotales.setBounds(10, 10, 60, 25);
         pnlTotales.add(lblLblTotales);
 
-        pnlTotales.add(new JLabel("Alumnos")).setBounds(270, 10, 60, 25);
+        pnlTotales.add(new JLabel("Alumnos")).setBounds(80, 10, 60, 25);
         JTextField txtTotAlumnos = new JTextField("0");
         txtTotAlumnos.setHorizontalAlignment(JTextField.RIGHT); txtTotAlumnos.setEditable(false);
-        txtTotAlumnos.setBounds(330, 10, 60, 25);
+        txtTotAlumnos.setBounds(140, 10, 60, 25);
         pnlTotales.add(txtTotAlumnos);
 
-        pnlTotales.add(new JLabel("Imp. Concepto")).setBounds(410, 10, 90, 25);
+        pnlTotales.add(new JLabel("Imp. Concepto")).setBounds(220, 10, 90, 25);
         JTextField txtTotConcepto = new JTextField("0.00");
         txtTotConcepto.setHorizontalAlignment(JTextField.RIGHT); txtTotConcepto.setEditable(false);
-        txtTotConcepto.setBounds(500, 10, 90, 25);
+        txtTotConcepto.setBounds(310, 10, 90, 25);
         pnlTotales.add(txtTotConcepto);
 
-        pnlTotales.add(new JLabel("Imp. Beca")).setBounds(600, 10, 70, 25);
+        pnlTotales.add(new JLabel("Imp. Beca")).setBounds(420, 10, 70, 25);
         JTextField txtTotBeca = new JTextField("0.00");
         txtTotBeca.setHorizontalAlignment(JTextField.RIGHT); txtTotBeca.setEditable(false);
-        txtTotBeca.setBounds(670, 10, 80, 25);
+        txtTotBeca.setBounds(490, 10, 90, 25);
         pnlTotales.add(txtTotBeca);
 
-        pnlTotales.add(new JLabel("Imp. a Pagar")).setBounds(760, 10, 80, 25);
+        pnlTotales.add(new JLabel("Imp. a Pagar")).setBounds(600, 10, 80, 25);
         JTextField txtTotPagar = new JTextField("0.00");
         txtTotPagar.setHorizontalAlignment(JTextField.RIGHT); txtTotPagar.setEditable(false);
-        txtTotPagar.setBounds(840, 10, 80, 25);
+        txtTotPagar.setBounds(680, 10, 100, 25);
         pnlTotales.add(txtTotPagar);
 
         this.add(pnlTotales);
@@ -265,6 +268,10 @@ private void construirInterfazAlumnosBecados() {
         // Evento Filtrar Información
         btnFiltra.addActionListener(e -> {
             modBecados.setRowCount(0);
+            txtTotAlumnos.setText("0");
+            txtTotConcepto.setText("0.00");
+            txtTotBeca.setText("0.00");
+            txtTotPagar.setText("0.00");
 
             String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
             String cc = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
@@ -282,15 +289,29 @@ private void construirInterfazAlumnosBecados() {
                 Connection con = db.Conectar();
                 if (con != null) {
                     StringBuilder sql = new StringBuilder(
-                        "SELECT x.CIA, x.CC, x.SECC, x.CESC, x.GRADO, x.TURNO, x.GRUPO, a.MAT, " +
-                        "CONCAT(a.APATE, ' ', a.AMATE, ' ', a.NOMA) AS NOMBRE, " +
-                        "COALESCE(x.TPOINS, 'B') AS TPO, x.CBECA, " +
-                        "COALESCE(c.IMPTMN, 2150.00) AS IMP_CONCEPTO, " +
-                        "COALESCE(c.IBECMN, 215.00) AS IMP_BECA " +
-                        "FROM tesaxce x " +
-                        "INNER JOIN tesalum a ON x.MAT = a.MAT " +
-                        "LEFT JOIN tescalu c ON x.MAT = c.MAT AND x.CESC = c.CESC " +
-                        "WHERE x.CESC = ? AND (x.CBECA IS NOT NULL AND x.CBECA != '') "
+                        "WITH inscripciones AS (" +
+                        " SELECT x.*, ROW_NUMBER() OVER (PARTITION BY x.CIA, x.CC, x.CESC, x.MAT " +
+                        " ORDER BY x.FEAC DESC, x.HOAC DESC) AS FILA " +
+                        " FROM tesaxce x WHERE x.CESC = ? AND TRIM(COALESCE(x.CBECA, '')) <> '' " +
+                        " AND COALESCE(NULLIF(TRIM(x.SITALU), ''), 'CUR') = 'CUR'" +
+                        "), alumnos AS (" +
+                        " SELECT a.*, ROW_NUMBER() OVER (PARTITION BY a.MAT ORDER BY a.FEAC DESC, a.HOAC DESC) AS FILA " +
+                        " FROM tesalum a" +
+                        "), cargos AS (" +
+                        " SELECT c.CIA, c.CC, c.CESC, c.MAT, SUM(COALESCE(c.IMPMN, 0)) AS IMP_CONCEPTO, " +
+                        " SUM(COALESCE(c.IBECMN, 0)) AS IMP_BECA, " +
+                        " SUM(COALESCE(c.IMPTMN, COALESCE(c.IMPMN, 0) - COALESCE(c.IDSCMN, 0) " +
+                        " + COALESCE(c.IRECMN, 0) - COALESCE(c.IBECMN, 0))) AS IMP_PAGAR " +
+                        " FROM tescalu c WHERE COALESCE(c.MCAN, '') = '' " +
+                        " GROUP BY c.CIA, c.CC, c.CESC, c.MAT" +
+                        ") SELECT x.CIA, x.CC, x.SECC, x.CESC, x.GRADO, x.TURNO, x.GRUPO, x.MAT, " +
+                        "COALESCE(NULLIF(a.NOMCOM, ''), CONCAT_WS(' ', a.APATE, a.AMATE, a.NOMA)) AS NOMBRE, " +
+                        "COALESCE(NULLIF(x.TBECA, ''), 'B') AS TPO, x.CBECA, " +
+                        "COALESCE(c.IMP_CONCEPTO, 0) AS IMP_CONCEPTO, COALESCE(c.IMP_BECA, 0) AS IMP_BECA, " +
+                        "COALESCE(c.IMP_PAGAR, 0) AS IMP_PAGAR " +
+                        "FROM inscripciones x INNER JOIN alumnos a ON a.MAT = x.MAT AND a.FILA = 1 " +
+                        "LEFT JOIN cargos c ON c.CIA = x.CIA AND c.CC = x.CC AND c.CESC = x.CESC AND c.MAT = x.MAT " +
+                        "WHERE x.FILA = 1 "
                     );
 
                     if (!cia.isEmpty()) sql.append(" AND x.CIA = ?");
@@ -298,7 +319,7 @@ private void construirInterfazAlumnosBecados() {
                     if (!gradoSel.isEmpty()) sql.append(" AND x.GRADO = ?");
                     if (!becaFiltro.isEmpty()) sql.append(" AND x.CBECA = ?");
 
-                    sql.append(" GROUP BY a.MAT ORDER BY x.GRADO, x.GRUPO, a.APATE, a.AMATE");
+                    sql.append(" ORDER BY x.GRADO, x.GRUPO, a.APATE, a.AMATE, x.MAT");
 
                     PreparedStatement ps = con.prepareStatement(sql.toString());
                     int p = 1;
@@ -317,7 +338,7 @@ private void construirInterfazAlumnosBecados() {
                     while (rs.next()) {
                         double impConc = rs.getDouble("IMP_CONCEPTO");
                         double impBeca = rs.getDouble("IMP_BECA");
-                        double impPagar = impConc - impBeca;
+                        double impPagar = rs.getDouble("IMP_PAGAR");
 
                         Object[] fila = new Object[14];
                         fila[0] = rs.getString("CIA");

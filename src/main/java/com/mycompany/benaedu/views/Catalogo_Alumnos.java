@@ -11,6 +11,7 @@ import java.awt.Window;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -721,7 +722,60 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         txtCCDesc.setBounds(180, 45, 250, 25);
         txtCCDesc.setEditable(false);
         txtCCDesc.setBackground(new java.awt.Color(240, 240, 240));
-        buscador.configurar(txtCC, txtCCDesc, btnCC, dCC, new String[]{"Clave", "Descripción"}, new int[]{80, 250}, null);
+        // Ciclos disponibles para el centro de costos seleccionado.
+        JComboBox<String> cmbCicloEscolar = new JComboBox<>();
+        cmbCicloEscolar.setBounds(535, 45, 80, 25);
+
+        Runnable cargarCiclosPorCentro = () -> {
+            cmbCicloEscolar.removeAllItems();
+            ConDB db = new ConDB();
+            try {
+                Connection con = db.Conectar();
+                if (con == null) {
+                    throw new SQLException("No fue posible conectar con la base de datos.");
+                }
+
+                String sql = "SELECT CESC, CURDATE() BETWEEN FINI AND FFIN AS ACTIVO "
+                        + "FROM tescesc WHERE CIA = '12' AND CC = ? "
+                        + "ORDER BY FINI DESC, CESC DESC";
+                String cicloActivo = null;
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    ps.setString(1, txtCC.getText().trim());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        while (rs.next()) {
+                            String ciclo = rs.getString("CESC");
+                            cmbCicloEscolar.addItem(ciclo);
+                            if (cicloActivo == null && rs.getBoolean("ACTIVO")) {
+                                cicloActivo = ciclo;
+                            }
+                        }
+                    }
+                }
+
+                if (cicloActivo != null) {
+                    cmbCicloEscolar.setSelectedItem(cicloActivo);
+                } else {
+                    cmbCicloEscolar.setSelectedIndex(-1);
+                }
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(dialogo,
+                        "Error al cargar los ciclos escolares: " + ex.getMessage(),
+                        "Error SQL", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                db.Cerrar();
+            }
+        };
+
+        buscador.configurar(txtCC, txtCCDesc, btnCC, dCC, new String[]{"Clave", "Descripción"}, new int[]{80, 250}, row -> cargarCiclosPorCentro.run());
+        txtCC.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                cargarCiclosPorCentro.run();
+            }
+        });
+        cargarCiclosPorCentro.run();
+
+        pnlTop.add(new JLabel("Ciclo Escolar")).setBounds(450, 45, 85, 25);
 
         pnlTop.add(new JLabel("Matrícula")).setBounds(15, 75, 80, 25);
         JTextField txtMat = new JTextField();
@@ -776,6 +830,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         pnlTop.add(txtCC);
         pnlTop.add(btnCC);
         pnlTop.add(txtCCDesc);
+        pnlTop.add(cmbCicloEscolar);
         pnlTop.add(txtMat);
         pnlTop.add(txtMatOf);
         pnlTop.add(txtTipoAl);
@@ -1312,7 +1367,8 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                                 + "COALESCE(x.NLISTA, '') AS NLISTA_ACAD, "
                                 + "COALESCE(x.CBECA, '') AS CBECA_AX, "
                                 + "COALESCE(x.TBECA, '') AS TBECA_AX, "
-                                + "COALESCE(x.TALU, '') AS TALU_AX "
+                                + "COALESCE(x.TALU, '') AS TALU_AX, "
+                                + "COALESCE(x.CESC, '') AS CESC_ACAD "
                                 + "FROM tesalum a "
                                 + "LEFT JOIN tesaxce x ON a.MAT = x.MAT AND x.CESC = (SELECT MAX(CESC) FROM tesaxce WHERE MAT = a.MAT) "
                                 + "WHERE a.MAT = ?";
@@ -1324,6 +1380,8 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         if (rs.next()) {
                             txtMatOf.setText(rs.getString("MATOFC") != null ? rs.getString("MATOFC") : "");
                             txtCC.setText(rs.getString("CC_ACAD"));
+                            cargarCiclosPorCentro.run();
+                            cmbCicloEscolar.setSelectedItem(rs.getString("CESC_ACAD"));
                             txtTipoAl.setText(rs.getString("TALU_AX"));
 
                             txtNombre.setText(rs.getString("NOMA") != null ? rs.getString("NOMA") : "");
@@ -1420,9 +1478,24 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
             String nombreStr = txtNombre.getText().trim();
             String apateStr = txtApate.getText().trim();
             String amateStr = txtAmate.getText().trim();
+            String cicloEscolar = cmbCicloEscolar.getSelectedItem() != null
+                    ? cmbCicloEscolar.getSelectedItem().toString() : "";
 
             if (matricula.isEmpty() || nombreStr.isEmpty() || apateStr.isEmpty()) {
                 JOptionPane.showMessageDialog(dialogo, "Matrícula, Nombre y Apellido Paterno son obligatorios.", "Atención", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (cicloEscolar.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo, "Selecciona un ciclo escolar.", "Atención", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            if (txtCC.getText().trim().isEmpty() || txtTipoAl.getText().trim().isEmpty()
+                    || cmbGrado.getSelectedItem() == null) {
+                JOptionPane.showMessageDialog(dialogo,
+                        "Centro de Costos, Tipo de Alumno y Grado son obligatorios.",
+                        "Atención", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
@@ -1485,9 +1558,8 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         psAl.executeUpdate();
                         psAl.close();
 
-                        // 2. UPDATE tesaxce (Ciclo escolar activo dinámico)
-                        String cicloActual = "2627";
-                        String sqlUpdAx = "UPDATE tesaxce SET CIA='12', CC=?, SECC=?, TALU=?, GRADO=?, TURNO=?, GRUPO=?, NLISTA=?, CBECA=?, TBECA=?, USER=?, FEAC=CURDATE(), HOAC=DATE_FORMAT(NOW(), '%r') "
+                        // 2. UPDATE tesaxce (Ciclo escolar seleccionado)
+                        String sqlUpdAx = "UPDATE tesaxce SET CIA='12', CC=?, SECC=?, TALU=?, GRADO=?, TURNO=?, GRUPO=?, NLISTA=?, CBECA=?, TBECA=?, TPOINS='INS', SITALU='CUR', REF01=CESC, USER=?, FEAC=CURDATE(), HOAC=DATE_FORMAT(NOW(), '%r') "
                                 + "WHERE MAT=? AND CESC=?";
                         PreparedStatement psAx = con.prepareStatement(sqlUpdAx);
                         psAx.setString(1, txtCC.getText().trim());
@@ -1501,14 +1573,14 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         psAx.setString(9, tBeca);
                         psAx.setString(10, usrSesion);
                         psAx.setString(11, matricula);
-                        psAx.setString(12, cicloActual);
+                        psAx.setString(12, cicloEscolar);
 
                         if (psAx.executeUpdate() == 0) {
                             psAx.close();
-                            String sqlInsAx = "INSERT INTO tesaxce (CESC, CIA, CC, SECC, MAT, TALU, GRADO, TURNO, GRUPO, NLISTA, CBECA, TBECA, FINS, USER, FEAC, HOAC) "
-                                    + "VALUES (?, '12', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
+                            String sqlInsAx = "INSERT INTO tesaxce (CESC, CIA, CC, SECC, MAT, TALU, GRADO, TURNO, GRUPO, NLISTA, CBECA, TBECA, TPOINS, FINS, SITALU, REF01, USER, FEAC, HOAC) "
+                                    + "VALUES (?, '12', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INS', CURDATE(), 'CUR', ?, ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
                             PreparedStatement psInsAx = con.prepareStatement(sqlInsAx);
-                            psInsAx.setString(1, cicloActual);
+                            psInsAx.setString(1, cicloEscolar);
                             psInsAx.setString(2, txtCC.getText().trim());
                             psInsAx.setString(3, txtTipoAl.getText().trim());
                             psInsAx.setString(4, matricula);
@@ -1519,7 +1591,8 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                             psInsAx.setString(9, txtNLista.getText().trim());
                             psInsAx.setString(10, txtBeca.getText().trim());
                             psInsAx.setString(11, tBeca);
-                            psInsAx.setString(12, usrSesion);
+                            psInsAx.setString(12, cicloEscolar);
+                            psInsAx.setString(13, usrSesion);
                             psInsAx.executeUpdate();
                             psInsAx.close();
                         } else {
@@ -1567,11 +1640,10 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         psAl.close();
 
                         // 2. INSERT tesaxce (Inscripción al ciclo)
-                        String cicloInscripcion = "2627"; // Recuperar del control de ciclo escolar activo
-                        String sqlInsAx = "INSERT INTO tesaxce (CESC, CIA, CC, SECC, MAT, TALU, GRADO, TURNO, GRUPO, NLISTA, CBECA, TBECA, FINS, USER, FEAC, HOAC) "
-                                + "VALUES (?, '12', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
+                        String sqlInsAx = "INSERT INTO tesaxce (CESC, CIA, CC, SECC, MAT, TALU, GRADO, TURNO, GRUPO, NLISTA, CBECA, TBECA, TPOINS, FINS, SITALU, REF01, USER, FEAC, HOAC) "
+                                + "VALUES (?, '12', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INS', CURDATE(), 'CUR', ?, ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
                         PreparedStatement psInsAx = con.prepareStatement(sqlInsAx);
-                        psInsAx.setString(1, cicloInscripcion);
+                        psInsAx.setString(1, cicloEscolar);
                         psInsAx.setString(2, txtCC.getText().trim());
                         psInsAx.setString(3, txtTipoAl.getText().trim());
                         psInsAx.setString(4, matricula);
@@ -1582,13 +1654,17 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         psInsAx.setString(9, txtNLista.getText().trim());
                         psInsAx.setString(10, txtBeca.getText().trim());
                         psInsAx.setString(11, tBeca);
-                        psInsAx.setString(12, usrSesion);
+                        psInsAx.setString(12, cicloEscolar);
+                        psInsAx.setString(13, usrSesion);
                         psInsAx.executeUpdate();
                         psInsAx.close();
 
-                        // 3. Generación automática de cargos en 'tescalu'
-                        generarCargosAlumnoTransaccional(con, "12", txtCC.getText().trim(), txtTipoAl.getText().trim(), cicloInscripcion, matricula, cmbGrado.getSelectedItem().toString(), txtGrupo.getText().trim(), usrSesion);
                     }
+
+                    // Genera los cargos si la inscripción todavía no los tiene.
+                    generarCargosAlumnoTransaccional(con, "12", txtCC.getText().trim(),
+                            txtTipoAl.getText().trim(), cicloEscolar, matricula,
+                            cmbGrado.getSelectedItem().toString(), txtGrupo.getText().trim(), usrSesion);
 
                     con.commit();
                     con.setAutoCommit(true);
@@ -1615,103 +1691,157 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         dialogo.setVisible(true);
     }
 
-    private void generarCargosAlumnoTransaccional(Connection con, String cia, String cc, String secc, String ciclo, String matricula, String grado, String grupo, String usuario) throws Exception {
-        String cBeca = "", tBeca = "";
-        double porcBeca = 0.0;
-
-        // 1. Obtener la beca del alumno registrada en tesaxce
-        PreparedStatement psAx = con.prepareStatement("SELECT CBECA, TBECA FROM tesaxce WHERE MAT = ? AND CESC = ? LIMIT 1");
-        psAx.setString(1, matricula);
-        psAx.setString(2, ciclo);
-        ResultSet rsAx = psAx.executeQuery();
-        if (rsAx.next()) {
-            cBeca = rsAx.getString("CBECA") != null ? rsAx.getString("CBECA") : "";
-            tBeca = rsAx.getString("TBECA") != null ? rsAx.getString("TBECA") : "";
+    /**
+     * Genera los cargos de un alumno a partir del plan de inscripción disponible.
+     * Todo se ejecuta dentro de la transacción que guarda al alumno.
+     */
+    private void generarCargosAlumnoTransaccional(Connection con, String cia, String cc, String secc,
+            String ciclo, String matricula, String grado, String grupo, String usuario) throws Exception {
+        String sqlCargosExistentes = "SELECT 1 FROM tescalu WHERE CIA=? AND CESC=? AND MAT=? LIMIT 1";
+        try (PreparedStatement ps = con.prepareStatement(sqlCargosExistentes)) {
+            ps.setString(1, cia);
+            ps.setString(2, ciclo);
+            ps.setString(3, matricula);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return;
+                }
+            }
         }
-        rsAx.close();
-        psAx.close();
 
-        // 2. Si tiene beca, obtener porcentaje de descuento de tesbede para Colegiaturas ('C')
+        String cBeca = "";
+        String tBeca = "";
+        double porcBecaColegiatura = 0.0;
+        double porcBecaInscripcion = 0.0;
+
+        String sqlAlumno = "SELECT CBECA,TBECA FROM tesaxce "
+                + "WHERE CIA=? AND CC=? AND MAT=? AND CESC=? LIMIT 1";
+        try (PreparedStatement ps = con.prepareStatement(sqlAlumno)) {
+            ps.setString(1, cia);
+            ps.setString(2, cc);
+            ps.setString(3, matricula);
+            ps.setString(4, ciclo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    cBeca = rs.getString("CBECA") != null ? rs.getString("CBECA") : "";
+                    tBeca = rs.getString("TBECA") != null ? rs.getString("TBECA") : "";
+                }
+            }
+        }
+
         if (!cBeca.isEmpty()) {
-            PreparedStatement psBec = con.prepareStatement("SELECT PDSC FROM tesbede WHERE CBECA = ? AND TCPTO = 'C' LIMIT 1");
-            psBec.setString(1, cBeca);
-            ResultSet rsBec = psBec.executeQuery();
-            if (rsBec.next()) {
-                porcBeca = rsBec.getDouble("PDSC");
+            String sqlBeca = "SELECT TCPTO,MAX(PDSC) AS PDSC FROM tesbede "
+                    + "WHERE CBECA=? AND TCPTO IN ('I','C') "
+                    + "AND (FVINI IS NULL OR FVINI<=CURDATE()) AND (FVFIN IS NULL OR FVFIN>=CURDATE()) "
+                    + "GROUP BY TCPTO";
+            try (PreparedStatement ps = con.prepareStatement(sqlBeca)) {
+                ps.setString(1, cBeca);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        if ("I".equalsIgnoreCase(rs.getString("TCPTO"))) {
+                            porcBecaInscripcion = rs.getDouble("PDSC");
+                        } else if ("C".equalsIgnoreCase(rs.getString("TCPTO"))) {
+                            porcBecaColegiatura = rs.getDouble("PDSC");
+                        }
+                    }
+                }
             }
-            rsBec.close();
-            psBec.close();
         }
 
-        // 3. Obtener la plantilla de cobros de tesgpde
-        String sqlPlantilla = "SELECT g.NCPTO, g.TCPTO, g.DCPTO, c.DCPTO AS DESC_REAL, c.CUNI, g.IMPTE, g.FVINI, g.FVFIN "
-                + "FROM tesgpde g "
-                + "INNER JOIN tescpto c ON g.CIA = c.CIA AND g.CC = c.CC AND g.NCPTO = c.NCPTO "
-                + "WHERE g.CIA = ? AND g.CC = ? AND g.CESC = ? AND g.CGPO = 'INOR' "
-                + "ORDER BY g.SEC ASC";
+        String clavePlan = null;
+        String sqlPlan = "SELECT CGPO,COALESCE(MAX(CASE WHEN TCPTO='I' THEN PDSC END),0) AS PINS "
+                + "FROM tesgpde WHERE CIA=? AND CC=? AND CESC=? AND TGPO='I' GROUP BY CGPO "
+                + "ORDER BY CASE WHEN COALESCE(MAX(CASE WHEN TCPTO='I' THEN PDSC END),0)=? THEN 0 "
+                + "WHEN COALESCE(MAX(CASE WHEN TCPTO='I' THEN PDSC END),0)=0 THEN 1 ELSE 2 END, "
+                + "CASE WHEN CGPO=CONCAT('I',?) THEN 0 WHEN CGPO='INOR' THEN 1 ELSE 2 END,CGPO LIMIT 1";
+        try (PreparedStatement ps = con.prepareStatement(sqlPlan)) {
+            ps.setString(1, cia);
+            ps.setString(2, cc);
+            ps.setString(3, ciclo);
+            ps.setDouble(4, porcBecaInscripcion);
+            ps.setString(5, ciclo);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    clavePlan = rs.getString("CGPO");
+                }
+            }
+        }
+        if (clavePlan == null || clavePlan.isBlank()) {
+            throw new java.sql.SQLException("No existe un plan de inscripción para el centro " + cc
+                    + " y el ciclo " + ciclo + ".");
+        }
 
-        PreparedStatement psGpo = con.prepareStatement(sqlPlantilla);
-        psGpo.setString(1, cia);
-        psGpo.setString(2, cc);
-        psGpo.setString(3, ciclo);
-        ResultSet rsGpo = psGpo.executeQuery();
+        String sqlPlantilla = "SELECT g.NCPTO,g.TCPTO,g.DCPTO,g.IMPTE,g.PDSC,g.FVINI,g.FVFIN,"
+                + "c.DCPTO AS DESC_REAL,c.CUNI FROM tesgpde g INNER JOIN tescpto c "
+                + "ON g.CIA=c.CIA AND g.CC=c.CC AND g.NCPTO=c.NCPTO "
+                + "WHERE g.CIA=? AND g.CC=? AND g.CESC=? AND g.TGPO='I' AND g.CGPO=? ORDER BY g.SEC";
+        String sqlCargo = "INSERT INTO tescalu (CIA,CC,SECC,CESC,PESC,MAT,TALU,GRADO,GRUPO,IDCPT,NCPTO,TCPTO,DCPTO,"
+                + "CMON,TCONT,TCAMB,CUNIMN,CANT,IMPMN,TDSC,PDSC,IDSCMN,NADSC,MDSC,PREC,IRECMN,NAREC,MREC,CBECA,TBECA,"
+                + "PBEC,IBECMN,NABEC,MBEC,IMPTMN,FVINI,FVEN,FCON,IPAGMN,IPENMN,CUNIME,IMPME,IDSCME,IRECME,IBECME,"
+                + "IMPTME,IPAGME,IPENME,NCAJ,RELPOL,RELPOC,MCAN,USER,FEAC,HOAC) "
+                + "VALUES (?,?,?,?,'A',?,?,?,?,?,?,?,?,'MXP','O',1,?,1,?,'',?,?,0,'',0,0,0,'',?,?,?,?,0,'',?,?,?,"
+                + "'0000-00-00',0,?,0,0,0,0,0,0,0,?,80,0,0,'',?,CURDATE(),DATE_FORMAT(NOW(),'%r'))";
 
-        // Sentencia SQL ajustada con 24 comodines (?)
-        String sqlInsCalu = "INSERT INTO tescalu (CIA, CC, SECC, CESC, PESC, MAT, TALU, GRADO, GRUPO, IDCPT, NCPTO, TCPTO, DCPTO, CMON, TCONT, TCAMB, CUNIMN, CANT, IMPMN, TDSC, PDSC, IDSCMN, NADSC, MDSC, PREC, IRECMN, NAREC, MREC, CBECA, TBECA, PBEC, IBECMN, NABEC, MBEC, IMPTMN, FVINI, FVEN, FCON, IPAGMN, IPENMN, CUNIME, IMPME, IDSCME, IRECME, IBECME, IMPTME, IPAGME, IPENME, NCAJ, RELPOL, RELPOC, MCAN, USER, FEAC, HOAC) "
-                + "VALUES (?, ?, ?, ?, 'A', ?, ?, ?, ?, ?, ?, ?, ?, 'MXP', 'O', 1, ?, 1, ?, '', 0, 0, 0, '', 0, 0, 0, '', ?, ?, ?, ?, 0, '', ?, ?, ?, '0000-00-00', 0, ?, 0, 0, 0, 0, 0, 0, 0, ?, 80, 0, 0, '', ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
-
-        PreparedStatement psIns = con.prepareStatement(sqlInsCalu);
+        int cargosGenerados = 0;
         int baseIdCpt = (int) (System.currentTimeMillis() % 800000) + 100000;
+        try (PreparedStatement psPlan = con.prepareStatement(sqlPlantilla);
+                PreparedStatement psCargo = con.prepareStatement(sqlCargo)) {
+            psPlan.setString(1, cia);
+            psPlan.setString(2, cc);
+            psPlan.setString(3, ciclo);
+            psPlan.setString(4, clavePlan);
+            try (ResultSet rs = psPlan.executeQuery()) {
+                while (rs.next()) {
+                    String tipoConcepto = rs.getString("TCPTO");
+                    String descripcionReal = rs.getString("DESC_REAL");
+                    String descripcion = descripcionReal != null && !descripcionReal.isBlank()
+                            ? descripcionReal : rs.getString("DCPTO");
+                    double importePlan = rs.getDouble("IMPTE");
+                    double importeBase = importePlan > 0 ? importePlan : rs.getDouble("CUNI");
+                    double porcPlan = rs.getDouble("PDSC");
+                    double descuentoPlan = importeBase * (porcPlan / 100.0);
+                    double porcBecaAplicada = "C".equalsIgnoreCase(tipoConcepto) ? porcBecaColegiatura : 0.0;
+                    double descuentoBeca = importeBase * (porcBecaAplicada / 100.0);
+                    double importeTotal = Math.max(0.0, importeBase - descuentoPlan - descuentoBeca);
 
-        while (rsGpo.next()) {
-            String ncpto = rsGpo.getString("NCPTO");
-            String tcpto = rsGpo.getString("TCPTO");
-            String dcpto = (rsGpo.getString("DESC_REAL") != null && !rsGpo.getString("DESC_REAL").isEmpty())
-                    ? rsGpo.getString("DESC_REAL") : rsGpo.getString("DCPTO");
-
-            double impBase = rsGpo.getDouble("IMPTE") > 0 ? rsGpo.getDouble("IMPTE") : rsGpo.getDouble("CUNI");
-            double descBeca = 0.0;
-            double pBecaAplicada = 0.0;
-
-            if ("C".equalsIgnoreCase(tcpto) && porcBeca > 0) {
-                pBecaAplicada = porcBeca;
-                descBeca = impBase * (porcBeca / 100.0);
+                    psCargo.setString(1, cia);
+                    psCargo.setString(2, cc);
+                    psCargo.setString(3, secc);
+                    psCargo.setString(4, ciclo);
+                    psCargo.setString(5, matricula);
+                    psCargo.setString(6, secc);
+                    psCargo.setString(7, grado);
+                    psCargo.setString(8, grupo);
+                    psCargo.setInt(9, baseIdCpt++);
+                    psCargo.setString(10, rs.getString("NCPTO"));
+                    psCargo.setString(11, tipoConcepto);
+                    psCargo.setString(12, descripcion);
+                    psCargo.setDouble(13, importeBase);
+                    psCargo.setDouble(14, importeBase);
+                    psCargo.setDouble(15, porcPlan);
+                    psCargo.setDouble(16, descuentoPlan);
+                    psCargo.setString(17, cBeca);
+                    psCargo.setString(18, tBeca);
+                    psCargo.setDouble(19, porcBecaAplicada);
+                    psCargo.setDouble(20, descuentoBeca);
+                    psCargo.setDouble(21, importeTotal);
+                    psCargo.setDate(22, rs.getDate("FVINI"));
+                    psCargo.setDate(23, rs.getDate("FVFIN"));
+                    psCargo.setDouble(24, importeTotal);
+                    psCargo.setDouble(25, importeTotal);
+                    psCargo.setString(26, usuario);
+                    psCargo.addBatch();
+                    cargosGenerados++;
+                }
             }
-
-            double impTotal = impBase - descBeca;
-
-            psIns.setString(1, cia);
-            psIns.setString(2, cc);
-            psIns.setString(3, secc);
-            psIns.setString(4, ciclo);
-            psIns.setString(5, matricula);
-            psIns.setString(6, secc); // TALU
-            psIns.setString(7, grado);
-            psIns.setString(8, grupo);
-            psIns.setInt(9, baseIdCpt++);
-            psIns.setString(10, ncpto);
-            psIns.setString(11, tcpto);
-            psIns.setString(12, dcpto);
-            psIns.setDouble(13, impBase);       // CUNIMN / IMPMN
-            psIns.setDouble(14, impBase);       // IMPMN
-            psIns.setString(15, cBeca);         // CBECA
-            psIns.setString(16, tBeca);         // TBECA
-            psIns.setDouble(17, pBecaAplicada); // PBEC
-            psIns.setDouble(18, descBeca);      // IBECMN
-            psIns.setDouble(19, impTotal);      // IMPTMN
-            psIns.setDate(20, rsGpo.getDate("FVINI"));
-            psIns.setDate(21, rsGpo.getDate("FVFIN")); // FVEN
-            psIns.setDouble(22, impTotal);      // IPENMN
-            psIns.setDouble(23, impTotal);      // IPENME
-            psIns.setString(24, usuario);       // USER
-
-            psIns.addBatch();
+            if (cargosGenerados == 0) {
+                throw new java.sql.SQLException("El plan " + clavePlan + " no contiene conceptos válidos.");
+            }
+            int[] resultados = psCargo.executeBatch();
+            if (resultados.length != cargosGenerados) {
+                throw new java.sql.SQLException("No se generaron todos los cargos del alumno.");
+            }
         }
-
-        psIns.executeBatch();
-        rsGpo.close();
-        psGpo.close();
-        psIns.close();
     }
 
     /**

@@ -109,7 +109,9 @@ private void construirInterfazDetalleConceptos() {
             return lista.toArray(new Object[0][0]);
         };
 
-        Object[][] dCiclo  = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+        Object[][] dCiclo  = cargarDatosMultiple.apply(
+                "SELECT CESC, MAX(CDSC) FROM tescesc GROUP BY CESC "
+                + "ORDER BY MAX(CASE WHEN CURDATE() BETWEEN FINI AND FFIN THEN 1 ELSE 0 END) DESC, CESC DESC", 2);
         Object[][] dCajero = cargarDatosMultiple.apply("SELECT NEMP, NOME FROM tgemp WHERE CAJ = 'S' ORDER BY NEMP", 2);
         Object[][] dCpto   = cargarDatosMultiple.apply("SELECT DISTINCT NCPTO, DCPTO FROM tescpto ORDER BY NCPTO", 2);
         Object[][] dTipo   = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TCPT' ORDER BY CVE", 2);
@@ -138,7 +140,8 @@ private void construirInterfazDetalleConceptos() {
         } catch (Exception ex) { cmbCia.addItem("12"); cmbCC.addItem("12100"); }
 
         this.add(new JLabel("Ciclo Escolar")).setBounds(360, 20, 80, 25);
-        JTextField txtCiclo = new JTextField("2526"); txtCiclo.setBounds(445, 20, 60, 25);
+        String cicloInicial = dCiclo.length > 0 && dCiclo[0][0] != null ? dCiclo[0][0].toString() : "";
+        JTextField txtCiclo = new JTextField(cicloInicial); txtCiclo.setBounds(445, 20, 60, 25);
         JButton btnCiclo = new JButton("▼"); btnCiclo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnCiclo.setMargin(new java.awt.Insets(0,0,0,0)); btnCiclo.setBounds(505, 20, 20, 25);
         buscador.configurar(txtCiclo, null, btnCiclo, dCiclo, new String[]{"Clave", "Descripción"}, new int[]{60, 150});
         this.add(txtCiclo); this.add(btnCiclo);
@@ -203,7 +206,7 @@ private void construirInterfazDetalleConceptos() {
         // --- 3. TABLA DETALLE DE CONCEPTOS ---
         DefaultTableModel modDetalle = new DefaultTableModel(
             new Object[][]{}, 
-            new String[]{"Tipo", "Cve", "Concepto", "Matrícula", "Nombre del Alumno", "Grado", "Grupo", "Cantidad", "Importe"}
+            new String[]{"Tipo concepto", "Cve", "Concepto", "Matrícula", "Nombre del Alumno", "Grado", "Grupo", "Cantidad", "Importe pagado"}
         ) { @Override public boolean isCellEditable(int row, int column) { return false; } };
 
         JTable tblDetalle = new JTable(modDetalle);
@@ -255,12 +258,15 @@ private void construirInterfazDetalleConceptos() {
         // Evento de Consulta a tesralu
         btnFiltra.addActionListener(e -> {
             modDetalle.setRowCount(0);
+            txtTotCant.setText("0");
+            txtTotImp.setText("0.00");
 
             String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
             String cc = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
             String ciclo = txtCiclo.getText().trim();
             String cajero = txtCajero.getText().trim();
             String concepto = txtConcepto.getText().trim();
+            String tipoConcepto = txtTipo.getText().trim();
 
             java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
             String fIni = txtFecIni.getDate() != null ? sdf.format(txtFecIni.getDate()) : "";
@@ -271,22 +277,25 @@ private void construirInterfazDetalleConceptos() {
                 Connection con = db.Conectar();
                 if (con != null) {
                     StringBuilder sql = new StringBuilder(
-                        "SELECT COALESCE(TALU, 'O') AS TIPO, NCPTO, DCPTO, MAT, NOMALU, GRADO, GRUPO, " +
-                        "COALESCE(CANT, 1) AS CANTIDAD, IMPMN " +
-                        "FROM tesralu WHERE CIA = ? "
+                        "SELECT COALESCE(TCPTO, '') AS TIPO, NCPTO, DCPTO, MAT, NOMALU, GRADO, GRUPO, " +
+                        "COALESCE(CANT, 1) AS CANTIDAD, COALESCE(IPAGMN, 0) AS IMPORTE_PAGADO " +
+                        "FROM tesralu WHERE CIA = ? AND COALESCE(IPAGMN, 0) > 0 " +
+                        "AND COALESCE(MCAN, '') = '' "
                     );
 
                     if (!cc.isEmpty()) sql.append(" AND CC = ?");
                     if (!ciclo.isEmpty()) sql.append(" AND CESC = ?");
                     if (!cajero.isEmpty()) sql.append(" AND NCAJ = ?");
                     if (!concepto.isEmpty()) sql.append(" AND NCPTO = ?");
-                    if (!fIni.isEmpty() && !fFin.isEmpty()) sql.append(" AND FREC BETWEEN ? AND ?");
+                    if (!tipoConcepto.isEmpty()) sql.append(" AND TCPTO = ?");
+                    if (!fIni.isEmpty()) sql.append(" AND COALESCE(FPAG, FREC) >= ?");
+                    if (!fFin.isEmpty()) sql.append(" AND COALESCE(FPAG, FREC) <= ?");
 
                     // Filtro de Tipo de Cuenta (Oficial / Particular)
-                    if (rbOficial.isSelected()) sql.append(" AND (TALU = 'O' OR TALU IS NULL)");
-                    else if (rbPart.isSelected()) sql.append(" AND TALU = 'P'");
+                    if (rbOficial.isSelected()) sql.append(" AND COALESCE(TCONT, 'O') = 'O'");
+                    else if (rbPart.isSelected()) sql.append(" AND TCONT = 'P'");
 
-                    sql.append(" ORDER BY NCPTO ASC, FREC ASC");
+                    sql.append(" ORDER BY NCPTO ASC, COALESCE(FPAG, FREC) ASC");
 
                     PreparedStatement ps = con.prepareStatement(sql.toString());
                     int p = 1;
@@ -295,10 +304,9 @@ private void construirInterfazDetalleConceptos() {
                     if (!ciclo.isEmpty()) ps.setString(p++, ciclo);
                     if (!cajero.isEmpty()) ps.setString(p++, cajero);
                     if (!concepto.isEmpty()) ps.setString(p++, concepto);
-                    if (!fIni.isEmpty() && !fFin.isEmpty()) {
-                        ps.setString(p++, fIni);
-                        ps.setString(p++, fFin);
-                    }
+                    if (!tipoConcepto.isEmpty()) ps.setString(p++, tipoConcepto);
+                    if (!fIni.isEmpty()) ps.setString(p++, fIni);
+                    if (!fFin.isEmpty()) ps.setString(p++, fFin);
 
                     ResultSet rs = ps.executeQuery();
                     java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
@@ -308,7 +316,7 @@ private void construirInterfazDetalleConceptos() {
 
                     while (rs.next()) {
                         int cant = rs.getInt("CANTIDAD");
-                        double imp = rs.getDouble("IMPMN");
+                        double imp = rs.getDouble("IMPORTE_PAGADO");
 
                         Object[] fila = new Object[9];
                         fila[0] = rs.getString("TIPO");

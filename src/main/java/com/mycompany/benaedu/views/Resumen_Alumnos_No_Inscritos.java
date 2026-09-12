@@ -23,6 +23,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 /**
+ * Generates summary and detailed reports for active students who were enrolled
+ * in the preceding school cycle but have not enrolled in the selected cycle.
  *
  * @author b17za
  */
@@ -33,8 +35,13 @@ public class Resumen_Alumnos_No_Inscritos extends javax.swing.JPanel {
      */
     public Resumen_Alumnos_No_Inscritos() {
         initComponents();
+        configurarTablaBitacora();
+        btnAddRAInscritos.setText("Generar reporte");
+        btnEditRInscritos.setVisible(false);
+        btnDeleteRAInscritos.setVisible(false);
     }
-private void configurarTablaBitacora() {
+
+    private void configurarTablaBitacora() {
         DefaultTableModel modelo = new DefaultTableModel(
             new Object[][] {}, 
             new String[] {"Fecha Consulta", "Ciclo Escolar", "Tipo Reporte", "Usuario"}
@@ -230,7 +237,8 @@ private void mostrarDialogoAlumnosNoInscritos() {
         return lista.toArray(new Object[0][0]);
     };
 
-    Object[][] dCiclo = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+    Object[][] dCiclo = cargarDatosMultiple.apply(
+            "SELECT CESC,MAX(CDSC) AS CDSC FROM tescesc GROUP BY CESC ORDER BY CESC DESC", 2);
 
     // --- 1. DATOS DE SELECCIÓN ---
     JPanel pnlSel = new JPanel(null);
@@ -267,6 +275,9 @@ private void mostrarDialogoAlumnosNoInscritos() {
     JTextField txtCiclo = new JTextField(); txtCiclo.setBounds(130, 75, 70, 25);
     JButton btnCiclo = new JButton("▼"); btnCiclo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnCiclo.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnCiclo.setBounds(200, 75, 25, 25);
     buscador.configurar(txtCiclo, null, btnCiclo, dCiclo, new String[]{"Clave", "Descripción"}, new int[]{60, 200});
+    if (dCiclo.length > 0 && dCiclo[0][0] != null) {
+        txtCiclo.setText(dCiclo[0][0].toString());
+    }
     pnlSel.add(txtCiclo); pnlSel.add(btnCiclo);
 
     dialogo.add(pnlSel);
@@ -294,13 +305,15 @@ private void mostrarDialogoAlumnosNoInscritos() {
     // --- 3. TABLA DE RESUMEN ---
     DefaultTableModel modResumen = new DefaultTableModel(
         new Object[][]{}, 
-        new String[]{"Grado", "Descripción / Matrícula", "Total / Nombre"}
+        new String[]{"Centro", "Grado", "Descripción / Matrícula", "Total / Nombre"}
     ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
 
     JTable tblResumen = new JTable(modResumen);
     tblResumen.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-    tblResumen.getColumnModel().getColumn(1).setPreferredWidth(200);
-    tblResumen.getColumnModel().getColumn(2).setPreferredWidth(220);
+    tblResumen.getColumnModel().getColumn(0).setPreferredWidth(65);
+    tblResumen.getColumnModel().getColumn(1).setPreferredWidth(60);
+    tblResumen.getColumnModel().getColumn(2).setPreferredWidth(170);
+    tblResumen.getColumnModel().getColumn(3).setPreferredWidth(250);
 
     JPanel pnlTabla = new JPanel(null);
     pnlTabla.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Resumen de Alumnos No Inscritos", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.TOP));
@@ -339,6 +352,108 @@ private void mostrarDialogoAlumnosNoInscritos() {
 
     // --- 6. EVENTOS ---
     btnSalir.addActionListener(e -> dialogo.dispose());
+
+    btnFiltra.addActionListener(e -> {
+        String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+        String cc = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
+        String ciclo = txtCiclo.getText().trim();
+
+        if (cia.isEmpty() || ciclo.isEmpty()) {
+            JOptionPane.showMessageDialog(dialogo,
+                    "Compañía y Ciclo Escolar son obligatorios.",
+                    "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        StringBuilder base = new StringBuilder(
+                "WITH candidatos AS (SELECT x.CIA,x.CC,x.MAT,x.SECC,x.GRADO," +
+                "ROW_NUMBER() OVER (PARTITION BY x.CIA,x.MAT " +
+                "ORDER BY x.FEAC DESC,x.HOAC DESC) AS FILA " +
+                "FROM tesaxce x WHERE x.CIA=? AND x.CESC=(" +
+                "SELECT MAX(c.CESC) FROM tescesc c WHERE c.CIA=x.CIA AND c.CESC<?) " +
+                "AND COALESCE(NULLIF(TRIM(x.SITALU),''),'CUR')='CUR' ");
+        if (!cc.isEmpty()) {
+            base.append("AND x.CC=? ");
+        }
+        base.append("), alumnos AS (SELECT a.MAT,a.NOMCOM,a.APATE,a.AMATE,a.NOMA,a.STSALU," +
+                "ROW_NUMBER() OVER (PARTITION BY a.MAT ORDER BY a.FEAC DESC,a.HOAC DESC) AS FILA " +
+                "FROM tesalum a) ");
+
+        String filtros = "WHERE c.FILA=1 AND a.FILA=1 AND a.STSALU='A' " +
+                "AND NOT EXISTS (SELECT 1 FROM tesaxce n WHERE n.CIA=c.CIA AND n.MAT=c.MAT " +
+                "AND n.CESC=? AND COALESCE(NULLIF(TRIM(n.SITALU),''),'CUR')='CUR') ";
+        String sql;
+        if (rbResumen.isSelected()) {
+            sql = base +
+                    "SELECT c.CC,c.SECC,c.GRADO,COALESCE(g.DGRAD,c.GRADO) AS DESCRIPCION," +
+                    "COUNT(*) AS TOTAL FROM candidatos c JOIN alumnos a ON a.MAT=c.MAT " +
+                    "LEFT JOIN (SELECT CIA,CC,SECC,CGRAD,MAX(DGRAD) AS DGRAD FROM tesgrad " +
+                    "GROUP BY CIA,CC,SECC,CGRAD) g ON g.CIA=c.CIA AND g.CC=c.CC " +
+                    "AND g.SECC=c.SECC AND g.CGRAD=c.GRADO " + filtros +
+                    "GROUP BY c.CC,c.SECC,c.GRADO,g.DGRAD ORDER BY c.CC,c.SECC,c.GRADO";
+        } else {
+            sql = base +
+                    "SELECT c.CC,c.SECC,c.GRADO,c.MAT," +
+                    "COALESCE(NULLIF(a.NOMCOM,''),CONCAT_WS(' ',a.APATE,a.AMATE,a.NOMA)) AS NOMBRE " +
+                    "FROM candidatos c JOIN alumnos a ON a.MAT=c.MAT " + filtros +
+                    "ORDER BY c.CC,c.SECC,c.GRADO,a.APATE,a.AMATE,a.NOMA";
+        }
+
+        modResumen.setRowCount(0);
+        int total = 0;
+        try (Connection con = ConDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            int parametro = 1;
+            ps.setString(parametro++, cia);
+            ps.setString(parametro++, ciclo);
+            if (!cc.isEmpty()) {
+                ps.setString(parametro++, cc);
+            }
+            ps.setString(parametro, ciclo);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int cantidad = rbResumen.isSelected() ? rs.getInt("TOTAL") : 1;
+                    modResumen.addRow(new Object[]{
+                        rs.getString("CC"),
+                        rs.getString("GRADO"),
+                        rbResumen.isSelected() ? rs.getString("DESCRIPCION") : rs.getString("MAT"),
+                        rbResumen.isSelected() ? cantidad : rs.getString("NOMBRE")
+                    });
+                    total += cantidad;
+                }
+            }
+
+            txtTotal.setText(String.valueOf(total));
+            pnlTabla.setBorder(BorderFactory.createTitledBorder(
+                    BorderFactory.createEtchedBorder(),
+                    rbResumen.isSelected()
+                            ? "Resumen de Alumnos No Inscritos"
+                            : "Detalle de Alumnos No Inscritos",
+                    javax.swing.border.TitledBorder.CENTER,
+                    javax.swing.border.TitledBorder.TOP));
+            pnlTabla.repaint();
+
+            DefaultTableModel bitacora = (DefaultTableModel) tblRAInscritos.getModel();
+            bitacora.addRow(new Object[]{
+                new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date()),
+                ciclo,
+                rbResumen.isSelected() ? "Resumen" : "Detalle",
+                System.getProperty("user.name")
+            });
+
+            if (total == 0) {
+                JOptionPane.showMessageDialog(dialogo,
+                        "No se encontraron alumnos pendientes de inscripción con los criterios indicados.",
+                        "Información", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            txtTotal.setText("0");
+            JOptionPane.showMessageDialog(dialogo,
+                    "Error al consultar los alumnos no inscritos: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    });
 
 btnImprimir.addActionListener(e -> {
         if (modResumen.getRowCount() == 0) {
@@ -384,9 +499,10 @@ btnImprimir.addActionListener(e -> {
 
                 // --- ENCABEZADOS DE LA TABLA DE REPORTE ---
                 g2d.setFont(new java.awt.Font("SansSerif", java.awt.Font.BOLD, 9));
-                g2d.drawString("GRADO", 50, y);
-                g2d.drawString(rbResumen.isSelected() ? "DESCRIPCIÓN" : "MATRÍCULA", 110, y);
-                g2d.drawString(rbResumen.isSelected() ? "TOTAL" : "NOMBRE DEL ALUMNO", 380, y);
+                g2d.drawString("CENTRO", 50, y);
+                g2d.drawString("GRADO", 95, y);
+                g2d.drawString(rbResumen.isSelected() ? "DESCRIPCIÓN" : "MATRÍCULA", 145, y);
+                g2d.drawString(rbResumen.isSelected() ? "TOTAL" : "NOMBRE DEL ALUMNO", 365, y);
                 y += 5;
                 g2d.drawLine(50, y, 520, y); y += 15;
 
@@ -396,18 +512,20 @@ btnImprimir.addActionListener(e -> {
                 int finRow = Math.min(inicioRow + filasPorPagina, modResumen.getRowCount());
 
                 for (int r = inicioRow; r < finRow; r++) {
-                    String colGrado = modResumen.getValueAt(r, 0) != null ? modResumen.getValueAt(r, 0).toString() : "";
-                    String colDesc = modResumen.getValueAt(r, 1) != null ? modResumen.getValueAt(r, 1).toString() : "";
-                    String colTot = modResumen.getValueAt(r, 2) != null ? modResumen.getValueAt(r, 2).toString() : "";
+                    String colCentro = modResumen.getValueAt(r, 0) != null ? modResumen.getValueAt(r, 0).toString() : "";
+                    String colGrado = modResumen.getValueAt(r, 1) != null ? modResumen.getValueAt(r, 1).toString() : "";
+                    String colDesc = modResumen.getValueAt(r, 2) != null ? modResumen.getValueAt(r, 2).toString() : "";
+                    String colTot = modResumen.getValueAt(r, 3) != null ? modResumen.getValueAt(r, 3).toString() : "";
 
-                    g2d.drawString(colGrado, 50, y);
+                    g2d.drawString(colCentro, 50, y);
+                    g2d.drawString(colGrado, 95, y);
 
                     // Truncar textos largos si es necesario para evitar que se empalmen en la hoja
                     if (colDesc.length() > 45) colDesc = colDesc.substring(0, 42) + "...";
                     if (colTot.length() > 35) colTot = colTot.substring(0, 32) + "...";
 
-                    g2d.drawString(colDesc, 110, y);
-                    g2d.drawString(colTot, 380, y);
+                    g2d.drawString(colDesc, 145, y);
+                    g2d.drawString(colTot, 365, y);
                     y += 12;
                 }
 

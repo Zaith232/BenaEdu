@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 
 /**
+ * Registra cobros escolares y genera sus recibos de forma transaccional.
  *
  * @author b17za
  */
@@ -103,6 +105,24 @@ private String usuarioLogueado = "Admin";
             return dash.getUsuarioCodigo();
         }
         return this.usuarioLogueado;
+    }
+
+    /**
+     * Suma una columna monetaria aceptando valores numéricos o formateados.
+     *
+     * @param modelo modelo que contiene los importes
+     * @param columna columna monetaria
+     * @return suma de los importes
+     */
+    private static double sumarImportes(DefaultTableModel modelo, int columna) {
+        double total = 0.0;
+        for (int fila = 0; fila < modelo.getRowCount(); fila++) {
+            Object valor = modelo.getValueAt(fila, columna);
+            total += valor instanceof Number numero
+                    ? numero.doubleValue()
+                    : Double.parseDouble(valor.toString().replace(",", ""));
+        }
+        return total;
     }
 
     private void construirInterfazCobranza() {
@@ -197,9 +217,15 @@ private String usuarioLogueado = "Admin";
             return lista.toArray(new Object[0][0]);
         };
 
-        Object[][] dCC = cargarDatosMultiple.apply("SELECT CVE, DES1 FROM tgcc WHERE CVE IN ('12100','12200','12300','12400') ORDER BY CVE", 2);
-        Object[][] dMatricula = cargarDatosMultiple.apply("SELECT MAT, APATE, AMATE, NOMA FROM tesalum ORDER BY MAT", 4);
-        Object[][] dCiclo = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+        Object[][] dCia = cargarDatosMultiple.apply("SELECT CIA,NCIA FROM tmcias ORDER BY CIA", 2);
+        Object[][] dCC = cargarDatosMultiple.apply(
+                "SELECT CVE,MAX(DES1) AS DES1 FROM tgcc WHERE COALESCE(CVE,'')<>'' " +
+                "GROUP BY CVE ORDER BY CVE", 2);
+        Object[][] dMatricula = cargarDatosMultiple.apply(
+                "SELECT MAT,MAX(APATE),MAX(AMATE),MAX(NOMA) FROM tesalum " +
+                "GROUP BY MAT ORDER BY MAT", 4);
+        Object[][] dCiclo = cargarDatosMultiple.apply(
+                "SELECT CESC,MAX(CDSC) AS CDSC FROM tescesc GROUP BY CESC ORDER BY CESC DESC", 2);
         Object[][] dMoneda = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TMON' ORDER BY CVE", 2);
         Object[][] dFormaPago = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'IPAG' ORDER BY CVE", 2);
         Object[][] dBanco = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'BCOS' ORDER BY CVE", 2);
@@ -211,7 +237,8 @@ private String usuarioLogueado = "Admin";
         pnlTop.setBounds(10, 10, 885, 90);
 
         pnlTop.add(new JLabel("Compañía")).setBounds(15, 15, 70, 25);
-        JComboBox<String> cmbCia = new JComboBox<>(new String[]{"12"});
+        JComboBox<String> cmbCia = new JComboBox<>();
+        for (Object[] r : dCia) cmbCia.addItem(r[0] != null ? r[0].toString() : "");
         cmbCia.setBounds(85, 15, 60, 25);
         pnlTop.add(cmbCia);
 
@@ -222,7 +249,10 @@ private String usuarioLogueado = "Admin";
         pnlTop.add(cmbCC);
 
         pnlTop.add(new JLabel("Ciclo Escolar")).setBounds(330, 15, 80, 25);
-        JTextField txtCiclo = new JTextField("2526");
+        JTextField txtCiclo = new JTextField();
+        if (dCiclo.length > 0 && dCiclo[0][0] != null) {
+            txtCiclo.setText(dCiclo[0][0].toString());
+        }
         txtCiclo.setBounds(415, 15, 60, 25);
         JButton btnCiclo = new JButton("▼");
         btnCiclo.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -340,22 +370,33 @@ private String usuarioLogueado = "Admin";
 
             try (Connection con = new ConDB().Conectar()) {
                 if (con != null) {
-                    String sqlAxce = "SELECT a.GRADO, a.GRUPO, a.CBECA, a.TBECA, a.CC, a.CESC, a.SECC, g.DES1 AS DESC_CC " +
+                    String ciaSeleccionada = cmbCia.getSelectedItem() != null
+                            ? cmbCia.getSelectedItem().toString() : "";
+                    String sqlAxce = "SELECT a.GRADO,a.GRUPO,a.CBECA,a.TBECA,a.CC,a.CESC,a.SECC,g.DES1 AS DESC_CC " +
                                      "FROM tesaxce a " +
                                      "LEFT JOIN tgcc g ON a.CC = g.CVE " +
-                                     "WHERE a.MAT = ? ORDER BY a.CESC DESC LIMIT 1";
+                                     "WHERE a.CIA=? AND a.CESC=? AND a.MAT=? " +
+                                     "AND COALESCE(NULLIF(TRIM(a.SITALU),''),'CUR')='CUR' " +
+                                     "ORDER BY a.FEAC DESC,a.HOAC DESC LIMIT 1";
                     PreparedStatement ps = con.prepareStatement(sqlAxce);
-                    ps.setString(1, matriculaSel);
+                    ps.setString(1, ciaSeleccionada);
+                    ps.setString(2, txtCiclo.getText().trim());
+                    ps.setString(3, matriculaSel);
                     ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
+                    if (!rs.next()) {
+                        JOptionPane.showMessageDialog(this,
+                                "El alumno no tiene una inscripción activa en el ciclo seleccionado.",
+                                "Atención", JOptionPane.WARNING_MESSAGE);
+                        rs.close();
+                        ps.close();
+                        return;
+                    } else {
                         txtGrado.setText(rs.getString("GRADO"));
                         txtGrupo.setText(rs.getString("GRUPO"));
                         seccionAlumno = rs.getString("SECC") != null ? rs.getString("SECC") : "SEC";
                         descripcionSeccion = rs.getString("DESC_CC") != null ? rs.getString("DESC_CC") : "SECUNDARIA";
 
                         if (rs.getString("CC") != null) cmbCC.setSelectedItem(rs.getString("CC"));
-                        if (rs.getString("CESC") != null) txtCiclo.setText(rs.getString("CESC"));
-
                         String cBeca = rs.getString("CBECA");
                         String tBeca = rs.getString("TBECA");
                         if (cBeca != null && !cBeca.trim().isEmpty()) {
@@ -373,10 +414,14 @@ private String usuarioLogueado = "Admin";
                     modAPagar.setRowCount(0);
                     modInstr.setRowCount(0);
 
-                    String sqlCalu = "SELECT NCPTO, DCPTO, IMPTMN, IPAGMN, IPENMN, IDCPT, FVEN, CESC, TCONT " +
-                                     "FROM tescalu WHERE MAT = ? AND IPENMN > 0 ORDER BY FVEN ASC";
+                    String sqlCalu = "SELECT NCPTO,DCPTO,IMPTMN,IPAGMN,IPENMN,IDCPT,FVEN,CESC,TCONT " +
+                                     "FROM tescalu WHERE CIA=? AND CC=? AND CESC=? AND MAT=? " +
+                                     "AND IPENMN>0 AND COALESCE(MCAN,'')='' ORDER BY FVEN,IDCPT";
                     PreparedStatement psCalu = con.prepareStatement(sqlCalu);
-                    psCalu.setString(1, matriculaSel);
+                    psCalu.setString(1, ciaSeleccionada);
+                    psCalu.setString(2, cmbCC.getSelectedItem().toString());
+                    psCalu.setString(3, txtCiclo.getText().trim());
+                    psCalu.setString(4, matriculaSel);
                     ResultSet rsCalu = psCalu.executeQuery();
 
                     double sumaTotalAdeudo = 0.0;
@@ -429,11 +474,27 @@ private String usuarioLogueado = "Admin";
                         modAPagar.addRow(fila);
                         modAdeudos.removeRow(row);
 
-                        double total = 0;
                         DecimalFormat df = new DecimalFormat("#,##0.00");
-                        for (int i = 0; i < modAPagar.getRowCount(); i++) {
-                            total += Double.parseDouble(modAPagar.getValueAt(i, 4).toString().replace(",", ""));
-                        }
+                        double total = sumarImportes(modAPagar, 4);
+                        txtTotalPagarTab1.setText(df.format(total));
+                        txtTotalPagarTab2.setText(df.format(total));
+                    }
+                }
+            }
+        });
+
+        tblAPagar.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    int row = tblAPagar.getSelectedRow();
+                    if (row != -1) {
+                        Object[] fila = new Object[tblAPagar.getColumnCount()];
+                        for (int i = 0; i < fila.length; i++) fila[i] = tblAPagar.getValueAt(row, i);
+                        modAdeudos.addRow(fila);
+                        modAPagar.removeRow(row);
+                        DecimalFormat df = new DecimalFormat("#,##0.00");
+                        double total = sumarImportes(modAPagar, 4);
                         txtTotalPagarTab1.setText(df.format(total));
                         txtTotalPagarTab2.setText(df.format(total));
                     }
@@ -565,10 +626,7 @@ private String usuarioLogueado = "Admin";
                     totalAPagarVal = Double.parseDouble(txtTotalPagarTab2.getText().replace(",", ""));
                 } catch (Exception ignored) {}
 
-                double totalReg = 0.0;
-                for (int i = 0; i < modInstr.getRowCount(); i++) {
-                    totalReg += Double.parseDouble(modInstr.getValueAt(i, 7).toString().replace(",", ""));
-                }
+                double totalReg = sumarImportes(modInstr, 7);
                 double saldoVal = totalAPagarVal - totalReg;
                 DecimalFormat df = new DecimalFormat("#,##0.00");
 
@@ -585,24 +643,39 @@ private String usuarioLogueado = "Admin";
                     JOptionPane.showMessageDialog(this, "Ingrese un importe válido.");
                     return;
                 }
+                String formaPago = txtFpago.getText().trim();
+                if (formaPago.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Selecciona una forma de pago.");
+                    return;
+                }
                 SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
                 String fechaStr = txtFecPago.getDate() != null ? sdf.format(txtFecPago.getDate()) : "";
+                if (fechaStr.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Selecciona la fecha del pago.");
+                    return;
+                }
+
+                String bancoClave = txtBanco.getText().trim();
+                String bancoDescripcion = "";
+                for (Object[] banco : dBanco) {
+                    if (banco[0] != null && bancoClave.equals(banco[0].toString())) {
+                        bancoDescripcion = banco[1] != null ? banco[1].toString() : "";
+                        break;
+                    }
+                }
 
                 modInstr.addRow(new Object[]{
-                    txtFpago.getText().trim(),
+                    formaPago,
                     txtFpagoDesc.getText().trim(),
-                    txtBanco.getText().trim(),
-                    txtBanco.getText().trim().isEmpty() ? "" : "SANTANDER",
+                    bancoClave,
+                    bancoDescripcion,
                     txtCtaPago.getText().trim(),
                     txtReferencia.getText().trim(),
                     fechaStr,
-                    String.format("%.2f", imp)
+                    imp
                 });
 
-                double totalReg = 0;
-                for (int i = 0; i < modInstr.getRowCount(); i++) {
-                    totalReg += Double.parseDouble(modInstr.getValueAt(i, 7).toString().replace(",", ""));
-                }
+                double totalReg = sumarImportes(modInstr, 7);
                 DecimalFormat df = new DecimalFormat("#,##0.00");
                 txtTotalInstr.setText(df.format(totalReg));
 
@@ -613,6 +686,21 @@ private String usuarioLogueado = "Admin";
 
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Error en el formato del importe.");
+            }
+        });
+
+        tblInstr.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2 && tblInstr.getSelectedRow() != -1) {
+                    modInstr.removeRow(tblInstr.getSelectedRow());
+                    DecimalFormat df = new DecimalFormat("#,##0.00");
+                    double totalReg = sumarImportes(modInstr, 7);
+                    double totalAPagar = sumarImportes(modAPagar, 4);
+                    txtTotalInstr.setText(df.format(totalReg));
+                    txtSaldoInstr.setText(df.format(totalAPagar - totalReg));
+                    txtImportePago.setText(df.format(Math.max(0, totalAPagar - totalReg)));
+                }
             }
         });
 
@@ -837,9 +925,11 @@ private String usuarioLogueado = "Admin";
         // ==========================================
         btnAceptarCobro.addActionListener(e -> {
             Connection con = null;
+            String bloqueoFolio = null;
             try {
-                double saldoRestante = Double.parseDouble(txtSaldoInstr.getText().trim().replace(",", ""));
-                if (Math.abs(saldoRestante) > 0.01) {
+                double totalSeleccionado = sumarImportes(modAPagar, 4);
+                double totalInstrumentos = sumarImportes(modInstr, 7);
+                if (Math.abs(totalSeleccionado - totalInstrumentos) > 0.01) {
                     JOptionPane.showMessageDialog(this, "El importe registrado no cubre el saldo total a pagar.", "Atención", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
@@ -862,6 +952,25 @@ private String usuarioLogueado = "Admin";
                 String grupo = txtGrupo.getText().trim();
                 String usuarioSesionActiva = obtenerUsuarioActivo();
 
+                boolean contieneOficial = false;
+                boolean contieneParticular = false;
+                for (int i = 0; i < modAPagar.getRowCount(); i++) {
+                    String tipoCuenta = modAPagar.getValueAt(i, 8) != null
+                            ? modAPagar.getValueAt(i, 8).toString().trim() : "O";
+                    if ("P".equalsIgnoreCase(tipoCuenta)) {
+                        contieneParticular = true;
+                    } else {
+                        contieneOficial = true;
+                    }
+                }
+                if (contieneOficial && contieneParticular) {
+                    JOptionPane.showMessageDialog(this,
+                            "Los conceptos oficiales y particulares deben cobrarse en recibos separados.",
+                            "Atención", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                tipoReciboGenerado = contieneParticular ? "RP" : "RO";
+
                 SimpleDateFormat sdfSql = new SimpleDateFormat("yyyy-MM-dd");
                 String fecReciboStr = txtFecRecibo.getDate() != null ? sdfSql.format(txtFecRecibo.getDate()) : sdfSql.format(new Date());
 
@@ -870,30 +979,38 @@ private String usuarioLogueado = "Admin";
                 con.setAutoCommit(false);
 
                 // 1. Obtener Cajero (NCAJ)
-                int ncajVal = 80;
+                int ncajVal;
                 PreparedStatement psCaj = con.prepareStatement("SELECT NEMP FROM tescaj WHERE USER = ? AND CIA = ? AND ECAJ = 'A' ORDER BY CAST(NEMP AS UNSIGNED) LIMIT 1");
                 psCaj.setString(1, usuarioSesionActiva);
                 psCaj.setString(2, cia);
                 ResultSet rsCaj = psCaj.executeQuery();
-                if (rsCaj.next()) ncajVal = rsCaj.getInt("NEMP");
+                if (!rsCaj.next()) {
+                    throw new SQLException("El usuario " + usuarioSesionActiva
+                            + " no tiene un cajero activo asignado.");
+                }
+                ncajVal = rsCaj.getInt("NEMP");
                 rsCaj.close(); psCaj.close();
 
-                // 2. Determinar si es Recibo Oficial (RO) o Particular (RP)
-                tipoReciboGenerado = "RO";
-                for (int i = 0; i < modAPagar.getRowCount(); i++) {
-                    String tcontFila = modAPagar.getValueAt(i, 8) != null ? modAPagar.getValueAt(i, 8).toString() : "O";
-                    if ("P".equalsIgnoreCase(tcontFila)) {
-                        tipoReciboGenerado = "RP";
-                        break;
+                // 2. Serializar la asignación del folio sin modificar el esquema de la base.
+                bloqueoFolio = "benaedu_recibo_" + cia;
+                try (PreparedStatement psLock = con.prepareStatement("SELECT GET_LOCK(?,10)")) {
+                    psLock.setString(1, bloqueoFolio);
+                    try (ResultSet rsLock = psLock.executeQuery()) {
+                        if (!rsLock.next() || rsLock.getInt(1) != 1) {
+                            throw new SQLException("No fue posible reservar un número de recibo. Intenta nuevamente.");
+                        }
                     }
                 }
 
                 // 3. Generar Folio NREC
-                int numReciboVal = 1001;
+                int numReciboVal;
                 PreparedStatement psNrec = con.prepareStatement("SELECT COALESCE(MAX(CAST(NREC AS UNSIGNED)), 0) + 1 AS SIG_REC FROM tesralu WHERE CIA = ?");
                 psNrec.setString(1, cia);
                 ResultSet rsNrec = psNrec.executeQuery();
-                if (rsNrec.next()) numReciboVal = rsNrec.getInt("SIG_REC");
+                if (!rsNrec.next()) {
+                    throw new SQLException("No fue posible generar el número de recibo.");
+                }
+                numReciboVal = rsNrec.getInt("SIG_REC");
                 rsNrec.close(); psNrec.close();
 
                 String nrecStr = String.valueOf(numReciboVal);
@@ -907,26 +1024,42 @@ private String usuarioLogueado = "Admin";
                                     "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, 0, 0, 0, ?, 0, 0, '', ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
 
                 PreparedStatement psRalu = con.prepareStatement(sqlInsRalu);
-                PreparedStatement psCalu = con.prepareStatement("UPDATE tescalu SET IPAGMN = IMPTMN, IPENMN = 0 WHERE MAT = ? AND IDCPT = ?");
+                PreparedStatement psCalu = con.prepareStatement(
+                        "UPDATE tescalu SET IPAGMN=IMPTMN,IPENMN=0 " +
+                        "WHERE CIA=? AND CC=? AND CESC=? AND MAT=? AND IDCPT=? " +
+                        "AND IPENMN>0 AND COALESCE(MCAN,'')=''");
 
                 listaConceptosCobrados.clear();
+                double totalConfirmado = 0.0;
 
                 for (int i = 0; i < modAPagar.getRowCount(); i++) {
                     String idCpt = modAPagar.getValueAt(i, 5).toString();
                     String cicloFila = modAPagar.getValueAt(i, 7) != null ? modAPagar.getValueAt(i, 7).toString() : ciclo;
 
                     PreparedStatement psReadCpt = con.prepareStatement(
-                        "SELECT SECC, TALU, NCPTO, TCPTO, DCPTO, TCONT, CUNIMN, CANT, IMPMN, TDSC, PDSC, IDSCMN, PREC, IRECMN, TBECA, CBECA, PBEC, IBECMN, IMPTMN, FVEN, FCON " +
-                        "FROM tescalu WHERE MAT = ? AND IDCPT = ?"
+                        "SELECT SECC,TALU,NCPTO,TCPTO,DCPTO,TCONT,CUNIMN,CANT,IMPMN," +
+                        "TDSC,PDSC,IDSCMN,PREC,IRECMN,TBECA,CBECA,PBEC,IBECMN,IMPTMN," +
+                        "IPAGMN,IPENMN,FVEN,FCON FROM tescalu " +
+                        "WHERE CIA=? AND CC=? AND CESC=? AND MAT=? AND IDCPT=? " +
+                        "AND IPENMN>0 AND COALESCE(MCAN,'')='' FOR UPDATE"
                     );
-                    psReadCpt.setString(1, matricula);
-                    psReadCpt.setString(2, idCpt);
+                    psReadCpt.setString(1, cia);
+                    psReadCpt.setString(2, cc);
+                    psReadCpt.setString(3, cicloFila);
+                    psReadCpt.setString(4, matricula);
+                    psReadCpt.setString(5, idCpt);
                     ResultSet rsCpt = psReadCpt.executeQuery();
 
-                    if (rsCpt.next()) {
+                    if (!rsCpt.next()) {
+                        throw new SQLException("El concepto " + idCpt
+                                + " ya no tiene saldo pendiente. Actualiza la consulta.");
+                    } else {
                         double impBruto = rsCpt.getDouble("IMPMN");
                         double impNeto = rsCpt.getDouble("IMPTMN");
+                        double pagadoPrevio = rsCpt.getDouble("IPAGMN");
+                        double saldoPendiente = rsCpt.getDouble("IPENMN");
                         double cantVal = rsCpt.getDouble("CANT") > 0 ? rsCpt.getDouble("CANT") : 1.0;
+                        totalConfirmado += saldoPendiente;
 
                         psRalu.setString(1, cia);
                         psRalu.setString(2, cc);
@@ -967,7 +1100,7 @@ private String usuarioLogueado = "Admin";
                             psRalu.setDate(32, java.sql.Date.valueOf(fcon));
                         }
 
-                        psRalu.setDouble(33, impNeto);
+                        psRalu.setDouble(33, saldoPendiente);
                         psRalu.setString(34, fecReciboStr);
                         psRalu.setInt(35, ncajVal);
                         psRalu.setString(36, usuarioSesionActiva);
@@ -978,23 +1111,37 @@ private String usuarioLogueado = "Admin";
                         ci.ncpto = rsCpt.getString("NCPTO");
                         ci.dcpto = rsCpt.getString("DCPTO");
                         ci.importe = impBruto;
-                        ci.pagadoPrev = 0.0;
+                        ci.pagadoPrev = pagadoPrevio;
                         ci.fven = rsCpt.getDate("FVEN") != null ? new SimpleDateFormat("dd/MM/yyyy").format(rsCpt.getDate("FVEN")) : "";
                         ci.desc = rsCpt.getDouble("IDSCMN");
                         ci.pBeca = rsCpt.getDouble("PBEC");
                         ci.pRec = rsCpt.getDouble("PREC");
-                        ci.pago = impNeto;
+                        ci.pago = saldoPendiente;
                         ci.saldo = 0.0;
                         listaConceptosCobrados.add(ci);
                     }
                     rsCpt.close(); psReadCpt.close();
 
-                    psCalu.setString(1, matricula);
-                    psCalu.setString(2, idCpt);
+                    psCalu.setString(1, cia);
+                    psCalu.setString(2, cc);
+                    psCalu.setString(3, cicloFila);
+                    psCalu.setString(4, matricula);
+                    psCalu.setString(5, idCpt);
                     psCalu.addBatch();
                 }
 
-                psCalu.executeBatch();
+                if (Math.abs(totalConfirmado - totalInstrumentos) > 0.01) {
+                    throw new SQLException(
+                            "Los saldos cambiaron mientras se preparaba el cobro. Vuelve a seleccionar los conceptos.");
+                }
+
+                int[] conceptosActualizados = psCalu.executeBatch();
+                for (int actualizados : conceptosActualizados) {
+                    if (actualizados == 0) {
+                        throw new SQLException(
+                                "No se pudo actualizar uno de los conceptos. El cobro fue cancelado.");
+                    }
+                }
                 psCalu.close();
                 psRalu.close();
 
@@ -1011,6 +1158,8 @@ private String usuarioLogueado = "Admin";
                     String fmaPag = modInstr.getValueAt(j, 0).toString();
                     String descFma = modInstr.getValueAt(j, 1).toString();
                     String bcoPag = modInstr.getValueAt(j, 2).toString();
+                    String descBanco = modInstr.getValueAt(j, 3) != null
+                            ? modInstr.getValueAt(j, 3).toString() : "";
                     String ctaPag = modInstr.getValueAt(j, 4).toString();
                     String refPag = modInstr.getValueAt(j, 5).toString();
                     String fPagStr = modInstr.getValueAt(j, 6).toString();
@@ -1040,7 +1189,7 @@ private String usuarioLogueado = "Admin";
 
                     PagoImpresion pi = new PagoImpresion();
                     pi.formaPago = descFma;
-                    pi.banco = bcoPag.isEmpty() ? "" : "SANTANDER";
+                    pi.banco = descBanco;
                     pi.referencia = refPag;
                     pi.fecha = fPagStr;
                     pi.importe = impInst;
@@ -1051,10 +1200,16 @@ private String usuarioLogueado = "Admin";
                 psPalu.close();
 
                 con.commit();
+                try (PreparedStatement psUnlock = con.prepareStatement("SELECT RELEASE_LOCK(?)")) {
+                    psUnlock.setString(1, bloqueoFolio);
+                    psUnlock.executeQuery();
+                } catch (Exception ignored) {}
+                bloqueoFolio = null;
                 con.setAutoCommit(true);
                 con.close();
+                con = null;
 
-                totalCobrado = Double.parseDouble(txtTotalPagarTab2.getText().trim().replace(",", ""));
+                totalCobrado = totalConfirmado;
                 txtNumReciboGen.setText(nrecStr);
 
                 JOptionPane.showMessageDialog(this, "¡Cobro registrado con éxito!\nRecibo generado: " + nrecStr + " " + tipoReciboGenerado, "Éxito", JOptionPane.INFORMATION_MESSAGE);
@@ -1064,11 +1219,22 @@ private String usuarioLogueado = "Admin";
                 if (con != null) {
                     try {
                         con.rollback();
+                    } catch (Exception ignored) {}
+                }
+                JOptionPane.showMessageDialog(this, "Error al procesar el cobro: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                if (con != null) {
+                    if (bloqueoFolio != null) {
+                        try (PreparedStatement psUnlock = con.prepareStatement("SELECT RELEASE_LOCK(?)")) {
+                            psUnlock.setString(1, bloqueoFolio);
+                            psUnlock.executeQuery();
+                        } catch (Exception ignored) {}
+                    }
+                    try {
                         con.setAutoCommit(true);
                         con.close();
                     } catch (Exception ignored) {}
                 }
-                JOptionPane.showMessageDialog(this, "Error al procesar el cobro: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

@@ -23,6 +23,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 /**
+ * Genera reportes resumidos y detallados de alumnos inscritos por ciclo.
  *
  * @author b17za
  */
@@ -33,8 +34,13 @@ public class Resumen_Inscripciones extends javax.swing.JPanel {
      */
     public Resumen_Inscripciones() {
         initComponents();
+        configurarTablaBitacora();
+        btnAddRInscripciones.setText("Generar reporte");
+        btnEditRInscripciones.setVisible(false);
+        btnDeleteRInscripciones.setVisible(false);
     }
-private void configurarTablaBitacora() {
+
+    private void configurarTablaBitacora() {
         DefaultTableModel modelo = new DefaultTableModel(
             new Object[][] {}, 
             new String[] {"Fecha Consulta", "Ciclo Escolar", "Tipo Reporte", "Usuario"}
@@ -230,7 +236,8 @@ private void mostrarDialogoResumen() {
         return lista.toArray(new Object[0][0]);
     };
 
-    Object[][] dCiclo = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+    Object[][] dCiclo = cargarDatosMultiple.apply(
+            "SELECT CESC,MAX(CDSC) AS CDSC FROM tescesc GROUP BY CESC ORDER BY CESC DESC", 2);
 
     // --- 1. DATOS DE SELECCIÓN ---
     JPanel pnlSel = new JPanel(null);
@@ -267,6 +274,7 @@ private void mostrarDialogoResumen() {
     JTextField txtCiclo = new JTextField(); txtCiclo.setBounds(130, 75, 70, 25);
     JButton btnCiclo = new JButton("▼"); btnCiclo.setFont(new java.awt.Font("SansSerif", java.awt.Font.PLAIN, 10)); btnCiclo.setMargin(new java.awt.Insets(0, 0, 0, 0)); btnCiclo.setBounds(200, 75, 25, 25);
     buscador.configurar(txtCiclo, null, btnCiclo, dCiclo, new String[]{"Clave", "Descripción"}, new int[]{60, 200});
+    if (dCiclo.length > 0 && dCiclo[0][0] != null) txtCiclo.setText(dCiclo[0][0].toString());
     pnlSel.add(txtCiclo); pnlSel.add(btnCiclo);
 
     dialogo.add(pnlSel);
@@ -335,7 +343,87 @@ private void mostrarDialogoResumen() {
     // --- 6. EVENTOS ---
     btnSalir.addActionListener(e -> dialogo.dispose());
 
-   btnImprimir.addActionListener(e -> {
+    btnFiltra.addActionListener(e -> {
+        String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "";
+        String cc = cmbCC.getSelectedItem() != null ? cmbCC.getSelectedItem().toString() : "";
+        String ciclo = txtCiclo.getText().trim();
+
+        if (cia.isEmpty() || ciclo.isEmpty()) {
+            JOptionPane.showMessageDialog(dialogo,
+                    "Compañía y Ciclo Escolar son obligatorios.",
+                    "Atención", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        StringBuilder base = new StringBuilder(
+                "WITH inscripciones AS (SELECT x.CIA,x.CC,x.CESC,x.MAT,x.SECC,x.GRADO,x.GRUPO," +
+                "ROW_NUMBER() OVER (PARTITION BY x.CIA,x.CC,x.CESC,x.MAT " +
+                "ORDER BY x.FEAC DESC,x.HOAC DESC) AS FILA " +
+                "FROM tesaxce x WHERE x.CIA=? AND x.CESC=? " +
+                "AND COALESCE(NULLIF(TRIM(x.SITALU),''),'CUR')='CUR' ");
+        if (!cc.isEmpty()) base.append("AND x.CC=? ");
+        base.append(") ");
+
+        String sql;
+        if (rbResumen.isSelected()) {
+            sql = base +
+                    "SELECT i.CC,i.SECC,i.GRADO,COALESCE(g.DGRAD,i.GRADO) AS DESCRIPCION," +
+                    "COUNT(*) AS TOTAL FROM inscripciones i LEFT JOIN tesgrad g " +
+                    "ON g.CIA=i.CIA AND g.CC=i.CC AND g.SECC=i.SECC AND g.CGRAD=i.GRADO " +
+                    "WHERE i.FILA=1 GROUP BY i.CC,i.SECC,i.GRADO,g.DGRAD " +
+                    "ORDER BY i.CC,i.SECC,i.GRADO";
+        } else {
+            sql = base +
+                    "SELECT i.CC,i.SECC,i.GRADO,i.MAT," +
+                    "COALESCE(NULLIF(a.NOMCOM,''),CONCAT_WS(' ',a.APATE,a.AMATE,a.NOMA)) AS NOMBRE " +
+                    "FROM inscripciones i LEFT JOIN (SELECT MAT,MAX(NOMCOM) AS NOMCOM," +
+                    "MAX(APATE) AS APATE,MAX(AMATE) AS AMATE,MAX(NOMA) AS NOMA " +
+                    "FROM tesalum GROUP BY MAT) a ON a.MAT=i.MAT " +
+                    "WHERE i.FILA=1 ORDER BY i.CC,i.SECC,i.GRADO,a.APATE,a.AMATE,a.NOMA";
+        }
+
+        modResumen.setRowCount(0);
+        int total = 0;
+        try (Connection con = ConDB.getConnection();
+                PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, cia);
+            ps.setString(2, ciclo);
+            if (!cc.isEmpty()) ps.setString(3, cc);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int cantidad = rbResumen.isSelected() ? rs.getInt("TOTAL") : 1;
+                    modResumen.addRow(new Object[]{
+                        rs.getString("CC"), rs.getString("SECC"), rs.getString("GRADO"),
+                        rbResumen.isSelected() ? rs.getString("DESCRIPCION") : rs.getString("MAT"),
+                        rbResumen.isSelected() ? cantidad : rs.getString("NOMBRE")
+                    });
+                    total += cantidad;
+                }
+            }
+
+            txtTotal.setText(String.valueOf(total));
+            pnlTabla.setBorder(BorderFactory.createTitledBorder(
+                    BorderFactory.createEtchedBorder(),
+                    rbResumen.isSelected() ? "Resumen de Inscripciones" : "Detalle de Alumnos Inscritos",
+                    javax.swing.border.TitledBorder.CENTER,
+                    javax.swing.border.TitledBorder.TOP));
+            pnlTabla.repaint();
+
+            if (total == 0) {
+                JOptionPane.showMessageDialog(dialogo,
+                        "No se encontraron alumnos inscritos con los criterios indicados.",
+                        "Información", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception ex) {
+            txtTotal.setText("0");
+            JOptionPane.showMessageDialog(dialogo,
+                    "Error al consultar las inscripciones: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    });
+
+    btnImprimir.addActionListener(e -> {
         if (modResumen.getRowCount() == 0) {
             JOptionPane.showMessageDialog(dialogo, "No hay datos en la tabla para imprimir.", "Advertencia", JOptionPane.WARNING_MESSAGE);
             return;

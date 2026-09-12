@@ -157,7 +157,9 @@ private void construirInterfazIngresosPeriodo() {
 
         Object[][] dCia       = cargarDatosMultiple.apply("SELECT CIA, NCIA FROM tmcias ORDER BY CIA", 2);
         Object[][] dCC        = cargarDatosMultiple.apply("SELECT CVE, DES1 FROM tgcc WHERE CVE IN ('12100','12200','12300','12400') ORDER BY CVE", 2);
-        Object[][] dCiclo     = cargarDatosMultiple.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC DESC", 2);
+        Object[][] dCiclo     = cargarDatosMultiple.apply(
+                "SELECT CESC, MAX(CDSC) FROM tescesc GROUP BY CESC "
+                + "ORDER BY MAX(CASE WHEN CURDATE() BETWEEN FINI AND FFIN THEN 1 ELSE 0 END) DESC, CESC DESC", 2);
         Object[][] dCajero    = cargarDatosMultiple.apply("SELECT NEMP, NOME FROM tgemp WHERE CAJ = 'S' ORDER BY NEMP", 2);
         Object[][] dFormaPago = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'IPAG' ORDER BY CVE", 2);
 
@@ -184,7 +186,8 @@ private void construirInterfazIngresosPeriodo() {
         pnlSel.add(txtCC); pnlSel.add(btnCC);
 
         pnlSel.add(new JLabel("Ciclo Escolar")).setBounds(335, 20, 80, 25);
-        txtCiclo = new JTextField("2526"); txtCiclo.setBounds(420, 20, 55, 25);
+        String cicloInicial = dCiclo.length > 0 && dCiclo[0][0] != null ? dCiclo[0][0].toString() : "";
+        txtCiclo = new JTextField(cicloInicial); txtCiclo.setBounds(420, 20, 55, 25);
         JButton btnCiclo = new JButton("▼"); btnCiclo.setFont(new Font("SansSerif", Font.PLAIN, 10)); btnCiclo.setMargin(new java.awt.Insets(0,0,0,0)); btnCiclo.setBounds(475, 20, 20, 25);
         buscador.configurar(txtCiclo, null, btnCiclo, dCiclo, new String[]{"Clave", "Descripción"}, new int[]{60, 150});
         pnlSel.add(txtCiclo); pnlSel.add(btnCiclo);
@@ -317,6 +320,12 @@ private void construirInterfazIngresosPeriodo() {
 
         btnFiltra.addActionListener(e -> {
             modIngresos.setRowCount(0);
+            txtTotEfectivo.setText("0.00");
+            txtTotCheques.setText("0.00");
+            txtTotDep.setText("0.00");
+            txtTotTarjetas.setText("0.00");
+            txtTotTElectronica.setText("0.00");
+            txtTotGeneral.setText("0.00");
 
             String cia = cmbCia.getSelectedItem() != null ? cmbCia.getSelectedItem().toString() : "12";
             String cc = txtCC.getText().trim();
@@ -324,6 +333,7 @@ private void construirInterfazIngresosPeriodo() {
             String cajero = txtCajero.getText().trim();
             String fmaPagoFiltro = txtFormaPago.getText().trim();
             String refFiltro = txtReferencia.getText().trim();
+            String tipoCuenta = rbPart.isSelected() ? "P" : "O";
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             String fIni = txtFecIni.getDate() != null ? sdf.format(txtFecIni.getDate()) : "";
@@ -332,14 +342,25 @@ private void construirInterfazIngresosPeriodo() {
             try (Connection con = new ConDB().Conectar()) {
                 if (con != null) {
                     StringBuilder sql = new StringBuilder(
-                        "SELECT p.CIA, p.CC, p.CESC, p.MAT, COALESCE(a.NOMCOM, r.NOMALU) AS NOMBRE, r.GRADO, " +
-                        "p.NREC, p.TREC, p.FPAG AS FEC_RECIBO, p.FMAPAG, p.BCOPAG, p.CTAPAG, p.REFPAG, " +
-                        "pol.FPOL AS FEC_POLIZA, p.IMPMN " +
+                        "WITH recibos AS (" +
+                        " SELECT CIA, CC, CESC, MAT, NREC, TREC, MAX(NOMALU) AS NOMALU, " +
+                        " MAX(GRADO) AS GRADO, MAX(TCONT) AS TCONT FROM tesralu " +
+                        " GROUP BY CIA, CC, CESC, MAT, NREC, TREC" +
+                        "), alumnos AS (" +
+                        " SELECT MAT, NOMCOM FROM (SELECT MAT, NOMCOM, " +
+                        " ROW_NUMBER() OVER (PARTITION BY MAT ORDER BY FEAC DESC, HOAC DESC) AS FILA FROM tesalum) a " +
+                        " WHERE FILA = 1" +
+                        "), ingresos AS (" +
+                        " SELECT p.CIA, p.CC, p.CESC, p.MAT, " +
+                        " COALESCE(NULLIF(a.NOMCOM, ''), r.NOMALU, '') AS NOMBRE, " +
+                        " COALESCE(r.GRADO, p.GRADO, '') AS GRADO, p.NREC, p.TREC, " +
+                        " COALESCE(p.FPAG, p.FREC) AS FEC_RECIBO, p.FMAPAG, p.BCOPAG, p.CTAPAG, p.REFPAG, " +
+                        " '' AS FEC_POLIZA, COALESCE(p.IMPMN, 0) AS IMPMN " +
                         "FROM tespalu p " +
-                        "LEFT JOIN tesralu r ON p.CIA = r.CIA AND p.CC = r.CC AND p.MAT = r.MAT AND p.NREC = r.NREC AND p.TREC = r.TREC AND p.CESC = r.CESC " +
-                        "LEFT JOIN tesalum a ON p.MAT = a.MAT " +
-                        "LEFT JOIN tgpol pol ON p.CIA = pol.CIA AND p.RELPOL = pol.NPOL " +
-                        "WHERE p.CIA = ? "
+                        "LEFT JOIN recibos r ON p.CIA = r.CIA AND p.CC = r.CC AND p.CESC = r.CESC " +
+                        "AND p.MAT = r.MAT AND p.NREC = r.NREC AND p.TREC <=> r.TREC " +
+                        "LEFT JOIN alumnos a ON p.MAT = a.MAT " +
+                        "WHERE p.CIA = ? AND COALESCE(p.MCAN, '') = '' "
                     );
 
                     if (!cc.isEmpty()) sql.append(" AND p.CC = ?");
@@ -347,9 +368,21 @@ private void construirInterfazIngresosPeriodo() {
                     if (!cajero.isEmpty()) sql.append(" AND p.NCAJ = ?");
                     if (!fmaPagoFiltro.isEmpty()) sql.append(" AND p.FMAPAG = ?");
                     if (!refFiltro.isEmpty()) sql.append(" AND p.REFPAG LIKE ?");
-                    if (!fIni.isEmpty() && !fFin.isEmpty()) sql.append(" AND p.FPAG BETWEEN ? AND ?");
+                    if (!fIni.isEmpty()) sql.append(" AND COALESCE(p.FPAG, p.FREC) >= ?");
+                    if (!fFin.isEmpty()) sql.append(" AND COALESCE(p.FPAG, p.FREC) <= ?");
+                    sql.append(" AND COALESCE(NULLIF(r.TCONT, ''), CASE WHEN UPPER(COALESCE(p.TREC, '')) = 'RP' THEN 'P' ELSE 'O' END) = ?");
 
-                    sql.append(" ORDER BY p.FPAG DESC, p.NREC DESC");
+                    sql.append(") ");
+                    if (rbResumen.isSelected()) {
+                        sql.append("SELECT CIA, CC, CESC, '' AS MAT, CONCAT('TOTAL ', FMAPAG) AS NOMBRE, '' AS GRADO, " +
+                                "'' AS NREC, '' AS TREC, '' AS FEC_RECIBO, FMAPAG, '' AS BCOPAG, '' AS CTAPAG, " +
+                                "'' AS REFPAG, '' AS FEC_POLIZA, SUM(IMPMN) AS IMPMN FROM ingresos " +
+                                "GROUP BY CIA, CC, CESC, FMAPAG ORDER BY CIA, CC, CESC, FMAPAG");
+                    } else {
+                        sql.append("SELECT CIA, CC, CESC, MAT, NOMBRE, GRADO, NREC, TREC, FEC_RECIBO, FMAPAG, " +
+                                "BCOPAG, CTAPAG, REFPAG, FEC_POLIZA, IMPMN FROM ingresos " +
+                                "ORDER BY FEC_RECIBO DESC, NREC DESC");
+                    }
 
                     PreparedStatement ps = con.prepareStatement(sql.toString());
                     int idx = 1;
@@ -359,10 +392,9 @@ private void construirInterfazIngresosPeriodo() {
                     if (!cajero.isEmpty()) ps.setString(idx++, cajero);
                     if (!fmaPagoFiltro.isEmpty()) ps.setString(idx++, fmaPagoFiltro);
                     if (!refFiltro.isEmpty()) ps.setString(idx++, "%" + refFiltro + "%");
-                    if (!fIni.isEmpty() && !fFin.isEmpty()) {
-                        ps.setString(idx++, fIni);
-                        ps.setString(idx++, fFin);
-                    }
+                    if (!fIni.isEmpty()) ps.setString(idx++, fIni);
+                    if (!fFin.isEmpty()) ps.setString(idx++, fFin);
+                    ps.setString(idx++, tipoCuenta);
 
                     ResultSet rs = ps.executeQuery();
                     DecimalFormat df = new DecimalFormat("#,##0.00");

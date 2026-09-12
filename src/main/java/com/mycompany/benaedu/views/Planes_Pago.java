@@ -5,9 +5,19 @@
 package com.mycompany.benaedu.views;
 import com.mycompany.benaedu.db.ConDB;
 import java.awt.Window;
+import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -27,13 +37,37 @@ import javax.swing.table.DefaultTableModel;
  */
 public class Planes_Pago extends javax.swing.JPanel {
 
+    private static final DateTimeFormatter FORMATO_HORA = DateTimeFormatter.ofPattern("hh:mm:ss a");
+    private final String usuarioLogueado;
+
+    /** Identifica de forma completa un plan de pagos. */
+    private record ClavePlan(String cia, String cc, String ciclo, String tipo, String plan) {}
+
+    /** Representa una partida validada del detalle de un plan. */
+    private record DetallePlan(int sec, String concepto, String descripcion, String tipoConcepto,
+            BigDecimal importe, BigDecimal descuento, LocalDate fechaInicio, LocalDate fechaFin,
+            String usuario, LocalDate fechaActualizacion, String horaActualizacion) {}
+
     /**
      * Creates new form Planes_Pago
      */
     public Planes_Pago() {
-        initComponents();
+        this("Admin");
     }
- private void cargarTablaPlanes() {
+
+    /**
+     * Crea el panel usando el usuario autenticado para los campos de auditoría.
+     *
+     * @param usuarioLogueado alias del usuario que inició sesión
+     */
+    public Planes_Pago(String usuarioLogueado) {
+        this.usuarioLogueado = usuarioLogueado == null || usuarioLogueado.isBlank()
+                ? "Admin" : usuarioLogueado.trim();
+        initComponents();
+        cargarTablaPlanes();
+    }
+
+    private void cargarTablaPlanes() {
         DefaultTableModel modelo = new DefaultTableModel(
             new Object[][] {}, 
             new String[] {"Compañía", "Centro Costos", "Ciclo Escolar", "Tipo Pago", "Cve Plan", "Descripción", "Fec. Vig. Ini.", "Fec. Vig. Fin", "Usuario", "Fech. Ult. Act.", "Hora, Ult. Act."}
@@ -45,36 +79,45 @@ public class Planes_Pago extends javax.swing.JPanel {
         };
         tblPPagos.setModel(modelo);
 
+        ConDB db = new ConDB();
         try {
-            ConDB db = new ConDB();
             Connection con = db.Conectar();
 
             if (con != null) {
-                String sql = "SELECT CIA, CC, CESC, TGPO, CGPO, DGPO, FVINI, FVFIN, USER, FEAC, HOAC FROM tesgpge ORDER BY CIA, CC, CESC, CGPO";
-                PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
-
-                while (rs.next()) {
-                    Object[] fila = new Object[11]; 
-                    fila[0] = rs.getString("CIA");
-                    fila[1] = rs.getString("CC");
-                    fila[2] = rs.getString("CESC");
-                    fila[3] = rs.getString("TGPO");
-                    fila[4] = rs.getString("CGPO");
-                    fila[5] = rs.getString("DGPO");
-                    fila[6] = rs.getString("FVINI") != null ? rs.getString("FVINI") : "";
-                    fila[7] = rs.getString("FVFIN") != null ? rs.getString("FVFIN") : "";
-                    fila[8] = rs.getString("USER") != null ? rs.getString("USER") : "";
-                    fila[9] = rs.getString("FEAC") != null ? rs.getString("FEAC") : "";
-                    fila[10] = rs.getString("HOAC") != null ? rs.getString("HOAC") : "";
-                    modelo.addRow(fila);
+                String sql = "SELECT CIA, CC, CESC, TGPO, CGPO, DGPO, FVINI, FVFIN, USER, FEAC, HOAC FROM tesgpge "
+                        + "UNION ALL "
+                        + "SELECT d.CIA, d.CC, d.CESC, d.TGPO, d.CGPO, CONCAT('Plan ', d.CGPO), "
+                        + "MIN(d.FVINI), MAX(d.FVFIN), '', NULL, '' "
+                        + "FROM tesgpde d WHERE NOT EXISTS (SELECT 1 FROM tesgpge h "
+                        + "WHERE h.CIA=d.CIA AND h.CC=d.CC AND h.CESC=d.CESC AND h.TGPO=d.TGPO AND h.CGPO=d.CGPO) "
+                        + "GROUP BY d.CIA, d.CC, d.CESC, d.TGPO, d.CGPO "
+                        + "ORDER BY CESC DESC, CIA, CC, CGPO";
+                try (PreparedStatement ps = con.prepareStatement(sql);
+                        ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        Object[] fila = new Object[11];
+                        fila[0] = rs.getString("CIA");
+                        fila[1] = rs.getString("CC");
+                        fila[2] = rs.getString("CESC");
+                        fila[3] = rs.getString("TGPO");
+                        fila[4] = rs.getString("CGPO");
+                        fila[5] = rs.getString("DGPO");
+                        fila[6] = rs.getString("FVINI") != null ? rs.getString("FVINI") : "";
+                        fila[7] = rs.getString("FVFIN") != null ? rs.getString("FVFIN") : "";
+                        fila[8] = rs.getString("USER") != null ? rs.getString("USER") : "";
+                        fila[9] = rs.getString("FEAC") != null ? rs.getString("FEAC") : "";
+                        fila[10] = rs.getString("HOAC") != null ? rs.getString("HOAC") : "";
+                        modelo.addRow(fila);
+                    }
                 }
-                rs.close(); ps.close(); db.Cerrar();
-                
                 adaptarTamañoColumnas();
+            } else {
+                throw new SQLException("No fue posible conectar con la base de datos.");
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar la tabla de Planes de Pago: " + e.getMessage());
+        } finally {
+            db.Cerrar();
         }
     }
 
@@ -96,6 +139,184 @@ public class Planes_Pago extends javax.swing.JPanel {
             }
             columna.setPreferredWidth(anchoPreferido); 
         }
+    }
+
+    /**
+     * Lee y valida las partidas capturadas antes de modificar la base de datos.
+     *
+     * @param modelo modelo de la tabla de partidas
+     * @return partidas con valores numéricos y fechas validados
+     * @throws IllegalArgumentException si una partida contiene datos inválidos
+     */
+    private List<DetallePlan> leerDetalles(DefaultTableModel modelo) {
+        if (modelo.getRowCount() == 0) {
+            throw new IllegalArgumentException("Agrega al menos un concepto al plan.");
+        }
+
+        List<DetallePlan> detalles = new ArrayList<>();
+        Set<Integer> secuencias = new HashSet<>();
+        for (int i = 0; i < modelo.getRowCount(); i++) {
+            try {
+                int sec = Integer.parseInt(modelo.getValueAt(i, 0).toString().trim());
+                String concepto = modelo.getValueAt(i, 1).toString().trim();
+                String descripcion = modelo.getValueAt(i, 2).toString().trim();
+                BigDecimal importe = new BigDecimal(modelo.getValueAt(i, 3).toString().replace(",", "").trim());
+                BigDecimal descuento = new BigDecimal(modelo.getValueAt(i, 4).toString().replace(",", "").trim());
+                LocalDate fechaInicio = LocalDate.parse(modelo.getValueAt(i, 5).toString().trim());
+                LocalDate fechaFin = LocalDate.parse(modelo.getValueAt(i, 6).toString().trim());
+
+                if (sec <= 0 || !secuencias.add(sec)) {
+                    throw new IllegalArgumentException("La secuencia debe ser positiva y no repetirse.");
+                }
+                if (concepto.isEmpty() || descripcion.isEmpty()) {
+                    throw new IllegalArgumentException("El concepto y su descripción son obligatorios.");
+                }
+                if (importe.signum() < 0 || descuento.signum() < 0 || descuento.compareTo(BigDecimal.valueOf(100)) > 0) {
+                    throw new IllegalArgumentException("El importe no puede ser negativo y el descuento debe estar entre 0 y 100.");
+                }
+                if (fechaFin.isBefore(fechaInicio)) {
+                    throw new IllegalArgumentException("La fecha final no puede ser anterior a la inicial.");
+                }
+
+                detalles.add(new DetallePlan(sec, concepto, descripcion, "", importe, descuento,
+                        fechaInicio, fechaFin, usuarioLogueado, LocalDate.now(),
+                        LocalTime.now().format(FORMATO_HORA)));
+            } catch (RuntimeException ex) {
+                throw new IllegalArgumentException("Partida " + (i + 1) + ": " + ex.getMessage(), ex);
+            }
+        }
+        return detalles;
+    }
+
+    /**
+     * Verifica el ciclo y completa el tipo de cada concepto para el centro seleccionado.
+     *
+     * @param con conexión activa
+     * @param clave clave del plan
+     * @param detalles partidas capturadas
+     * @return partidas asociadas con conceptos válidos
+     * @throws SQLException si el ciclo o algún concepto no pertenece al centro de costos
+     */
+    private List<DetallePlan> validarCatalogos(Connection con, ClavePlan clave, List<DetallePlan> detalles) throws SQLException {
+        String sqlCiclo = "SELECT 1 FROM tescesc WHERE CIA=? AND CC=? AND CESC=? LIMIT 1";
+        try (PreparedStatement ps = con.prepareStatement(sqlCiclo)) {
+            ps.setString(1, clave.cia());
+            ps.setString(2, clave.cc());
+            ps.setString(3, clave.ciclo());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new SQLException("El ciclo " + clave.ciclo() + " no pertenece al centro " + clave.cc() + ".");
+                }
+            }
+        }
+
+        List<DetallePlan> resultado = new ArrayList<>();
+        String sqlConcepto = "SELECT TCPTO FROM tescpto WHERE CIA=? AND CC=? AND NCPTO=? LIMIT 1";
+        try (PreparedStatement ps = con.prepareStatement(sqlConcepto)) {
+            for (DetallePlan detalle : detalles) {
+                ps.setString(1, clave.cia());
+                ps.setString(2, clave.cc());
+                ps.setString(3, detalle.concepto());
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (!rs.next()) {
+                        throw new SQLException("El concepto " + detalle.concepto() + " no pertenece al centro " + clave.cc() + ".");
+                    }
+                    resultado.add(new DetallePlan(detalle.sec(), detalle.concepto(), detalle.descripcion(),
+                            rs.getString("TCPTO"), detalle.importe(), detalle.descuento(),
+                            detalle.fechaInicio(), detalle.fechaFin(), detalle.usuario(),
+                            detalle.fechaActualizacion(), detalle.horaActualizacion()));
+                }
+            }
+        }
+        return resultado;
+    }
+
+    /** Comprueba si ya existe encabezado o detalle para la clave indicada. */
+    private boolean existePlan(Connection con, ClavePlan clave) throws SQLException {
+        String sql = "SELECT 1 FROM tesgpge WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=? "
+                + "UNION ALL SELECT 1 FROM tesgpde WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=? LIMIT 1";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            asignarClave(ps, 1, clave);
+            asignarClave(ps, 6, clave);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    /** Carga una copia completa de las partidas para una posible restauración. */
+    private List<DetallePlan> cargarDetalles(Connection con, ClavePlan clave) throws SQLException {
+        List<DetallePlan> detalles = new ArrayList<>();
+        String sql = "SELECT SEC,NCPTO,DCPTO,TCPTO,IMPTE,PDSC,FVINI,FVFIN,USER,FEAC,HOAC FROM tesgpde "
+                + "WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=? ORDER BY SEC";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            asignarClave(ps, 1, clave);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Date fechaInicio = rs.getDate("FVINI");
+                    Date fechaFin = rs.getDate("FVFIN");
+                    Date fechaActualizacion = rs.getDate("FEAC");
+                    detalles.add(new DetallePlan(rs.getInt("SEC"), rs.getString("NCPTO"), rs.getString("DCPTO"),
+                            rs.getString("TCPTO"), rs.getBigDecimal("IMPTE"), rs.getBigDecimal("PDSC"),
+                            fechaInicio != null ? fechaInicio.toLocalDate() : null,
+                            fechaFin != null ? fechaFin.toLocalDate() : null,
+                            rs.getString("USER"), fechaActualizacion != null ? fechaActualizacion.toLocalDate() : null,
+                            rs.getString("HOAC")));
+                }
+            }
+        }
+        return detalles;
+    }
+
+    /** Elimina las partidas de una clave de plan. */
+    private int eliminarDetalles(Connection con, ClavePlan clave) throws SQLException {
+        String sql = "DELETE FROM tesgpde WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=?";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            asignarClave(ps, 1, clave);
+            return ps.executeUpdate();
+        }
+    }
+
+    /** Inserta una lista de partidas previamente validada. */
+    private void insertarDetalles(Connection con, ClavePlan clave, List<DetallePlan> detalles) throws SQLException {
+        String sql = "INSERT INTO tesgpde (CIA,CC,CESC,TGPO,CGPO,SEC,NCPTO,DCPTO,TCPTO,IMPTE,PDSC,FVINI,FVFIN,USER,FEAC,HOAC) "
+                + "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        try (PreparedStatement ps = con.prepareStatement(sql)) {
+            for (DetallePlan detalle : detalles) {
+                asignarClave(ps, 1, clave);
+                ps.setInt(6, detalle.sec());
+                ps.setString(7, detalle.concepto());
+                ps.setString(8, detalle.descripcion());
+                ps.setString(9, detalle.tipoConcepto());
+                ps.setBigDecimal(10, detalle.importe());
+                ps.setBigDecimal(11, detalle.descuento());
+                ps.setDate(12, detalle.fechaInicio() != null ? Date.valueOf(detalle.fechaInicio()) : null);
+                ps.setDate(13, detalle.fechaFin() != null ? Date.valueOf(detalle.fechaFin()) : null);
+                ps.setString(14, detalle.usuario());
+                ps.setDate(15, detalle.fechaActualizacion() != null ? Date.valueOf(detalle.fechaActualizacion()) : null);
+                ps.setString(16, detalle.horaActualizacion());
+                ps.addBatch();
+            }
+            int[] resultados = ps.executeBatch();
+            if (resultados.length != detalles.size()) {
+                throw new SQLException("No se guardaron todas las partidas del plan.");
+            }
+        }
+    }
+
+    /** Restaura las partidas anteriores después de un fallo de guardado. */
+    private void restaurarDetalles(Connection con, ClavePlan clave, List<DetallePlan> originales) throws SQLException {
+        eliminarDetalles(con, clave);
+        insertarDetalles(con, clave, originales);
+    }
+
+    /** Asigna una clave de plan a cinco parámetros consecutivos. */
+    private void asignarClave(PreparedStatement ps, int inicio, ClavePlan clave) throws SQLException {
+        ps.setString(inicio, clave.cia());
+        ps.setString(inicio + 1, clave.cc());
+        ps.setString(inicio + 2, clave.ciclo());
+        ps.setString(inicio + 3, clave.tipo());
+        ps.setString(inicio + 4, clave.plan());
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -223,46 +444,48 @@ public class Planes_Pago extends javax.swing.JPanel {
         int resp = JOptionPane.showConfirmDialog(this, "¿Eliminar el plan " + desc + "?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
         
         if (resp == JOptionPane.YES_OPTION) {
+            ClavePlan clave = new ClavePlan(cia, cc, ciclo, tpoPlan, plan);
+            ConDB db = new ConDB();
+            Connection con = null;
+            List<DetallePlan> respaldo = List.of();
+            boolean detallesEliminados = false;
             try {
-                ConDB db = new ConDB();
-                Connection con = db.Conectar();
+                con = db.Conectar();
+                if (con == null) {
+                    throw new SQLException("No fue posible conectar con la base de datos.");
+                }
+                respaldo = cargarDetalles(con, clave);
+                con.setAutoCommit(false);
+                detallesEliminados = eliminarDetalles(con, clave) > 0;
+
+                String sql = "DELETE FROM tesgpge WHERE CIA = ? AND CC = ? AND CESC = ? AND TGPO = ? AND CGPO = ?";
+                int encabezadosEliminados;
+                try (PreparedStatement ps = con.prepareStatement(sql)) {
+                    asignarClave(ps, 1, clave);
+                    encabezadosEliminados = ps.executeUpdate();
+                }
+
+                if (!detallesEliminados && encabezadosEliminados == 0) {
+                    throw new SQLException("No se encontró el plan para eliminar.");
+                }
+
+                con.commit();
+                JOptionPane.showMessageDialog(this, "Plan y sus partidas eliminados correctamente.");
+                cargarTablaPlanes();
+            } catch (Exception e) {
                 if (con != null) {
-                    con.setAutoCommit(false); // Transacción para eliminar maestro-detalle
-
-                    // 1. Borrar partidas del detalle (tesgpde)
-                    String sqlDet = "DELETE FROM tesgpde WHERE CIA = ? AND CC = ? AND CESC = ? AND TGPO = ? AND CGPO = ?";
-                    PreparedStatement psDet = con.prepareStatement(sqlDet);
-                    psDet.setString(1, cia);
-                    psDet.setString(2, cc);
-                    psDet.setString(3, ciclo);
-                    psDet.setString(4, tpoPlan);
-                    psDet.setString(5, plan);
-                    psDet.executeUpdate();
-                    psDet.close();
-
-                    // 2. Borrar encabezado (tesgpge)
-                    String sql = "DELETE FROM tesgpge WHERE CIA = ? AND CC = ? AND CESC = ? AND TGPO = ? AND CGPO = ?";
-                    PreparedStatement ps = con.prepareStatement(sql);
-                    ps.setString(1, cia);
-                    ps.setString(2, cc);
-                    ps.setString(3, ciclo);
-                    ps.setString(4, tpoPlan);
-                    ps.setString(5, plan);
-                    int res = ps.executeUpdate();
-                    ps.close();
-
-                    con.commit();
-                    db.Cerrar();
-
-                    if (res > 0) {
-                        JOptionPane.showMessageDialog(this, "Plan y sus partidas eliminados correctamente.");
-                        cargarTablaPlanes();
-                    } else {
-                        JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar.");
+                    try {
+                        con.rollback();
+                        if (detallesEliminados) {
+                            restaurarDetalles(con, clave, respaldo);
+                        }
+                    } catch (SQLException restauracion) {
+                        e.addSuppressed(restauracion);
                     }
                 }
-            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage());
+            } finally {
+                db.Cerrar();
             }
         }
     }//GEN-LAST:event_btnDeletePPagosActionPerformed
@@ -350,7 +573,7 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
         };
 
         Object[][] dCC = cargarDatos.apply("SELECT CVE, DES1 FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE");
-        Object[][] dCiclo = cargarDatos.apply("SELECT CESC, CDSC FROM tescesc ORDER BY CESC");
+        Object[][] dCiclo = cargarDatos.apply("SELECT DISTINCT CESC, CDSC FROM tescesc ORDER BY CESC DESC");
         Object[][] dTipoPlan = cargarDatos.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'TGPO' ORDER BY CVE");
         Object[][] dCptos = cargarDatos.apply("SELECT DISTINCT NCPTO, DCPTO FROM tescpto ORDER BY NCPTO");
 
@@ -431,7 +654,8 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
             cmbCia.setEnabled(false);
             txtCC.setEditable(false); btnCC.setEnabled(false);
             txtCiclo.setEditable(false); btnCiclo.setEnabled(false);
-            txtPlan.setEditable(false); 
+            txtPlan.setEditable(false);
+            txtTipoPlan.setEditable(false); btnTipoPlan.setEnabled(false);
         }
 
         dialogo.add(lblCia); dialogo.add(cmbCia); dialogo.add(lblCiaDesc);
@@ -506,9 +730,20 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
         DefaultTableModel modDetalle = new DefaultTableModel(
             new Object[][]{}, 
             new String[]{"Sec", "Concepto", "Descripción", "Costo Unitario", "Porc. Descuento", "Fec Vig Ini", "Fec Vig Fin"}
-        ) { @Override public boolean isCellEditable(int r, int c) { return false; } };
+        ) { @Override public boolean isCellEditable(int r, int c) { return true; } };
 
         JTable tblDetalle = new JTable(modDetalle);
+        tblDetalle.setToolTipText("Puedes editar las celdas y presionar Supr para quitar una partida.");
+        tblDetalle.getInputMap().put(javax.swing.KeyStroke.getKeyStroke("DELETE"), "eliminarPartida");
+        tblDetalle.getActionMap().put("eliminarPartida", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                int filaSeleccionada = tblDetalle.getSelectedRow();
+                if (filaSeleccionada >= 0) {
+                    modDetalle.removeRow(tblDetalle.convertRowIndexToModel(filaSeleccionada));
+                }
+            }
+        });
         JScrollPane scrollDetalle = new JScrollPane(tblDetalle);
         scrollDetalle.setBounds(10, 65, 755, 125);
         pnlDetalle.add(scrollDetalle);
@@ -550,6 +785,10 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
         dialogo.add(btnAceptar);
         dialogo.add(btnSalir);
 
+        final ClavePlan[] claveOriginal = new ClavePlan[1];
+        List<DetallePlan> detallesOriginales = new ArrayList<>();
+        final boolean[] edicionCargada = {!modoEdicion};
+
         // --- 4. CARGAR DATOS SI ES MODO EDICIÓN ---
         if (modoEdicion) {
             int fila = tblPPagos.getSelectedRow();
@@ -558,12 +797,23 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
             String cicloFila = tblPPagos.getValueAt(fila, 2).toString();
             String tpoPlanFila = tblPPagos.getValueAt(fila, 3).toString();
             String planFila = tblPPagos.getValueAt(fila, 4).toString();
+            claveOriginal[0] = new ClavePlan(ciaFila, ccFila, cicloFila, tpoPlanFila, planFila);
 
             cmbCia.setSelectedItem(ciaFila);
             txtCC.setText(ccFila);
             txtCiclo.setText(cicloFila);
             txtTipoPlan.setText(tpoPlanFila);
             txtPlan.setText(planFila);
+            txtDesc.setText(tblPPagos.getValueAt(fila, 5).toString());
+
+            try {
+                String fechaInicioFila = tblPPagos.getValueAt(fila, 6).toString();
+                String fechaFinFila = tblPPagos.getValueAt(fila, 7).toString();
+                if (!fechaInicioFila.isEmpty()) fecIniVigencia.setDate(sdf.parse(fechaInicioFila));
+                if (!fechaFinFila.isEmpty()) fecFinVigencia.setDate(sdf.parse(fechaFinFila));
+            } catch (java.text.ParseException ex) {
+                JOptionPane.showMessageDialog(dialogo, "Las fechas del plan no tienen un formato válido.");
+            }
 
             try {
                 ConDB db = new ConDB();
@@ -594,33 +844,22 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
                     rsGe.close(); psGe.close();
 
                     // Cargar Detalle (tesgpde)
-                    String sqlDe = "SELECT SEC, NCPTO, DCPTO, IMPTE, PDSC, FVINI, FVFIN FROM tesgpde WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=? ORDER BY SEC ASC";
-                    PreparedStatement psDe = con.prepareStatement(sqlDe);
-                    psDe.setString(1, ciaFila);
-                    psDe.setString(2, ccFila);
-                    psDe.setString(3, cicloFila);
-                    psDe.setString(4, tpoPlanFila);
-                    psDe.setString(5, planFila);
-                    ResultSet rsDe = psDe.executeQuery();
-
                     modDetalle.setRowCount(0);
                     java.text.DecimalFormat df = new java.text.DecimalFormat("#,##0.00");
-
-                    while (rsDe.next()) {
+                    detallesOriginales.addAll(cargarDetalles(con, claveOriginal[0]));
+                    for (DetallePlan detalle : detallesOriginales) {
                         modDetalle.addRow(new Object[]{
-                            rsDe.getInt("SEC"),
-                            rsDe.getString("NCPTO"),
-                            rsDe.getString("DCPTO"),
-                            df.format(rsDe.getDouble("IMPTE")),
-                            df.format(rsDe.getDouble("PDSC")),
-                            rsDe.getString("FVINI") != null ? rsDe.getString("FVINI") : "",
-                            rsDe.getString("FVFIN") != null ? rsDe.getString("FVFIN") : ""
+                            detalle.sec(), detalle.concepto(), detalle.descripcion(),
+                            df.format(detalle.importe() != null ? detalle.importe() : BigDecimal.ZERO),
+                            df.format(detalle.descuento() != null ? detalle.descuento() : BigDecimal.ZERO),
+                            detalle.fechaInicio() != null ? detalle.fechaInicio().toString() : "",
+                            detalle.fechaFin() != null ? detalle.fechaFin().toString() : ""
                         });
                     }
-                    rsDe.close(); psDe.close();
                     db.Cerrar();
 
                     txtSec.setText(String.valueOf(modDetalle.getRowCount() + 1));
+                    edicionCargada[0] = true;
                 }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(dialogo, "Error al cargar datos del plan: " + e.getMessage());
@@ -641,108 +880,103 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
             String fvini = fecIniVigencia.getDate() != null ? sdf.format(fecIniVigencia.getDate()) : "";
             String fvfin = fecFinVigencia.getDate() != null ? sdf.format(fecFinVigencia.getDate()) : "";
 
-            if (plan.isEmpty() || desc.isEmpty() || cc.isEmpty() || ciclo.isEmpty()) {
-                JOptionPane.showMessageDialog(dialogo, "El Centro de Costos, Ciclo, Plan y Descripción son obligatorios.", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            if (cia.isEmpty() || plan.isEmpty() || desc.isEmpty() || cc.isEmpty() || ciclo.isEmpty()
+                    || tipoPlan.isEmpty() || fvini.isEmpty() || fvfin.isEmpty()) {
+                JOptionPane.showMessageDialog(dialogo,
+                        "Compañía, Centro de Costos, Ciclo, Tipo, Plan, Descripción y vigencia son obligatorios.",
+                        "Advertencia", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
+            if (modoEdicion && !edicionCargada[0]) {
+                JOptionPane.showMessageDialog(dialogo, "No se cargaron los datos originales; cierra y vuelve a abrir el plan.",
+                        "Advertencia", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            LocalDate fechaInicioPlan;
+            LocalDate fechaFinPlan;
+            List<DetallePlan> detallesCapturados;
             try {
-                ConDB db = new ConDB();
-                Connection con = db.Conectar();
-                if (con != null) {
-                    con.setAutoCommit(false); // Iniciar Transacción Maestro-Detalle
-
-                    PreparedStatement psGe;
-
-                    if (modoEdicion) {
-                        String sqlGe = "UPDATE tesgpge SET DGPO=?, TGPO=?, FVINI=?, FVFIN=?, USER='Admin', FEAC=CURDATE(), HOAC=DATE_FORMAT(NOW(), '%r') " +
-                                       "WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=?";
-                        psGe = con.prepareStatement(sqlGe);
-                        psGe.setString(1, desc);
-                        psGe.setString(2, tipoPlan);
-                        psGe.setString(3, fvini);
-                        psGe.setString(4, fvfin);
-                        psGe.setString(5, cia);
-                        psGe.setString(6, cc);
-                        psGe.setString(7, ciclo);
-                        psGe.setString(8, tipoPlan);
-                        psGe.setString(9, plan);
-                        psGe.executeUpdate();
-                        psGe.close();
-
-                        // Limpiar partidas anteriores en edición para sobrescribir
-                        String sqlDelDet = "DELETE FROM tesgpde WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=?";
-                        PreparedStatement psDelDet = con.prepareStatement(sqlDelDet);
-                        psDelDet.setString(1, cia);
-                        psDelDet.setString(2, cc);
-                        psDelDet.setString(3, ciclo);
-                        psDelDet.setString(4, tipoPlan);
-                        psDelDet.setString(5, plan);
-                        psDelDet.executeUpdate();
-                        psDelDet.close();
-
-                    } else {
-                        String sqlGe = "INSERT INTO tesgpge (CIA, CC, CESC, TGPO, CGPO, DGPO, FVINI, FVFIN, USER, FEAC, HOAC) " +
-                                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Admin', CURDATE(), DATE_FORMAT(NOW(), '%r'))";
-                        psGe = con.prepareStatement(sqlGe);
-                        psGe.setString(1, cia);
-                        psGe.setString(2, cc);
-                        psGe.setString(3, ciclo);
-                        psGe.setString(4, tipoPlan);
-                        psGe.setString(5, plan);
-                        psGe.setString(6, desc);
-                        psGe.setString(7, fvini);
-                        psGe.setString(8, fvfin);
-                        psGe.executeUpdate();
-                        psGe.close();
-                    }
-
-                    // Insertar Partidas del Detalle (tesgpde)
-                    String sqlInsDet = "INSERT INTO tesgpde (CIA, CC, CESC, TGPO, CGPO, SEC, NCPTO, DCPTO, IMPTE, PDSC, FVINI, FVFIN) " +
-                                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                    PreparedStatement psInsDet = con.prepareStatement(sqlInsDet);
-
-                    for (int i = 0; i < modDetalle.getRowCount(); i++) {
-                        int sec = Integer.parseInt(modDetalle.getValueAt(i, 0).toString());
-                        String ncpto = modDetalle.getValueAt(i, 1).toString();
-                        String dcpto = modDetalle.getValueAt(i, 2).toString();
-                        
-                        double impte = 0.0;
-                        try { impte = Double.parseDouble(modDetalle.getValueAt(i, 3).toString().replace(",", "")); } catch(Exception ex) {}
-
-                        double pdsc = 0.0;
-                        try { pdsc = Double.parseDouble(modDetalle.getValueAt(i, 4).toString().replace(",", "")); } catch(Exception ex) {}
-
-                        String detIni = modDetalle.getValueAt(i, 5).toString();
-                        String detFin = modDetalle.getValueAt(i, 6).toString();
-
-                        psInsDet.setString(1, cia);
-                        psInsDet.setString(2, cc);
-                        psInsDet.setString(3, ciclo);
-                        psInsDet.setString(4, tipoPlan);
-                        psInsDet.setString(5, plan);
-                        psInsDet.setInt(6, sec);
-                        psInsDet.setString(7, ncpto);
-                        psInsDet.setString(8, dcpto);
-                        psInsDet.setDouble(9, impte);
-                        psInsDet.setDouble(10, pdsc);
-                        psInsDet.setString(11, detIni);
-                        psInsDet.setString(12, detFin);
-                        psInsDet.addBatch();
-                    }
-
-                    psInsDet.executeBatch();
-                    psInsDet.close();
-
-                    con.commit();
-                    db.Cerrar();
-
-                    JOptionPane.showMessageDialog(dialogo, "Plan de Pagos y sus partidas guardados con éxito.");
-                    dialogo.dispose();
-                    cargarTablaPlanes(); // Refresca la tabla principal
+                fechaInicioPlan = LocalDate.parse(fvini);
+                fechaFinPlan = LocalDate.parse(fvfin);
+                if (fechaFinPlan.isBefore(fechaInicioPlan)) {
+                    throw new IllegalArgumentException("La fecha final del plan no puede ser anterior a la inicial.");
                 }
+                detallesCapturados = leerDetalles(modDetalle);
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(dialogo, ex.getMessage(), "Datos inválidos", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            ClavePlan clave = new ClavePlan(cia, cc, ciclo, tipoPlan, plan);
+            ClavePlan clavePersistida = modoEdicion ? claveOriginal[0] : clave;
+            ConDB db = new ConDB();
+            Connection con = null;
+            boolean detallesModificados = false;
+            try {
+                con = db.Conectar();
+                if (con == null) {
+                    throw new SQLException("No fue posible conectar con la base de datos.");
+                }
+
+                List<DetallePlan> detallesValidados = validarCatalogos(con, clave, detallesCapturados);
+                if (!modoEdicion && existePlan(con, clave)) {
+                    throw new SQLException("Ya existe el plan " + plan + " para ese centro, ciclo y tipo.");
+                }
+
+                con.setAutoCommit(false);
+                int encabezadosActualizados = 0;
+                if (modoEdicion) {
+                    String sqlActualizar = "UPDATE tesgpge SET DGPO=?,FVINI=?,FVFIN=?,USER=?,FEAC=CURDATE(),HOAC=DATE_FORMAT(NOW(), '%r') "
+                            + "WHERE CIA=? AND CC=? AND CESC=? AND TGPO=? AND CGPO=?";
+                    try (PreparedStatement ps = con.prepareStatement(sqlActualizar)) {
+                        ps.setString(1, desc);
+                        ps.setDate(2, Date.valueOf(fechaInicioPlan));
+                        ps.setDate(3, Date.valueOf(fechaFinPlan));
+                        ps.setString(4, usuarioLogueado);
+                        asignarClave(ps, 5, clavePersistida);
+                        encabezadosActualizados = ps.executeUpdate();
+                    }
+                }
+
+                if (!modoEdicion || encabezadosActualizados == 0) {
+                    String sqlInsertar = "INSERT INTO tesgpge (CIA,CC,CESC,TGPO,CGPO,DGPO,FVINI,FVFIN,USER,FEAC,HOAC) "
+                            + "VALUES (?,?,?,?,?,?,?,?,?,CURDATE(),DATE_FORMAT(NOW(), '%r'))";
+                    try (PreparedStatement ps = con.prepareStatement(sqlInsertar)) {
+                        asignarClave(ps, 1, clave);
+                        ps.setString(6, desc);
+                        ps.setDate(7, Date.valueOf(fechaInicioPlan));
+                        ps.setDate(8, Date.valueOf(fechaFinPlan));
+                        ps.setString(9, usuarioLogueado);
+                        ps.executeUpdate();
+                    }
+                }
+
+                detallesModificados = true;
+                eliminarDetalles(con, clavePersistida);
+                insertarDetalles(con, clave, detallesValidados);
+                con.commit();
+
+                JOptionPane.showMessageDialog(dialogo, "Plan de Pagos y sus partidas guardados con éxito.");
+                dialogo.dispose();
+                cargarTablaPlanes();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                String mensaje = ex.getMessage();
+                if (con != null) {
+                    try {
+                        con.rollback();
+                        if (detallesModificados) {
+                            restaurarDetalles(con, clavePersistida,
+                                    modoEdicion ? detallesOriginales : List.of());
+                        }
+                    } catch (SQLException restauracion) {
+                        mensaje += " No fue posible restaurar las partidas anteriores: " + restauracion.getMessage();
+                    }
+                }
+                JOptionPane.showMessageDialog(dialogo, "Error al guardar: " + mensaje, "Error", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                db.Cerrar();
             }
         });
 

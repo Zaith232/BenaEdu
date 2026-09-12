@@ -201,7 +201,7 @@ private void construirInterfazConsultaPagos() {
         // --- 3. TABLA DE CONCEPTOS PAGADOS ---
         String[] columnas = {
             "Compañía", "C. Costos", "C. Escolar", "Recibo", "Tipo", "Fecha Rec", "Concepto", "Descripción", "Moneda",
-            "Importe MN", "Factura", "Tipo Fac", "Fecha Fac", "Mot Cancelación", "Porc Beca", "Porc Dscto", "Porc Rec",
+            "Importe pagado MN", "Factura", "Tipo Fac", "Fecha Fac", "Mot Cancelación", "Porc Beca", "Porc Dscto", "Porc Rec",
             "Efectivo", "Cheque", "Tarjeta", "Ficha Dep", "Matrícula", "Nombre", "Grado", "Sección", "Periodo", "Póliza", "TipoPol", "Fecha Pol"
         };
 
@@ -268,14 +268,43 @@ private void construirInterfazConsultaPagos() {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    StringBuilder sql = new StringBuilder("SELECT CIA, CC, CESC, NREC, TREC, FREC, NCPTO, DCPTO, CMON, IMPMN, NFAC, TFAC, FFAC, MCAN, PBEC, PDSC, PREC, IPAGMN, MAT, NOMALU, GRADO, SECC, PESC, RELPOL, FPAG FROM tesralu WHERE CIA = ?");
+                    StringBuilder sql = new StringBuilder(
+                        "SELECT r.CIA, r.CC, r.CESC, r.NREC, r.TREC, r.FREC, r.NCPTO, r.DCPTO, " +
+                        "r.CMON, COALESCE(r.IPAGMN, 0) AS IMPORTE_PAGADO, r.NFAC, r.TFAC, r.FFAC, " +
+                        "r.MCAN, r.PBEC, r.PDSC, r.PREC, r.MAT, r.NOMALU, r.GRADO, r.SECC, r.PESC, " +
+                        "COALESCE(NULLIF(r.RELPOL, 0), NULLIF(pagos.RELPOL, 0)) AS POLIZA, " +
+                        "CASE WHEN COALESCE(totales.TOTAL_RECIBO, 0) = 0 THEN 0 " +
+                        "ELSE COALESCE(pagos.EFECTIVO, 0) * COALESCE(r.IPAGMN, 0) / totales.TOTAL_RECIBO END AS EFECTIVO, " +
+                        "CASE WHEN COALESCE(totales.TOTAL_RECIBO, 0) = 0 THEN 0 " +
+                        "ELSE COALESCE(pagos.CHEQUE, 0) * COALESCE(r.IPAGMN, 0) / totales.TOTAL_RECIBO END AS CHEQUE, " +
+                        "CASE WHEN COALESCE(totales.TOTAL_RECIBO, 0) = 0 THEN 0 " +
+                        "ELSE COALESCE(pagos.TARJETA, 0) * COALESCE(r.IPAGMN, 0) / totales.TOTAL_RECIBO END AS TARJETA, " +
+                        "CASE WHEN COALESCE(totales.TOTAL_RECIBO, 0) = 0 THEN 0 " +
+                        "ELSE COALESCE(pagos.DEPOSITO, 0) * COALESCE(r.IPAGMN, 0) / totales.TOTAL_RECIBO END AS DEPOSITO " +
+                        "FROM tesralu r " +
+                        "LEFT JOIN (" +
+                        " SELECT CIA, CC, CESC, MAT, NREC, TREC, MAX(RELPOL) AS RELPOL, " +
+                        " SUM(CASE WHEN UPPER(TRIM(COALESCE(FMAPAG, ''))) IN ('CH', 'C') THEN COALESCE(IMPMN, 0) ELSE 0 END) AS CHEQUE, " +
+                        " SUM(CASE WHEN UPPER(TRIM(COALESCE(FMAPAG, ''))) IN ('TC', 'TD', 'T') THEN COALESCE(IMPMN, 0) ELSE 0 END) AS TARJETA, " +
+                        " SUM(CASE WHEN UPPER(TRIM(COALESCE(FMAPAG, ''))) IN ('DB', 'DP', 'D', 'TE', 'TR') THEN COALESCE(IMPMN, 0) ELSE 0 END) AS DEPOSITO, " +
+                        " SUM(CASE WHEN UPPER(TRIM(COALESCE(FMAPAG, ''))) NOT IN ('CH', 'C', 'TC', 'TD', 'T', 'DB', 'DP', 'D', 'TE', 'TR') " +
+                        "          THEN COALESCE(IMPMN, 0) ELSE 0 END) AS EFECTIVO " +
+                        " FROM tespalu GROUP BY CIA, CC, CESC, MAT, NREC, TREC" +
+                        ") pagos ON pagos.CIA = r.CIA AND pagos.CC = r.CC AND pagos.CESC = r.CESC " +
+                        "AND pagos.MAT = r.MAT AND pagos.NREC = r.NREC AND pagos.TREC <=> r.TREC " +
+                        "LEFT JOIN (" +
+                        " SELECT CIA, CC, CESC, MAT, NREC, TREC, SUM(COALESCE(IPAGMN, 0)) AS TOTAL_RECIBO " +
+                        " FROM tesralu GROUP BY CIA, CC, CESC, MAT, NREC, TREC" +
+                        ") totales ON totales.CIA = r.CIA AND totales.CC = r.CC AND totales.CESC = r.CESC " +
+                        "AND totales.MAT = r.MAT AND totales.NREC = r.NREC AND totales.TREC <=> r.TREC " +
+                        "WHERE r.CIA = ?");
                     
-                    if (!cc.isEmpty()) sql.append(" AND CC = ?");
-                    if (!ciclo.isEmpty()) sql.append(" AND CESC = ?");
-                    if (!matricula.isEmpty()) sql.append(" AND MAT = ?");
-                    if (!fIni.isEmpty() && !fFin.isEmpty()) sql.append(" AND FREC BETWEEN ? AND ?");
+                    if (!cc.isEmpty()) sql.append(" AND r.CC = ?");
+                    if (!ciclo.isEmpty()) sql.append(" AND r.CESC = ?");
+                    if (!matricula.isEmpty()) sql.append(" AND r.MAT = ?");
+                    if (!fIni.isEmpty() && !fFin.isEmpty()) sql.append(" AND r.FREC BETWEEN ? AND ?");
 
-                    sql.append(" ORDER BY FREC DESC, NREC DESC");
+                    sql.append(" ORDER BY r.FREC DESC, r.NREC DESC, r.NCPTO");
 
                     PreparedStatement ps = con.prepareStatement(sql.toString());
                     int p = 1;
@@ -302,7 +331,7 @@ private void construirInterfazConsultaPagos() {
                         fila[6] = rs.getString("NCPTO");
                         fila[7] = rs.getString("DCPTO");
                         fila[8] = rs.getString("CMON");
-                        fila[9] = df.format(rs.getDouble("IMPMN"));
+                        fila[9] = df.format(rs.getDouble("IMPORTE_PAGADO"));
                         fila[10] = rs.getString("NFAC");
                         fila[11] = rs.getString("TFAC");
                         fila[12] = rs.getString("FFAC");
@@ -311,23 +340,19 @@ private void construirInterfazConsultaPagos() {
                         fila[15] = rs.getString("PDSC");
                         fila[16] = rs.getString("PREC");
                         
-                        double ipag = rs.getDouble("IPAGMN");
-                        String fmaPago = rs.getString("FPAG") != null ? rs.getString("FPAG") : "";
-
-                        // Desglose de Forma de Pago
-                        fila[17] = "EF".equalsIgnoreCase(fmaPago) ? df.format(ipag) : "0.00"; // Efectivo
-                        fila[18] = "CH".equalsIgnoreCase(fmaPago) ? df.format(ipag) : "0.00"; // Cheque
-                        fila[19] = ("TC".equalsIgnoreCase(fmaPago) || "TD".equalsIgnoreCase(fmaPago)) ? df.format(ipag) : "0.00"; // Tarjeta
-                        fila[20] = ("DB".equalsIgnoreCase(fmaPago) || "TE".equalsIgnoreCase(fmaPago)) ? df.format(ipag) : "0.00"; // Ficha Dep/Transf
+                        fila[17] = df.format(rs.getDouble("EFECTIVO"));
+                        fila[18] = df.format(rs.getDouble("CHEQUE"));
+                        fila[19] = df.format(rs.getDouble("TARJETA"));
+                        fila[20] = df.format(rs.getDouble("DEPOSITO"));
 
                         fila[21] = rs.getString("MAT");
                         fila[22] = rs.getString("NOMALU");
                         fila[23] = rs.getString("GRADO");
                         fila[24] = rs.getString("SECC");
                         fila[25] = rs.getString("PESC");
-                        fila[26] = rs.getString("RELPOL");
-                        fila[27] = "0";
-                        fila[28] = "01/01/2001";
+                        fila[26] = rs.getString("POLIZA");
+                        fila[27] = "";
+                        fila[28] = "";
                         
                         modConceptos.addRow(fila);
                     }

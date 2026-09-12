@@ -3,11 +3,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.benaedu.views;
+import com.mycompany.benaedu.Dashboard;
 import com.mycompany.benaedu.db.ConDB;
 import java.awt.Window;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Set;
+import java.util.TreeSet;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -21,19 +25,50 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 /**
+ * Cancela recibos escolares y restablece los saldos de sus conceptos.
  *
  * @author b17za
  */
 public class Cancelacion_Recibos extends javax.swing.JPanel {
+    private String usuarioLogueado = "Admin";
 
     /**
-     * Creates new form Cancelacion_Recibos
+     * Crea el módulo con el usuario predeterminado.
      */
     public Cancelacion_Recibos() {
         initComponents();
+        configurarModulo();
     }
-private void cargarTablaHistorialCancelaciones() {
-        // 1. Arreglamos las columnas de la tabla por código
+
+    /**
+     * Crea el módulo para el usuario autenticado.
+     *
+     * @param usuarioLogueado alias del usuario que inició sesión
+     */
+    public Cancelacion_Recibos(String usuarioLogueado) {
+        if (usuarioLogueado != null && !usuarioLogueado.trim().isEmpty()) {
+            this.usuarioLogueado = usuarioLogueado.trim();
+        }
+        initComponents();
+        configurarModulo();
+    }
+
+    private void configurarModulo() {
+        btnAddCRecibos.setText("Cancelar recibo");
+        btnEditCRecibos.setVisible(false);
+        btnDeleteCRecibos.setVisible(false);
+        cargarTablaHistorialCancelaciones();
+    }
+
+    private String obtenerUsuarioActivo() {
+        Window ventana = SwingUtilities.getWindowAncestor(this);
+        if (ventana instanceof Dashboard dashboard) {
+            return dashboard.getUsuarioCodigo();
+        }
+        return usuarioLogueado;
+    }
+
+    private void cargarTablaHistorialCancelaciones() {
         DefaultTableModel modelo = new DefaultTableModel(
             new Object[][] {}, 
             new String[] {"Compañía", "C. Costos", "Num Recibo", "Matrícula", "Motivo", "Fecha", "Usuario"}
@@ -45,30 +80,21 @@ private void cargarTablaHistorialCancelaciones() {
         };
         tblCConceptos.setModel(modelo);
 
-        // 2. Cargamos los datos
-        try {
-            ConDB db = new ConDB();
-            Connection con = db.Conectar();
-
-            if (con != null) {
-                // ATENCIÓN: Cambia 'tabla_recibos_cancelados' por tu tabla real
-                String sql = "SELECT compania, centro_costos, num_recibo, matricula, motivo, fecha_mod, usuario FROM tabla_recibos_cancelados";
+        String sql = "SELECT CIA,CC,NREC,MAT,MCAN,MAX(FEAC) AS FECHA," +
+                "MAX(HOAC) AS HORA,MAX(USER) AS USUARIO FROM tesralu " +
+                "WHERE COALESCE(MCAN,'')<>'' GROUP BY CIA,CC,NREC,MAT,MCAN " +
+                "ORDER BY FECHA DESC,HORA DESC,NREC DESC";
+        try (Connection con = ConDB.getConnection();
                 PreparedStatement ps = con.prepareStatement(sql);
-                ResultSet rs = ps.executeQuery();
-
+                ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Object[] fila = new Object[7]; 
-                    fila[0] = rs.getString("compania");
-                    fila[1] = rs.getString("centro_costos");
-                    fila[2] = rs.getString("num_recibo");
-                    fila[3] = rs.getString("matricula");
-                    fila[4] = rs.getString("motivo");
-                    fila[5] = rs.getString("fecha_mod");
-                    fila[6] = rs.getString("usuario");
-                    modelo.addRow(fila);
+                    modelo.addRow(new Object[]{
+                        rs.getString("CIA"), rs.getString("CC"), rs.getString("NREC"),
+                        rs.getString("MAT"), rs.getString("MCAN"),
+                        rs.getString("FECHA") + " " + rs.getString("HORA"),
+                        rs.getString("USUARIO")
+                    });
                 }
-                rs.close(); ps.close(); db.Cerrar();
-            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error al cargar la tabla: " + e.getMessage());
         }
@@ -258,7 +284,9 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
             return lista.toArray(new Object[0][0]);
         };
 
-        Object[][] dMatricula = cargarDatosMultiple.apply("SELECT MAT, APATE, AMATE, NOMA FROM tesalum ORDER BY MAT", 4);
+        Object[][] dMatricula = cargarDatosMultiple.apply(
+                "SELECT MAT,MAX(APATE),MAX(AMATE),MAX(NOMA) FROM tesalum " +
+                "GROUP BY MAT ORDER BY MAT", 4);
         Object[][] dMotivo    = cargarDatosMultiple.apply("SELECT CVE, DES FROM tmclas WHERE TBL = 'MCAN' ORDER BY CVE", 2);
 
         // --- 1. DATOS DE SELECCIÓN ---
@@ -283,7 +311,9 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
                 while(rsCia.next()) cmbCia.addItem(rsCia.getString("CIA"));
                 rsCia.close();
 
-                ResultSet rsCC = con.prepareStatement("SELECT CVE FROM tgcc WHERE CVE IN ('12100', '12200', '12300', '12400') ORDER BY CVE").executeQuery();
+                ResultSet rsCC = con.prepareStatement(
+                        "SELECT DISTINCT CVE FROM tgcc WHERE COALESCE(CVE,'')<>'' ORDER BY CVE")
+                        .executeQuery();
                 while(rsCC.next()) cmbCC.addItem(rsCC.getString("CVE"));
                 rsCC.close();
                 
@@ -334,7 +364,7 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
         // --- 3. TABLA DE RECIBOS SIN CONTABILIZAR ---
         DefaultTableModel modRecibosPendientes = new DefaultTableModel(
             new Object[][]{}, 
-            new String[]{"Compañía", "C. Costos", "Descripción", "Ciclo Escolar", "Matrícula", "Num Recibo", "Tipo", "Fec Recibo", "Moneda", "Importe MN", "IDCPT"}
+            new String[]{"Compañía", "C. Costos", "Descripción", "Ciclo Escolar", "Matrícula", "Num Recibo", "Tipo", "Fec Recibo", "Moneda", "Importe Pagado", "Partidas"}
         ) {
             @Override public boolean isCellEditable(int row, int column) { return false; }
         };
@@ -379,14 +409,21 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
                 ConDB db = new ConDB();
                 Connection con = db.Conectar();
                 if (con != null) {
-                    StringBuilder sql = new StringBuilder("SELECT CIA, CC, DCPTO, CESC, MAT, NREC, TREC, FREC, CMON, IMPMN, IDCPT FROM tesralu WHERE (MCAN IS NULL OR MCAN = '')");
+                    StringBuilder sql = new StringBuilder(
+                            "SELECT CIA,CC,CONCAT(COUNT(*),' CONCEPTO(S)') AS DCPTO," +
+                            "CESC,MAT,NREC,TREC,FREC,MAX(CMON) AS CMON," +
+                            "SUM(IPAGMN) AS IMPORTE,COUNT(*) AS PARTIDAS FROM tesralu " +
+                            "WHERE COALESCE(MCAN,'')='' AND IPAGMN>0 " +
+                            "AND COALESCE(RELPOL,0)=0 AND COALESCE(RELPOC,0)=0 " +
+                            "AND COALESCE(NFAC,0)=0");
                     
                     if (!cia.isEmpty()) sql.append(" AND CIA = ?");
                     if (!cc.isEmpty()) sql.append(" AND CC = ?");
                     if (!matricula.isEmpty()) sql.append(" AND MAT = ?");
                     if (!fIni.isEmpty() && !fFin.isEmpty()) sql.append(" AND FREC BETWEEN ? AND ?");
 
-                    sql.append(" ORDER BY FREC DESC, NREC DESC");
+                    sql.append(" GROUP BY CIA,CC,CESC,MAT,NREC,TREC,FREC " +
+                            "ORDER BY FREC DESC,NREC DESC");
 
                     PreparedStatement ps = con.prepareStatement(sql.toString());
                     int p = 1;
@@ -412,8 +449,8 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
                         fila[6] = rs.getString("TREC");
                         fila[7] = rs.getString("FREC");
                         fila[8] = rs.getString("CMON");
-                        fila[9] = df.format(rs.getDouble("IMPMN"));
-                        fila[10] = rs.getString("IDCPT");
+                        fila[9] = df.format(rs.getDouble("IMPORTE"));
+                        fila[10] = rs.getInt("PARTIDAS");
                         modRecibosPendientes.addRow(fila);
                     }
                     rs.close(); ps.close(); db.Cerrar();
@@ -427,7 +464,7 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
             }
         });
 
-        // PROCESAR LA CANCELACIÓN (TRANSACCIÓN)
+        // PROCESAR LA CANCELACIÓN CON BLOQUEO COMPATIBLE CON TABLAS MYISAM
         btnAceptar.addActionListener(e -> {
             int filaSel = tblRecibosPendientes.getSelectedRow();
             if (filaSel == -1) {
@@ -440,49 +477,158 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
             }
 
             String nRecibo = tblRecibosPendientes.getValueAt(filaSel, 5).toString();
+            String ciaRecibo = tblRecibosPendientes.getValueAt(filaSel, 0).toString();
+            String ccRecibo = tblRecibosPendientes.getValueAt(filaSel, 1).toString();
+            String cicloRecibo = tblRecibosPendientes.getValueAt(filaSel, 3).toString();
             String matricula = tblRecibosPendientes.getValueAt(filaSel, 4).toString();
-            String idCpt = tblRecibosPendientes.getValueAt(filaSel, 10) != null ? tblRecibosPendientes.getValueAt(filaSel, 10).toString() : "";
+            String tipoRecibo = tblRecibosPendientes.getValueAt(filaSel, 6).toString();
+            String partidas = tblRecibosPendientes.getValueAt(filaSel, 10).toString();
+            String importe = tblRecibosPendientes.getValueAt(filaSel, 9).toString();
             String motivoCode = txtMotivo.getText().trim();
 
             int confirm = JOptionPane.showConfirmDialog(dialogo, 
-                "¿Está seguro de cancelar el recibo " + nRecibo + " del alumno con matrícula " + matricula + "?\nEsta acción restaurará el saldo pendiente.", 
+                "¿Está seguro de cancelar el recibo " + nRecibo + " del alumno " + matricula + "?\n" +
+                "Se cancelarán " + partidas + " partidas por $" + importe +
+                " y se recalcularán sus saldos.",
                 "Confirmar Cancelación", JOptionPane.YES_NO_OPTION);
 
             if (confirm == JOptionPane.YES_OPTION) {
+                Connection con = null;
+                boolean tablasBloqueadas = false;
+                boolean cancelado = false;
                 try {
-                    ConDB db = new ConDB();
-                    Connection con = db.Conectar();
-                    if (con != null) {
-                        con.setAutoCommit(false); // Iniciar Transacción
-
-                        // 1. Marcar el recibo como cancelado en tesralu
-                        String sqlCancelRalu = "UPDATE tesralu SET MCAN = ?, IPAGMN = 0 WHERE NREC = ? AND MAT = ?";
-                        PreparedStatement ps1 = con.prepareStatement(sqlCancelRalu);
-                        ps1.setString(1, motivoCode);
-                        ps1.setString(2, nRecibo);
-                        ps1.setString(3, matricula);
-                        ps1.executeUpdate();
-                        ps1.close();
-
-                        // 2. Devolver el concepto pagado a saldo pendiente en tescalu
-                        String sqlRestoreCalu = "UPDATE tescalu SET IPAGMN = 0, IPENMN = IMPTMN WHERE MAT = ? AND (IDCPT = ? OR ? = '')";
-                        PreparedStatement ps2 = con.prepareStatement(sqlRestoreCalu);
-                        ps2.setString(1, matricula);
-                        ps2.setString(2, idCpt);
-                        ps2.setString(3, idCpt);
-                        ps2.executeUpdate();
-                        ps2.close();
-
-                        con.commit(); // Confirmar cambios
-                        db.Cerrar();
-
-                        JOptionPane.showMessageDialog(dialogo, "Recibo cancelado exitosamente y saldo restaurado.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                        
-                        dialogo.dispose();
-                        cargarTablaHistorialCancelaciones(); 
+                    con = ConDB.getConnection();
+                    try (PreparedStatement ps = con.prepareStatement(
+                            "LOCK TABLES tescalu WRITE,tesralu WRITE,tespalu WRITE")) {
+                        ps.execute();
+                        tablasBloqueadas = true;
                     }
+                    String usuario = obtenerUsuarioActivo();
+                    Set<Integer> conceptos = new TreeSet<>();
+
+                    String llaveRecibo = "CIA=? AND CC=? AND CESC=? AND MAT=? AND NREC=? AND TREC=?";
+                    String sqlConceptos = "SELECT IDCPT FROM tesralu WHERE " + llaveRecibo +
+                            " AND COALESCE(MCAN,'')='' ORDER BY IDCPT";
+                    try (PreparedStatement ps = con.prepareStatement(sqlConceptos)) {
+                        ps.setString(1, ciaRecibo);
+                        ps.setString(2, ccRecibo);
+                        ps.setString(3, cicloRecibo);
+                        ps.setString(4, matricula);
+                        ps.setString(5, nRecibo);
+                        ps.setString(6, tipoRecibo);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            while (rs.next()) conceptos.add(rs.getInt("IDCPT"));
+                        }
+                    }
+                    if (conceptos.isEmpty()) {
+                        throw new SQLException("El recibo ya fue cancelado o ya no está disponible.");
+                    }
+
+                    String sqlBloqueaSaldo = "SELECT IDCPT FROM tescalu " +
+                            "WHERE CIA=? AND CC=? AND CESC=? AND MAT=? AND IDCPT=?";
+                    for (int idConcepto : conceptos) {
+                        try (PreparedStatement ps = con.prepareStatement(sqlBloqueaSaldo)) {
+                            ps.setString(1, ciaRecibo);
+                            ps.setString(2, ccRecibo);
+                            ps.setString(3, cicloRecibo);
+                            ps.setString(4, matricula);
+                            ps.setInt(5, idConcepto);
+                            try (ResultSet rs = ps.executeQuery()) {
+                                if (!rs.next()) {
+                                    throw new SQLException("No se encontró el concepto " + idConcepto + ".");
+                                }
+                            }
+                        }
+                    }
+
+                    String sqlCancelRalu = "UPDATE tesralu SET MCAN=?,USER=?,FEAC=CURDATE()," +
+                            "HOAC=DATE_FORMAT(NOW(),'%r') WHERE " + llaveRecibo +
+                            " AND COALESCE(MCAN,'')=''";
+                    try (PreparedStatement ps = con.prepareStatement(sqlCancelRalu)) {
+                        ps.setString(1, motivoCode);
+                        ps.setString(2, usuario);
+                        ps.setString(3, ciaRecibo);
+                        ps.setString(4, ccRecibo);
+                        ps.setString(5, cicloRecibo);
+                        ps.setString(6, matricula);
+                        ps.setString(7, nRecibo);
+                        ps.setString(8, tipoRecibo);
+                        if (ps.executeUpdate() == 0) {
+                            throw new SQLException("No se encontró el recibo vigente para cancelar.");
+                        }
+                    }
+
+                    String sqlCancelPalu = "UPDATE tespalu SET MCAN=?,USER=?,FEAC=CURDATE()," +
+                            "HOAC=DATE_FORMAT(NOW(),'%r') WHERE " + llaveRecibo +
+                            " AND COALESCE(MCAN,'')=''";
+                    try (PreparedStatement ps = con.prepareStatement(sqlCancelPalu)) {
+                        ps.setString(1, motivoCode);
+                        ps.setString(2, usuario);
+                        ps.setString(3, ciaRecibo);
+                        ps.setString(4, ccRecibo);
+                        ps.setString(5, cicloRecibo);
+                        ps.setString(6, matricula);
+                        ps.setString(7, nRecibo);
+                        ps.setString(8, tipoRecibo);
+                        ps.executeUpdate();
+                    }
+
+                    String sqlPagado = "SELECT COALESCE(SUM(IPAGMN),0) AS PAGADO FROM tesralu " +
+                            "WHERE CIA=? AND CC=? AND CESC=? AND MAT=? AND IDCPT=? " +
+                            "AND COALESCE(MCAN,'')=''";
+                    String sqlSaldo = "UPDATE tescalu SET IPAGMN=LEAST(COALESCE(IMPTMN,0),?)," +
+                            "IPENMN=GREATEST(COALESCE(IMPTMN,0)-?,0),USER=?,FEAC=CURDATE()," +
+                            "HOAC=DATE_FORMAT(NOW(),'%r') " +
+                            "WHERE CIA=? AND CC=? AND CESC=? AND MAT=? AND IDCPT=?";
+
+                    for (int idConcepto : conceptos) {
+                        double pagado;
+                        try (PreparedStatement ps = con.prepareStatement(sqlPagado)) {
+                            ps.setString(1, ciaRecibo);
+                            ps.setString(2, ccRecibo);
+                            ps.setString(3, cicloRecibo);
+                            ps.setString(4, matricula);
+                            ps.setInt(5, idConcepto);
+                            try (ResultSet rs = ps.executeQuery()) {
+                                rs.next();
+                                pagado = rs.getDouble("PAGADO");
+                            }
+                        }
+                        try (PreparedStatement ps = con.prepareStatement(sqlSaldo)) {
+                            ps.setDouble(1, pagado);
+                            ps.setDouble(2, pagado);
+                            ps.setString(3, usuario);
+                            ps.setString(4, ciaRecibo);
+                            ps.setString(5, ccRecibo);
+                            ps.setString(6, cicloRecibo);
+                            ps.setString(7, matricula);
+                            ps.setInt(8, idConcepto);
+                            if (ps.executeUpdate() != 1) {
+                                throw new SQLException("No se pudo recalcular el concepto " + idConcepto + ".");
+                            }
+                        }
+                    }
+                    cancelado = true;
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(dialogo, "Error al procesar la cancelación: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                } finally {
+                    if (con != null) {
+                        if (tablasBloqueadas) {
+                            try (PreparedStatement ps = con.prepareStatement("UNLOCK TABLES")) {
+                                ps.execute();
+                            } catch (Exception ignored) {}
+                        }
+                        try {
+                            con.close();
+                        } catch (Exception ignored) {}
+                    }
+                }
+                if (cancelado) {
+                    JOptionPane.showMessageDialog(dialogo,
+                            "Recibo cancelado y saldos recalculados correctamente.",
+                            "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    btnFiltra.doClick();
+                    cargarTablaHistorialCancelaciones();
                 }
             }
         });
