@@ -8,6 +8,11 @@ C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\my
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\Login.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\RecuperarContraseña.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\RestablecerContraseña.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\ArchivoBcm.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\ArchivoReferenciasBancarias.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\ImportesCargoEscolar.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\InterfaseBcm.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\ReferenciasBancarias.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Actualizacion_Saldo.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Alumnos_Becados.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Auxiliar_Movimientos.java
@@ -49,6 +54,8 @@ C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\my
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Facturas_Proveedores.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\FEL.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\FEL_Global.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\FichaReferenciasBancarias.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Generar_Referencias_Bancarias.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Grados_Escolares.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Grupos_Conceptos.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Impresion_Facturas.java

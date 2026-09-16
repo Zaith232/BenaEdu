@@ -327,6 +327,9 @@ public String getUsuarioCodigo() {
 
         // 80 - Utilerías (Nuevo)
         javax.swing.JMenuItem iProcRef = new javax.swing.JMenuItem("Procesa Referencias Bancarias BCM");
+        javax.swing.JMenuItem iGenerarRef = new javax.swing.JMenuItem("Generar Referencias Bancarias");
+        m80.add(iGenerarRef);
+        iGenerarRef.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Generar_Referencias_Bancarias(getUsuarioCodigo()), "Generar Referencias Bancarias"));
         javax.swing.JMenuItem iIntBcm = new javax.swing.JMenuItem("Interfase Bancaria BCM");
         javax.swing.JMenuItem iIntFel = new javax.swing.JMenuItem("Interfase Factura FEL");
         javax.swing.JMenuItem iIntFelGlobal = new javax.swing.JMenuItem("Interfase Factura Global FEL");
@@ -396,7 +399,7 @@ public String getUsuarioCodigo() {
 
         // Acciones de Utilerías (Nuevas)
         iProcRef.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Procesa_Referencias_Bancarias(), "Procesa Referencias Bancarias BCM"));
-        iIntBcm.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(), "Interfase Bancaria BCM"));
+        iIntBcm.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(getUsuarioCodigo()), "Interfase Bancaria BCM"));
         iIntFel.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Interfase Factura FEL"));
         iIntFelGlobal.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL_Global(), "Interfase Factura Global FEL"));
     }
@@ -554,7 +557,8 @@ public String getUsuarioCodigo() {
         opcionesSistema.put("Ingresos por Periodo", () -> mostrarPanel(new com.mycompany.benaedu.views.Ingresos_Periodo(), "Ingresos por Periodo"));
         opcionesSistema.put("Imprime Alumnos Becados", () -> mostrarPanel(new com.mycompany.benaedu.views.Alumnos_Becados(), "Imprime Alumnos Becados"));
         opcionesSistema.put("Procesa Referencias Bancarias BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Procesa_Referencias_Bancarias(), "Procesa Referencias Bancarias BCM"));
-        opcionesSistema.put("Interfase Bancaria BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(), "Interfase Bancaria BCM"));
+        opcionesSistema.put("Generar Referencias Bancarias", () -> mostrarPanel(new com.mycompany.benaedu.views.Generar_Referencias_Bancarias(getUsuarioCodigo()), "Generar Referencias Bancarias"));
+        opcionesSistema.put("Interfase Bancaria BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(getUsuarioCodigo()), "Interfase Bancaria BCM"));
         opcionesSistema.put("Interfase Factura FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Interfase Factura FEL"));
         opcionesSistema.put("Interfase Factura Global FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL_Global(), "Interfase Factura Global FEL"));
 

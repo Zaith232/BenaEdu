@@ -1,0 +1,11 @@
+com\mycompany\benaedu\services\InterfaseBcmTest$Base.class
+com\mycompany\benaedu\services\InterfaseBcmTest.class
+com\mycompany\benaedu\services\ReferenciasBancariasTest.class
+com\mycompany\benaedu\services\ArchivoReferenciasBancariasTest.class
+com\mycompany\benaedu\services\ArchivoBcmTest.class
+com\mycompany\benaedu\services\ArchivoReferenciasBancariasTest$Base.class
+com\mycompany\benaedu\services\ImportesCargoEscolarTest.class
+com\mycompany\benaedu\views\GenerarReferenciasPantallaTest.class
+com\mycompany\benaedu\services\ArchivoReferenciasBancariasTest$Accion.class
+com\mycompany\benaedu\views\InterfaseBcmPantallaTest.class
+com\mycompany\benaedu\services\FichaReferenciasBancariasTest.class

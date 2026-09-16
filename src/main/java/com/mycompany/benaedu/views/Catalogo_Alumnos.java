@@ -6,6 +6,8 @@ package com.mycompany.benaedu.views;
 
 import com.mycompany.benaedu.Dashboard;
 import com.mycompany.benaedu.db.ConDB;
+import com.mycompany.benaedu.services.ImportesCargoEscolar;
+import java.math.BigDecimal;
 import java.awt.Component;
 import java.awt.Window;
 import java.sql.Connection;
@@ -1780,7 +1782,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                 + "PBEC,IBECMN,NABEC,MBEC,IMPTMN,FVINI,FVEN,FCON,IPAGMN,IPENMN,CUNIME,IMPME,IDSCME,IRECME,IBECME,"
                 + "IMPTME,IPAGME,IPENME,NCAJ,RELPOL,RELPOC,MCAN,USER,FEAC,HOAC) "
                 + "VALUES (?,?,?,?,'A',?,?,?,?,?,?,?,?,'MXP','O',1,?,1,?,'',?,?,0,'',0,0,0,'',?,?,?,?,0,'',?,?,?,"
-                + "'0000-00-00',0,?,0,0,0,0,0,0,0,?,80,0,0,'',?,CURDATE(),DATE_FORMAT(NOW(),'%r'))";
+                + "NULL,0,?,0,0,0,0,0,0,0,?,80,0,0,'',?,CURDATE(),DATE_FORMAT(NOW(),'%r'))";
 
         int cargosGenerados = 0;
         int baseIdCpt = (int) (System.currentTimeMillis() % 800000) + 100000;
@@ -1796,13 +1798,12 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                     String descripcionReal = rs.getString("DESC_REAL");
                     String descripcion = descripcionReal != null && !descripcionReal.isBlank()
                             ? descripcionReal : rs.getString("DCPTO");
-                    double importePlan = rs.getDouble("IMPTE");
-                    double importeBase = importePlan > 0 ? importePlan : rs.getDouble("CUNI");
+                    BigDecimal importePlan = rs.getBigDecimal("IMPTE");
+                    BigDecimal importeBase = importePlan != null && importePlan.signum() > 0 ? importePlan : rs.getBigDecimal("CUNI");
                     double porcPlan = rs.getDouble("PDSC");
-                    double descuentoPlan = importeBase * (porcPlan / 100.0);
                     double porcBecaAplicada = "C".equalsIgnoreCase(tipoConcepto) ? porcBecaColegiatura : 0.0;
-                    double descuentoBeca = importeBase * (porcBecaAplicada / 100.0);
-                    double importeTotal = Math.max(0.0, importeBase - descuentoPlan - descuentoBeca);
+                    ImportesCargoEscolar importes = ImportesCargoEscolar.calcular(importeBase,
+                            BigDecimal.valueOf(porcPlan), BigDecimal.valueOf(porcBecaAplicada));
 
                     psCargo.setString(1, cia);
                     psCargo.setString(2, cc);
@@ -1816,19 +1817,19 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                     psCargo.setString(10, rs.getString("NCPTO"));
                     psCargo.setString(11, tipoConcepto);
                     psCargo.setString(12, descripcion);
-                    psCargo.setDouble(13, importeBase);
-                    psCargo.setDouble(14, importeBase);
+                    psCargo.setBigDecimal(13, importeBase);
+                    psCargo.setBigDecimal(14, importeBase);
                     psCargo.setDouble(15, porcPlan);
-                    psCargo.setDouble(16, descuentoPlan);
+                    psCargo.setBigDecimal(16, importes.descuentoPlan());
                     psCargo.setString(17, cBeca);
                     psCargo.setString(18, tBeca);
                     psCargo.setDouble(19, porcBecaAplicada);
-                    psCargo.setDouble(20, descuentoBeca);
-                    psCargo.setDouble(21, importeTotal);
+                    psCargo.setBigDecimal(20, importes.descuentoBeca());
+                    psCargo.setBigDecimal(21, importes.total());
                     psCargo.setDate(22, rs.getDate("FVINI"));
                     psCargo.setDate(23, rs.getDate("FVFIN"));
-                    psCargo.setDouble(24, importeTotal);
-                    psCargo.setDouble(25, importeTotal);
+                    psCargo.setBigDecimal(24, importes.total());
+                    psCargo.setBigDecimal(25, importes.total());
                     psCargo.setString(26, usuario);
                     psCargo.addBatch();
                     cargosGenerados++;
