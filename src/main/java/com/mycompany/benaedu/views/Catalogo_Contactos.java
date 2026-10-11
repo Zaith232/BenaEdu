@@ -15,6 +15,7 @@ public class Catalogo_Contactos extends javax.swing.JPanel {
      */
     public Catalogo_Contactos() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

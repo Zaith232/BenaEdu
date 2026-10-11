@@ -35,10 +35,12 @@ private String usuarioLogueado = "Admin";
         }
         initComponents();
         cargarTablaCompanias();
+        EstiloContenido.aplicar(this);
     }
     public Companias() {
         initComponents();
         cargarTablaCompanias();
+        EstiloContenido.aplicar(this);
     }
     private String obtenerUsuarioActivo() {
         if (this.usuarioLogueado != null && !this.usuarioLogueado.equals("Admin")) {
@@ -620,6 +622,7 @@ private void mostrarDialogoCompania(boolean modoEdicion) {
 
     // --- 7. MOSTRAMOS LA VENTANA ---
     dialogo.setLocationRelativeTo(this);
+    EstiloContenido.aplicar(dialogo);
     dialogo.setVisible(true);
 }
 

@@ -15,6 +15,7 @@ public class Informacion_Cuentas extends javax.swing.JPanel {
      */
     public Informacion_Cuentas() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

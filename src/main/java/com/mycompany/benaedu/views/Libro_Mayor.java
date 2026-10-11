@@ -33,6 +33,7 @@ public class Libro_Mayor extends javax.swing.JPanel {
      */
     public Libro_Mayor() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 private void configurarTablaBitacora() {
         DefaultTableModel modelo = new DefaultTableModel(
@@ -378,6 +379,7 @@ private void mostrarDialogoLibroMayor() {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

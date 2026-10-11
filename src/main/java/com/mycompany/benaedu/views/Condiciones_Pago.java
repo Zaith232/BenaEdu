@@ -31,6 +31,7 @@ public class Condiciones_Pago extends javax.swing.JPanel {
     public Condiciones_Pago() {
         initComponents();
         cargarTablaCondicionesPago();
+        EstiloContenido.aplicar(this);
     }
 
   private void cargarTablaCondicionesPago() {
@@ -407,6 +408,7 @@ private void mostrarDialogoCondicionPago(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

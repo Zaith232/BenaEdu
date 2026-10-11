@@ -23,6 +23,7 @@ public class Cierre_Anual extends javax.swing.JPanel {
     public Cierre_Anual() {
         initComponents();
         diseñarPanelCierreAnual();
+        EstiloContenido.aplicar(this);
     }
 private void diseñarPanelCierreAnual() {
         // 1. Limpiamos el panel principal

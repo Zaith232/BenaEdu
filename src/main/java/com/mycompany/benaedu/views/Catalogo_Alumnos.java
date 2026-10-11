@@ -37,6 +37,12 @@ import javax.swing.table.DefaultTableModel;
  */
 public class Catalogo_Alumnos extends javax.swing.JPanel {
 
+    // La comprobación y el alta se ejecutan en una sola sentencia, también en MyISAM.
+    static final String SQL_ALTA_ALUMNO = "INSERT INTO tesalum (MAT, MATOFC, NOMA, APATE, AMATE, NOMCOM, SEXO, FALUM, FALT, STSALU, MOTBAJ, FBAJ, USRBAJ, "
+            + "NOMT, CURP, NOMF, CALLEF, NEXTF, NINTF, COLF, CPF, POBF, EDOF, PAISF, RFC, TPOPER, REGFIS, USOCFDI, TEL, MSG, USER, FEAC, HOAC) "
+            + "SELECT ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), DATE_FORMAT(NOW(), '%r') "
+            + "WHERE NOT EXISTS (SELECT 1 FROM tesalum WHERE MAT=?)";
+
     private SwingWorker<Void, Void> workerCargaActual;
     private javax.swing.Timer debounceTimer;
 
@@ -62,6 +68,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         initComponents();
         configurarBuscadorUI();
         cargarTablaAlumnos();
+        EstiloContenido.aplicar(this);
     }
 
     /**
@@ -71,6 +78,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         initComponents();
         configurarBuscadorUI();
         cargarTablaAlumnos();
+        EstiloContenido.aplicar(this);
     }
 
     private String obtenerUsuarioActivo() {
@@ -105,7 +113,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
     private void calcularTotalPaginas(Connection con, String filtroBusqueda) throws Exception {
         StringBuilder sqlCount = new StringBuilder("SELECT COUNT(*) FROM tesalum a ");
         if (!filtroBusqueda.isEmpty()) {
-            sqlCount.append(" WHERE a.MAT LIKE ? OR a.NOMA LIKE ? OR a.APATE LIKE ? ");
+            sqlCount.append(" WHERE a.MAT LIKE ? OR a.NOMA LIKE ? OR a.APATE LIKE ? OR a.AMATE LIKE ? ");
         }
 
         PreparedStatement psCount = con.prepareStatement(sqlCount.toString());
@@ -114,6 +122,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
             psCount.setString(1, term);
             psCount.setString(2, term);
             psCount.setString(3, term);
+            psCount.setString(4, term);
         }
 
         ResultSet rsCount = psCount.executeQuery();
@@ -182,7 +191,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         );
 
                         if (!textoBusqueda.isEmpty()) {
-                            sql.append(" WHERE a.MAT LIKE ? OR a.NOMA LIKE ? OR a.APATE LIKE ? ");
+                            sql.append(" WHERE a.MAT LIKE ? OR a.NOMA LIKE ? OR a.APATE LIKE ? OR a.AMATE LIKE ? ");
                         }
 
                         sql.append(" ORDER BY a.MAT ASC LIMIT ? OFFSET ?");
@@ -192,6 +201,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
                         if (!textoBusqueda.isEmpty()) {
                             String term = "%" + textoBusqueda + "%";
+                            ps.setString(paramIdx++, term);
                             ps.setString(paramIdx++, term);
                             ps.setString(paramIdx++, term);
                             ps.setString(paramIdx++, term);
@@ -302,7 +312,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         JPanel pnlBusqueda = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 5));
         pnlBusqueda.setBackground(new java.awt.Color(255, 255, 255));
 
-        JLabel lblBuscar = new JLabel("Buscar por Matrícula / Nombre:");
+        JLabel lblBuscar = new JLabel("Buscar por Matrícula / Nombre / Apellidos:");
         lblBuscar.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12));
 
         txtBuscarMatricula = new JTextField(20);
@@ -578,7 +588,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         String tituloVentana = modoEdicion ? "Modificar Alumno" : "Agregar Alumnos";
 
         JDialog dialogo = new JDialog((java.awt.Frame) ventanaPadre, tituloVentana, true);
-        dialogo.setSize(800, 680);
+        dialogo.setSize(920, 680);
         dialogo.setLayout(null);
         dialogo.setResizable(false);
 
@@ -702,7 +712,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         // --- 1. CABECERA ---
         JPanel pnlTop = new JPanel(null);
         pnlTop.setBorder(BorderFactory.createEtchedBorder());
-        pnlTop.setBounds(15, 10, 755, 110);
+        pnlTop.setBounds(15, 10, 875, 110);
 
         pnlTop.add(new JLabel("Compañía")).setBounds(15, 15, 80, 25);
         JComboBox<String> cmbCia = new JComboBox<>();
@@ -841,7 +851,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         dialogo.add(pnlTop);
 
         JTabbedPane pestanas = new JTabbedPane();
-        pestanas.setBounds(15, 130, 755, 430);
+        pestanas.setBounds(15, 130, 875, 430);
 
         // ==========================================
         // TAB 1: ESCOLAR
@@ -850,23 +860,23 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
         JPanel pnlDatosAl = new JPanel(null);
         pnlDatosAl.setBorder(BorderFactory.createTitledBorder("Datos del Alumno"));
-        pnlDatosAl.setBounds(10, 10, 560, 110);
+        pnlDatosAl.setBounds(10, 10, 680, 110);
         pnlDatosAl.add(new JLabel("Nombre")).setBounds(20, 20, 100, 20);
         JTextField txtNombre = new JTextField();
-        txtNombre.setBounds(130, 20, 400, 20);
+        txtNombre.setBounds(130, 20, 520, 25);
         pnlDatosAl.add(txtNombre);
         pnlDatosAl.add(new JLabel("Apellido Paterno")).setBounds(20, 50, 100, 20);
         JTextField txtApate = new JTextField();
-        txtApate.setBounds(130, 50, 400, 20);
+        txtApate.setBounds(130, 50, 520, 25);
         pnlDatosAl.add(txtApate);
         pnlDatosAl.add(new JLabel("Apellido Materno")).setBounds(20, 80, 100, 20);
         JTextField txtAmate = new JTextField();
-        txtAmate.setBounds(130, 80, 400, 20);
+        txtAmate.setBounds(130, 80, 520, 25);
         pnlDatosAl.add(txtAmate);
 
         JPanel pnlSexo = new JPanel(null);
         pnlSexo.setBorder(BorderFactory.createTitledBorder("Sexo"));
-        pnlSexo.setBounds(580, 10, 150, 75);
+        pnlSexo.setBounds(700, 10, 150, 75);
         JRadioButton rbM = new JRadioButton("Masculino", true);
         rbM.setBounds(10, 20, 100, 20);
         JRadioButton rbF = new JRadioButton("Femenino");
@@ -918,7 +928,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
         JPanel pnlEscolaridad = new JPanel(null);
         pnlEscolaridad.setBorder(BorderFactory.createTitledBorder("Escolaridad"));
-        pnlEscolaridad.setBounds(580, 95, 150, 155);
+        pnlEscolaridad.setBounds(700, 95, 150, 155);
 
         pnlEscolaridad.add(new JLabel("Turno")).setBounds(10, 20, 40, 20);
         JTextField txtTurno = new JTextField();
@@ -974,7 +984,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
         JPanel pnlBaja = new JPanel(null);
         pnlBaja.setBorder(BorderFactory.createTitledBorder("Información de Baja"));
-        pnlBaja.setBounds(10, 270, 720, 90);
+        pnlBaja.setBounds(10, 270, 840, 90);
         pnlBaja.add(new JLabel("Registró Baja")).setBounds(20, 20, 100, 25);
         JTextField txtUsrbaj = new JTextField();
         txtUsrbaj.setBounds(130, 20, 100, 25);
@@ -1109,9 +1119,10 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         // TAB 3: FAMILIARES
         // ==========================================
         JPanel pnlFamiliares = new JPanel(null);
+        JTabbedPane tbFamilia = new JTabbedPane(JTabbedPane.RIGHT);
+        tbFamilia.setBounds(10, 10, 850, 380);
         JPanel pnlFamOuter = new JPanel(null);
         pnlFamOuter.setBorder(BorderFactory.createTitledBorder("Familia"));
-        pnlFamOuter.setBounds(10, 10, 700, 180);
 
         JLabel lblHeaderFam1 = new JLabel("Si el alumno no tiene asignada Familia Seleccionar una de la lista.", SwingUtilities.CENTER);
         lblHeaderFam1.setBounds(0, 20, 700, 20);
@@ -1126,19 +1137,31 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         pnlFamOuter.add(lblHeaderFam2);
         pnlFamOuter.add(lblHeaderFam3);
         pnlFamOuter.add(lblHeaderFam4);
-        pnlFamOuter.add(new JLabel("No Familia")).setBounds(20, 110, 80, 20);
-        pnlFamOuter.add(new JComboBox<>(new String[]{""})).setBounds(100, 110, 80, 20);
-        pnlFamOuter.add(new JLabel("Familia")).setBounds(20, 135, 80, 20);
-        pnlFamOuter.add(new JTextField()).setBounds(100, 135, 300, 20);
-        pnlFamOuter.add(new JLabel("Nombre Tutor")).setBounds(20, 160, 80, 20);
+        pnlFamOuter.add(new JLabel("No Familia")).setBounds(20, 125, 100, 25);
+        pnlFamOuter.add(new JComboBox<>(new String[]{""})).setBounds(130, 125, 110, 25);
+        pnlFamOuter.add(new JLabel("Familia")).setBounds(20, 165, 100, 25);
+        pnlFamOuter.add(new JTextField()).setBounds(130, 165, 570, 25);
+        pnlFamOuter.add(new JLabel("Nombre Tutor")).setBounds(20, 205, 100, 25);
         JTextField txtNomTutor = new JTextField();
-        txtNomTutor.setBounds(100, 160, 300, 20);
+        txtNomTutor.setBounds(130, 205, 570, 25);
         pnlFamOuter.add(txtNomTutor);
-        pnlFamiliares.add(pnlFamOuter);
+        pnlFamOuter.add(new JLabel("Parentesco")).setBounds(20, 245, 100, 25);
+        JTextField txtParentTutor = new JTextField();
+        txtParentTutor.setBounds(130, 245, 80, 25);
+        JButton btnParentTutor = new JButton("▼");
+        btnParentTutor.setBounds(210, 245, 25, 25);
+        buscador.configurar(txtParentTutor, null, btnParentTutor, dParent,
+                new String[]{"Clave", "Descripción"}, new int[]{60, 150}, null);
+        pnlFamOuter.add(txtParentTutor);
+        pnlFamOuter.add(btnParentTutor);
+        JButton btnAgregaFamilia = new JButton("Agrega Familia");
+        btnAgregaFamilia.setBounds(540, 305, 160, 32);
+        btnAgregaFamilia.setEnabled(false);
+        btnAgregaFamilia.setToolTipText("La creación de familias todavía no tiene guardado implementado.");
+        pnlFamOuter.add(btnAgregaFamilia);
 
         JPanel pnlFamInner = new JPanel(null);
         pnlFamInner.setBorder(BorderFactory.createTitledBorder("Familiares"));
-        pnlFamInner.setBounds(10, 200, 700, 190);
         pnlFamInner.add(new JLabel("Sec")).setBounds(20, 20, 30, 20);
         pnlFamInner.add(new JTextField()).setBounds(60, 20, 40, 20);
         pnlFamInner.add(new JLabel("Parentesco")).setBounds(120, 20, 80, 20);
@@ -1174,14 +1197,16 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         JButton btnOkFam = new JButton("OK");
         btnOkFam.setBounds(590, 140, 50, 20);
         pnlFamInner.add(btnOkFam);
-        pnlFamiliares.add(pnlFamInner);
+        tbFamilia.addTab("Familia", pnlFamOuter);
+        tbFamilia.addTab("Familiares", pnlFamInner);
+        pnlFamiliares.add(tbFamilia);
 
         // ==========================================
         // TAB 4: INF. FISCAL BANCARIA
         // ==========================================
         JPanel pnlFiscBanc = new JPanel(null);
         JTabbedPane tbLateral = new JTabbedPane(JTabbedPane.RIGHT);
-        tbLateral.setBounds(10, 10, 730, 380);
+        tbLateral.setBounds(10, 10, 850, 380);
 
         JPanel pnlSubFiscal = new JPanel(null);
         pnlSubFiscal.setBorder(BorderFactory.createEtchedBorder());
@@ -1283,10 +1308,49 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
         pnlSubFiscal.add(new JLabel("Teléfono")).setBounds(20, 320, 80, 25);
         JTextField txtTelFisc = new JTextField();
-        txtTelFisc.setBounds(110, 320, 300, 25);
+        txtTelFisc.setBounds(110, 320, 190, 25);
         pnlSubFiscal.add(txtTelFisc);
+        pnlSubFiscal.add(new JLabel("Correo Electrónico")).setBounds(315, 320, 120, 25);
+        JTextField txtCorreoFiscal = new JTextField();
+        txtCorreoFiscal.setBounds(440, 320, 260, 25);
+        txtCorreoFiscal.setEditable(false);
+        txtCorreoFiscal.setToolTipText("El correo fiscal todavía no tiene guardado implementado.");
+        pnlSubFiscal.add(txtCorreoFiscal);
 
         JPanel pnlSubBancaria = new JPanel(null);
+        JPanel pnlDeposito = new JPanel(null);
+        pnlDeposito.setBorder(BorderFactory.createTitledBorder("Cuenta de Depósito"));
+        pnlDeposito.setBounds(15, 15, 720, 185);
+        pnlDeposito.add(new JLabel("Banco")).setBounds(20, 25, 120, 25);
+        pnlDeposito.add(new JComboBox<>(new String[]{""})).setBounds(150, 25, 160, 25);
+        pnlDeposito.add(new JLabel("Cuenta Bancaria")).setBounds(20, 65, 120, 25);
+        pnlDeposito.add(new JTextField()).setBounds(150, 65, 260, 25);
+        pnlDeposito.add(new JLabel("Tipo Cuenta")).setBounds(20, 105, 120, 25);
+        pnlDeposito.add(new JComboBox<>(new String[]{""})).setBounds(150, 105, 160, 25);
+        pnlDeposito.add(new JLabel("Nombre Titular")).setBounds(20, 145, 120, 25);
+        pnlDeposito.add(new JTextField()).setBounds(150, 145, 540, 25);
+        pnlSubBancaria.add(pnlDeposito);
+
+        JPanel pnlMetodoPago = new JPanel(null);
+        pnlMetodoPago.setBorder(BorderFactory.createTitledBorder("Método de Pago"));
+        pnlMetodoPago.setBounds(15, 210, 720, 145);
+        pnlMetodoPago.add(new JLabel("Forma de pago")).setBounds(20, 25, 120, 25);
+        pnlMetodoPago.add(new JComboBox<>(new String[]{""})).setBounds(150, 25, 160, 25);
+        pnlMetodoPago.add(new JLabel("Banco")).setBounds(20, 65, 120, 25);
+        pnlMetodoPago.add(new JComboBox<>(new String[]{""})).setBounds(150, 65, 160, 25);
+        pnlMetodoPago.add(new JLabel("Cuenta de Pago")).setBounds(20, 105, 120, 25);
+        pnlMetodoPago.add(new JTextField()).setBounds(150, 105, 260, 25);
+        pnlSubBancaria.add(pnlMetodoPago);
+        // Estos datos aún no forman parte del alta ni de la modificación de alumnos.
+        for (JPanel grupo : new JPanel[]{pnlDeposito, pnlMetodoPago}) {
+            for (java.awt.Component campo : grupo.getComponents()) {
+                if (campo instanceof JTextField texto) texto.setEditable(false);
+                if (campo instanceof JComboBox<?> combo) combo.setEnabled(false);
+                if (campo instanceof javax.swing.JComponent componente && !(campo instanceof JLabel)) {
+                    componente.setToolTipText("Los datos bancarios todavía no tienen guardado implementado.");
+                }
+            }
+        }
 
         tbLateral.addTab("Fiscal", pnlSubFiscal);
         tbLateral.addTab("Bancaria", pnlSubBancaria);
@@ -1340,9 +1404,9 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         dialogo.add(pestanas);
 
         JButton btnAceptar = new JButton("Aceptar");
-        btnAceptar.setBounds(270, 580, 100, 40);
+        btnAceptar.setBounds(330, 580, 100, 40);
         JButton btnSalir = new JButton("Salir");
-        btnSalir.setBounds(400, 580, 100, 40);
+        btnSalir.setBounds(460, 580, 100, 40);
 
         dialogo.add(btnAceptar);
         dialogo.add(btnSalir);
@@ -1476,6 +1540,9 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         // EVENTO GUARDAR (INSERT / UPDATE EN BASE DE DATOS)
         // ==========================================
         btnAceptar.addActionListener(e -> {
+            if (!btnAceptar.isEnabled()) {
+                return;
+            }
             String matricula = txtMat.getText().trim();
             String nombreStr = txtNombre.getText().trim();
             String apateStr = txtApate.getText().trim();
@@ -1512,6 +1579,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
             String usrSesion = obtenerUsuarioActivo();
 
             Connection con = null;
+            btnAceptar.setEnabled(false);
 
             try {
                 ConDB db = new ConDB();
@@ -1577,7 +1645,9 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         psAx.setString(11, matricula);
                         psAx.setString(12, cicloEscolar);
 
-                        if (psAx.executeUpdate() == 0) {
+                        boolean inscrito = existeInscripcion(con, matricula, cicloEscolar);
+                        psAx.executeUpdate();
+                        if (!inscrito) {
                             psAx.close();
                             String sqlInsAx = "INSERT INTO tesaxce (CESC, CIA, CC, SECC, MAT, TALU, GRADO, TURNO, GRUPO, NLISTA, CBECA, TBECA, TPOINS, FINS, SITALU, REF01, USER, FEAC, HOAC) "
                                     + "VALUES (?, '12', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'INS', CURDATE(), 'CUR', ?, ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
@@ -1603,11 +1673,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
                     } else {
                         // 1. INSERT tesalum
-                        String sqlInsAlum = "INSERT INTO tesalum (MAT, MATOFC, NOMA, APATE, AMATE, NOMCOM, SEXO, FALUM, FALT, STSALU, MOTBAJ, FBAJ, USRBAJ, "
-                                + "NOMT, CURP, NOMF, CALLEF, NEXTF, NINTF, COLF, CPF, POBF, EDOF, PAISF, RFC, TPOPER, REGFIS, USOCFDI, TEL, MSG, USER, FEAC, HOAC) "
-                                + "VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURDATE(), DATE_FORMAT(NOW(), '%r'))";
-
-                        PreparedStatement psAl = con.prepareStatement(sqlInsAlum);
+                        PreparedStatement psAl = con.prepareStatement(SQL_ALTA_ALUMNO);
                         psAl.setString(1, matricula);
                         psAl.setString(2, txtMatOf.getText().trim());
                         psAl.setString(3, nombreStr);
@@ -1638,8 +1704,12 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         psAl.setString(28, txtTel.getText().trim());
                         psAl.setString(29, txtMensaje.getText().trim());
                         psAl.setString(30, usrSesion);
-                        psAl.executeUpdate();
+                        psAl.setString(31, matricula);
+                        int alumnosCreados = psAl.executeUpdate();
                         psAl.close();
+                        if (alumnosCreados == 0) {
+                            throw new SQLException("Ya existe un alumno con esa matrícula. Use Modificar para revisar o completar su inscripción.");
+                        }
 
                         // 2. INSERT tesaxce (Inscripción al ciclo)
                         String sqlInsAx = "INSERT INTO tesaxce (CESC, CIA, CC, SECC, MAT, TALU, GRADO, TURNO, GRUPO, NLISTA, CBECA, TBECA, TPOINS, FINS, SITALU, REF01, USER, FEAC, HOAC) "
@@ -1686,11 +1756,27 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                     }
                 }
                 JOptionPane.showMessageDialog(dialogo, "Error al guardar el alumno: " + ex.getMessage(), "Error SQL", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                if (dialogo.isDisplayable()) {
+                    btnAceptar.setEnabled(true);
+                }
             }
         });
 
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
+    }
+
+    /** Comprueba la inscripción sin depender del número de filas modificadas por UPDATE. */
+    static boolean existeInscripcion(Connection con, String matricula, String ciclo) throws SQLException {
+        try (PreparedStatement ps = con.prepareStatement("SELECT 1 FROM tesaxce WHERE MAT=? AND CESC=? LIMIT 1")) {
+            ps.setString(1, matricula);
+            ps.setString(2, ciclo);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        }
     }
 
     /**

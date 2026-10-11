@@ -33,6 +33,7 @@ public class Cancela_Contabilizacion_Corte extends javax.swing.JPanel {
      */
     public Cancela_Contabilizacion_Corte() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaCancelacionesCorte() {
         // 1. Arreglamos las columnas de la tabla por código
@@ -278,6 +279,7 @@ private void mostrarDialogoCancelacionCorte() {
 
         // --- 8. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

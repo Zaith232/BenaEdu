@@ -33,6 +33,7 @@ public class Conceptos_Escolares extends javax.swing.JPanel {
     public Conceptos_Escolares() {
         initComponents();
         cargarTablaConceptos();
+        EstiloContenido.aplicar(this);
     }
     private void cargarTablaConceptos() {
         // 1. Arreglamos las 15 columnas de la tabla para coincidir con tu diseño
@@ -737,6 +738,7 @@ public class Conceptos_Escolares extends javax.swing.JPanel {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

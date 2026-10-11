@@ -34,6 +34,7 @@ public class Registro_Depositos extends javax.swing.JPanel {
     public Registro_Depositos() {
         initComponents();
          construirInterfazRegistroDepositos();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazRegistroDepositos() {
         this.removeAll();

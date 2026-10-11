@@ -35,6 +35,7 @@ public class Impresion_Poliza extends javax.swing.JPanel {
      */
     public Impresion_Poliza() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 private void configurarTablaBitacora() {
         DefaultTableModel modelo = new DefaultTableModel(
@@ -323,6 +324,7 @@ private void mostrarDialogoImpresionPoliza() {
 
         // --- 5. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

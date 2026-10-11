@@ -34,6 +34,7 @@ public class Captura_Polizas extends javax.swing.JPanel {
      */
     public Captura_Polizas() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazCapturaPolizas() {
         this.removeAll();

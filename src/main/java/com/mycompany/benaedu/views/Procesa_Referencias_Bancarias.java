@@ -32,6 +32,7 @@ public class Procesa_Referencias_Bancarias extends javax.swing.JPanel {
     public Procesa_Referencias_Bancarias() {
         initComponents();
         construirInterfazProcesaReferencias();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazProcesaReferencias() {
         this.removeAll();

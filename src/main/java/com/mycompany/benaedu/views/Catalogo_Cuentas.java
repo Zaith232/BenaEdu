@@ -34,6 +34,7 @@ public class Catalogo_Cuentas extends javax.swing.JPanel {
     public Catalogo_Cuentas() {
         initComponents();
         cargarTablaCuentas();
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaCuentas() {
         DefaultTableModel modelo = (DefaultTableModel) tblCCuentas.getModel();
@@ -620,6 +621,7 @@ private void mostrarDialogoCuenta(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

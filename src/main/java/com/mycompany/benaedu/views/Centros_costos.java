@@ -31,6 +31,7 @@ public class Centros_costos extends javax.swing.JPanel {
     public Centros_costos() {
         initComponents();
         cargarTablaCentroCostos();
+        EstiloContenido.aplicar(this);
     }
     
    private void cargarTablaCentroCostos() {
@@ -799,6 +800,7 @@ public class Centros_costos extends javax.swing.JPanel {
     
     dialogo.add(btnAceptar);
     dialogo.setLocationRelativeTo(this);
+    EstiloContenido.aplicar(dialogo);
     dialogo.setVisible(true);
 }
     

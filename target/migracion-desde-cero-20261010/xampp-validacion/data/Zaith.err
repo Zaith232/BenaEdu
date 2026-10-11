@@ -1,0 +1,27 @@
+2026-10-10 13:27:12 0 [Note] Starting MariaDB 10.4.32-MariaDB source revision c4143f909528e3fab0677a28631d10389354c491 as process 5568
+2026-10-10 13:27:12 0 [Note] InnoDB: The first innodb_system data file 'ibdata1' did not exist. A new tablespace will be created!
+2026-10-10 13:27:12 0 [Note] InnoDB: Mutexes and rw_locks use Windows interlocked functions
+2026-10-10 13:27:12 0 [Note] InnoDB: Uses event mutexes
+2026-10-10 13:27:12 0 [Note] InnoDB: Compressed tables use zlib 1.3
+2026-10-10 13:27:12 0 [Note] InnoDB: Number of pools: 1
+2026-10-10 13:27:12 0 [Note] InnoDB: Using SSE2 crc32 instructions
+2026-10-10 13:27:12 0 [Note] InnoDB: Initializing buffer pool, total size = 128M, instances = 1, chunk size = 128M
+2026-10-10 13:27:12 0 [Note] InnoDB: Completed initialization of buffer pool
+2026-10-10 13:27:12 0 [Note] InnoDB: Setting file '.\ibdata1' size to 12 MB. Physically writing the file full; Please wait ...
+2026-10-10 13:27:12 0 [Note] InnoDB: File '.\ibdata1' size is now 12 MB.
+2026-10-10 13:27:12 0 [Note] InnoDB: Setting log file .\ib_logfile101 size to 50331648 bytes
+2026-10-10 13:27:12 0 [Note] InnoDB: Setting log file .\ib_logfile1 size to 50331648 bytes
+2026-10-10 13:27:12 0 [Note] InnoDB: Renaming log file .\ib_logfile101 to .\ib_logfile0
+2026-10-10 13:27:12 0 [Note] InnoDB: New log files created, LSN=11451
+2026-10-10 13:27:12 0 [Note] InnoDB: Doublewrite buffer not found: creating new
+2026-10-10 13:27:12 0 [Note] InnoDB: Doublewrite buffer created
+2026-10-10 13:27:12 0 [Note] InnoDB: 128 out of 128 rollback segments are active.
+2026-10-10 13:27:12 0 [Note] InnoDB: Creating foreign key constraint system tables.
+2026-10-10 13:27:12 0 [Note] InnoDB: Creating tablespace and datafile system tables.
+2026-10-10 13:27:12 0 [Note] InnoDB: Creating sys_virtual system tables.
+2026-10-10 13:27:12 0 [Note] InnoDB: Creating shared tablespace for temporary tables
+2026-10-10 13:27:12 0 [Note] InnoDB: Setting file '.\ibtmp1' size to 12 MB. Physically writing the file full; Please wait ...
+2026-10-10 13:27:12 0 [Note] InnoDB: File '.\ibtmp1' size is now 12 MB.
+2026-10-10 13:27:12 0 [Note] InnoDB: Waiting for purge to start
+2026-10-10 13:27:12 0 [Note] InnoDB: 10.4.32 started; log sequence number 0; transaction id 7
+2026-10-10 13:27:12 0 [Note] Plugin 'FEEDBACK' is disabled.

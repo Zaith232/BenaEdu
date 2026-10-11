@@ -65,6 +65,7 @@ public class Interfase_Bancaria_BCM extends JPanel {
         });
         cargar.addActionListener(e -> cargar()); aplicar.addActionListener(e -> aplicar());
         ocupado(true); if (conectar) cargarCatalogos();
+        EstiloContenido.aplicar(this);
     }
     private static JPanel fila(Component... componentes) {
         JPanel fila = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 4)); for (Component c : componentes) fila.add(c); return fila;

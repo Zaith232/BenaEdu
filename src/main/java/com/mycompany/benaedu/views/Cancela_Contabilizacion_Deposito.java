@@ -33,6 +33,7 @@ public class Cancela_Contabilizacion_Deposito extends javax.swing.JPanel {
      */
     public Cancela_Contabilizacion_Deposito() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaCancelacionesDeposito() {
         // 1. Arreglamos las columnas de la tabla principal
@@ -277,6 +278,7 @@ private void mostrarDialogoCancelacionDeposito() {
 
         // --- 8. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

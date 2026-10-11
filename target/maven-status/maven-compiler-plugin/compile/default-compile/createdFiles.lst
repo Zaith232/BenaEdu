@@ -28,6 +28,7 @@ com\mycompany\benaedu\CrearUsuarios.class
 com\mycompany\benaedu\views\Corte_Caja.class
 com\mycompany\benaedu\views\Estado_Resultados$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Procesa_Referencias_Bancarias$1BuscadorFlotante$3.class
+com\mycompany\benaedu\CrearUsuarios$Compania.class
 com\mycompany\benaedu\views\Reeimpresion_Facturas$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Catalogo_Empleados$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Impresion_Facturas$1BuscadorFlotante$1.class
@@ -35,12 +36,14 @@ com\mycompany\benaedu\views\Resumen_Conceptos_Pagados$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Impresion_Poliza$1BuscadorFlotante$3.class
 com\mycompany\models\tmcias.class
 com\mycompany\benaedu\views\Libro_Mayor$1.class
+com\mycompany\benaedu\views\Historial_Cambios.class
 com\mycompany\benaedu\views\Catalogo_Cuentas$1.class
 com\mycompany\benaedu\views\Centros_costos$2.class
 com\mycompany\benaedu\views\Ejercicio_Fiscal$1BuscadorFlotante$1.class
 com\mycompany\benaedu\views\Catalogo_Empleados.class
 com\mycompany\benaedu\views\Consulta_Pagos$1BuscadorFlotante$1.class
 com\mycompany\benaedu\views\Ingresos_Periodo$1BuscadorFlotante$2.class
+com\mycompany\benaedu\SesionUsuario.class
 com\mycompany\benaedu\views\Grupos_Conceptos.class
 com\mycompany\benaedu\views\Companias$1BuscadorFlotante$2.class
 com\mycompany\benaedu\services\ArchivoBcm.class
@@ -50,6 +53,7 @@ com\mycompany\benaedu\views\Resultado_Grupo.class
 com\mycompany\benaedu\views\Generar_Referencias_Bancarias$2.class
 com\mycompany\benaedu\views\Cobranza_Escolar.class
 com\mycompany\benaedu\views\Registro_Depositos$1BuscadorFlotante$1.class
+com\mycompany\benaedu\db\PermisosUsuario.class
 com\mycompany\benaedu\views\Alumnos_Becados$1BuscadorFlotante$3.class
 com\mycompany\benaedu\views\Libro_Mayor$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Balanza_Comprobacion$1BuscadorFlotante$2.class
@@ -57,6 +61,7 @@ com\mycompany\benaedu\views\Libro_Diario$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Auxiliar_Movimientos.class
 com\mycompany\benaedu\views\Estado_Resultados$1.class
 com\mycompany\benaedu\views\Centros_costos$7.class
+com\mycompany\benaedu\views\EstiloContenido$BordeSuave.class
 com\mycompany\benaedu\views\Cierre_Anual.class
 com\mycompany\benaedu\views\Generar_Referencias_Bancarias$11.class
 com\mycompany\benaedu\views\Tipos_Impuestos$1BuscadorFlotante$1.class
@@ -76,6 +81,7 @@ com\mycompany\benaedu\views\Cobranza_Escolar$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Catalogo_Cuentas$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Catalogo_Cuentas_Bancarias$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Principal.class
+com\mycompany\benaedu\db\Auditoria$Cambio.class
 com\mycompany\benaedu\views\FEL_Global$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Alumnos_Becados$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Auxiliar_Movimientos$1BuscadorFlotante$2.class
@@ -108,6 +114,7 @@ com\mycompany\benaedu\services\ReferenciasBancarias$Alumno.class
 com\mycompany\benaedu\services\ImportesCargoEscolar.class
 com\mycompany\benaedu\views\Informacion_Cuentas.class
 com\mycompany\benaedu\views\Reeimpresion_Facturas$1BuscadorFlotante$1.class
+com\mycompany\benaedu\services\UsuariosCajeros$Alta.class
 com\mycompany\benaedu\views\Registro_Depositos$1BuscadorFlotante$3.class
 com\mycompany\benaedu\views\Libro_Mayor.class
 com\mycompany\benaedu\views\Resumen_Alumnos_No_Inscritos$1BuscadorFlotante.class
@@ -137,6 +144,8 @@ com\mycompany\benaedu\views\Tipos_Cambio_Diario.class
 com\mycompany\benaedu\views\Cancelacion_Conceptos$1.class
 com\mycompany\benaedu\views\Catalogo_Alumnos$1.class
 com\mycompany\benaedu\views\Impresion_Poliza$1BuscadorFlotante.class
+com\mycompany\benaedu\db\PermisosUsuario$Apartado.class
+com\mycompany\benaedu\views\Historial_Cambios$1.class
 com\mycompany\benaedu\views\Balance_Compañia$1.class
 com\mycompany\benaedu\views\Ejercicio_Fiscal$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Ciclos_Escolares.class
@@ -157,6 +166,7 @@ com\mycompany\benaedu\views\Interfase_Bancaria_BCM.class
 com\mycompany\benaedu\services\ArchivoReferenciasBancarias$Indice.class
 com\mycompany\benaedu\views\Balanza_Comprobacion$1.class
 com\mycompany\benaedu\views\Factores_Convercion_Unidad$1BuscadorFlotante.class
+com\mycompany\benaedu\views\Historial_Cambios$3.class
 com\mycompany\benaedu\views\Reeimpresion_Facturas$1BuscadorFlotante.class
 com\mycompany\benaedu\services\ArchivoBcm$Movimiento.class
 com\mycompany\benaedu\views\Resultado_Grupo$1BuscadorFlotante$3.class
@@ -197,6 +207,7 @@ com\mycompany\benaedu\views\Balanza_Comprobacion$1BuscadorFlotante$3.class
 com\mycompany\benaedu\views\Cobranza_Escolar$PagoImpresion.class
 com\mycompany\benaedu\views\Catalogo_Empleados$1BuscadorFlotante$1.class
 com\mycompany\benaedu\views\Generar_Referencias_Bancarias$6.class
+com\mycompany\benaedu\views\Historial_Cambios$2.class
 com\mycompany\benaedu\views\Catalogo_Alumnos$1$1.class
 com\mycompany\benaedu\views\Resumen_Inscripciones$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Cancelacion_Recibos$1BuscadorFlotante.class
@@ -232,10 +243,12 @@ com\mycompany\benaedu\views\Cobranza_Escolar$4.class
 com\mycompany\benaedu\views\Estado_Resultados$1BuscadorFlotante$3.class
 com\mycompany\benaedu\Dashboard$5.class
 com\mycompany\benaedu\views\FEL.class
+com\mycompany\benaedu\db\Auditoria$Columna.class
 com\mycompany\benaedu\views\Reeimpresion_Recibos.class
 com\mycompany\benaedu\views\Consulta_Pagos.class
 com\mycompany\benaedu\views\Clasificaciones.class
 com\mycompany\benaedu\views\Libro_Diario$1BuscadorFlotante$2.class
+com\mycompany\benaedu\SesionUsuario$Identidad.class
 com\mycompany\benaedu\views\Factores_Convercion_Unidad$1BuscadorFlotante$1.class
 com\mycompany\benaedu\RecuperarContraseña.class
 com\mycompany\benaedu\Dashboard.class
@@ -247,6 +260,7 @@ com\mycompany\benaedu\views\Estado_Resultados$1BuscadorFlotante$1.class
 com\mycompany\benaedu\views\Resultado_Grupo$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Captura_Polizas$1.class
 com\mycompany\benaedu\views\Catalogo_Alumnos$1BuscadorFlotante.class
+com\mycompany\benaedu\services\UsuariosCajeros.class
 com\mycompany\benaedu\views\Planes_Pago$DetallePlan.class
 com\mycompany\benaedu\views\Cancelacion_Conceptos$1BuscadorFlotante$3.class
 com\mycompany\benaedu\views\Catalogo_Tipo_Alumno.class
@@ -298,6 +312,7 @@ com\mycompany\benaedu\views\Detalle_Conceptos_Pagos.class
 com\mycompany\benaedu\views\Procesa_Referencias_Bancarias.class
 com\mycompany\benaedu\services\InterfaseBcm$Revision.class
 com\mycompany\benaedu\views\Alumnos_Becados.class
+com\mycompany\benaedu\db\Auditoria.class
 com\mycompany\benaedu\Dashboard$4.class
 com\mycompany\benaedu\views\Consulta_Pagos$1.class
 com\mycompany\benaedu\views\Catalogo_Tipo_Gastos.class
@@ -331,6 +346,7 @@ com\mycompany\benaedu\views\Grados_Escolares$1BuscadorFlotante$1.class
 com\mycompany\benaedu\views\Captura_Polizas$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\FEL_Global$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Estado_Cuenta_Detallado$1BuscadorFlotante$1.class
+com\mycompany\benaedu\views\EstiloContenido.class
 com\mycompany\benaedu\views\Generar_Referencias_Bancarias$5.class
 com\mycompany\benaedu\views\Grados_Escolares$1.class
 com\mycompany\benaedu\views\Planes_Pago$1BuscadorFlotante$3.class

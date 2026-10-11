@@ -15,6 +15,7 @@ public class Registro_Becas extends javax.swing.JPanel {
      */
     public Registro_Becas() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

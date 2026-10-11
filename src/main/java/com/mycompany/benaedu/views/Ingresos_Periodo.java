@@ -74,6 +74,7 @@ public class Ingresos_Periodo extends javax.swing.JPanel {
     public Ingresos_Periodo() {
         initComponents();
         construirInterfazIngresosPeriodo();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazIngresosPeriodo() {
         this.removeAll();

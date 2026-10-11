@@ -34,6 +34,7 @@ public class Balanza_Comprobacion extends javax.swing.JPanel {
     public Balanza_Comprobacion() {
         initComponents();
         construirInterfazBalanza();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazBalanza() {
         this.removeAll();

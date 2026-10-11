@@ -123,6 +123,7 @@ public class Generar_Referencias_Bancarias extends JPanel {
         });
         imprimir.addActionListener(e -> imprimir());
         if (cargarCatalogos) cargarCiclos();
+        EstiloContenido.aplicar(this);
     }
 
     private static JPanel fila(java.awt.Component... componentes) {
@@ -286,6 +287,7 @@ public class Generar_Referencias_Bancarias extends JPanel {
         dialogo.setLocationRelativeTo(this);
         filtrar.run();
         SwingUtilities.invokeLater(busqueda::requestFocusInWindow);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

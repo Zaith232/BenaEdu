@@ -24,6 +24,7 @@ public class Login extends javax.swing.JFrame {
      * Creates new form Login
      */
     public Login() {
+        SesionUsuario.cerrar();
         initComponents();
         initStyles();
      
@@ -201,7 +202,7 @@ public class Login extends javax.swing.JFrame {
                 }
 
                 // Consultamos las contraseñas (hashes) de TODOS los administradores de la tabla clients
-                PreparedStatement ps = con.prepareStatement("SELECT contrasena FROM users WHERE rol = 'Administrador'");
+                PreparedStatement ps = con.prepareStatement("SELECT contrasena, nombre_usuario FROM users WHERE rol = 'Administrador'");
                 ResultSet rs = ps.executeQuery();
 
                 boolean adminValido = false;
@@ -211,6 +212,7 @@ public class Login extends javax.swing.JFrame {
                     String hashAdmin = rs.getString("contrasena");
                     
                     if (BCrypt.checkpw(claveIngresada, hashAdmin)) {
+                        iniciarSesionAuditada(con, rs.getString("nombre_usuario"), "Administrador");
                         adminValido = true;
                         break; // Si hay coincidencia, dejamos de buscar
                     }
@@ -267,18 +269,21 @@ public class Login extends javax.swing.JFrame {
                     return;
                 }
 
-                // 3. Consultar las contraseñas de todos los administradores
-                PreparedStatement ps = con.prepareStatement("SELECT contrasena FROM users WHERE rol = 'Administrador'");
+                // 3. Consultar la contraseña y el correo del administrador que autoriza.
+                PreparedStatement ps = con.prepareStatement("SELECT contrasena, correo, nombre_usuario FROM users WHERE rol = 'Administrador'");
                 ResultSet rs = ps.executeQuery();
 
                 boolean adminValido = false;
+                String correoAdministrador = null;
 
                 // 4. Comparar la clave ingresada contra los hashes de la BD usando BCrypt
                 while (rs.next()) {
                     String hashAdmin = rs.getString("contrasena");
                     
                     if (BCrypt.checkpw(claveIngresada, hashAdmin)) {
+                        iniciarSesionAuditada(con, rs.getString("nombre_usuario"), "Administrador");
                         adminValido = true;
+                        correoAdministrador = rs.getString("correo");
                         break; // Si coincide con algún admin, detenemos el ciclo
                     }
                 }
@@ -288,7 +293,7 @@ public class Login extends javax.swing.JFrame {
                     // Contraseña correcta -> Abrir la pantalla de recuperación
                     this.dispose(); // Cierra el login actual
                     FlatMTMaterialLighterIJTheme.setup();
-                    RecuperarContraseña recuperarContraseña = new RecuperarContraseña();
+                    RecuperarContraseña recuperarContraseña = new RecuperarContraseña(correoAdministrador);
                     recuperarContraseña.setSize(893, 540);
                     recuperarContraseña.setLocationRelativeTo(null);
                     recuperarContraseña.setVisible(true);
@@ -306,6 +311,22 @@ public class Login extends javax.swing.JFrame {
             }
         }
     }//GEN-LAST:event_btnForgotPasswordActionPerformed
+
+    private void iniciarSesionAuditada(Connection con, String usuario, String rol) throws java.sql.SQLException {
+        SesionUsuario.iniciar(usuario, rol);
+        try {
+            if (com.mycompany.benaedu.db.PermisosUsuario.instalar(con)) {
+                com.mycompany.benaedu.db.Auditoria.refrescarTabla(con, "users");
+            }
+            com.mycompany.benaedu.db.Auditoria.prepararSesion(con);
+            com.mycompany.benaedu.db.PermisosUsuario.actualizarRolCajero(con);
+        } catch (java.sql.SQLException ex) {
+            SesionUsuario.cerrar();
+            try { con.close(); } catch (java.sql.SQLException cierre) { ex.addSuppressed(cierre); }
+            throw new java.sql.SQLException("No se pudo activar el historial de cambios. "
+                    + "La cuenta de conexión requiere permisos CREATE, ALTER y TRIGGER. " + ex.getMessage(), ex);
+        }
+    }
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         String usuario = txtUser.getText().trim();
@@ -333,7 +354,7 @@ public class Login extends javax.swing.JFrame {
 
             if (rs.next()) {
                 String hashBD = rs.getString("contrasena"); 
-                String rol = rs.getString("rol");
+                String rol = SesionUsuario.normalizarRol(rs.getString("rol"));
                 boolean esTemporal = rs.getBoolean("temporal");
                 
                 // 2. MODIFICACIÓN: Obtenemos el nombre y apellido, previniendo que vengan vacíos (nulos)
@@ -349,6 +370,7 @@ public class Login extends javax.swing.JFrame {
                 }
 
                 if (BCrypt.checkpw(clave, hashBD)) {
+                    iniciarSesionAuditada(con, usuario, esTemporal ? "Cambio de contraseña pendiente" : rol);
                     
                     if (esTemporal) {
                         JOptionPane.showMessageDialog(this, "Por seguridad, debes restablecer tu contraseña.");

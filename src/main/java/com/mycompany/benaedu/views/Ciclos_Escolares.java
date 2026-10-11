@@ -37,11 +37,13 @@ private String usuarioLogueado = "Admin";
         }
         initComponents();
         cargarTablaCiclos();
+        EstiloContenido.aplicar(this);
     }
     
     public Ciclos_Escolares() {
         initComponents();
         cargarTablaCiclos();
+        EstiloContenido.aplicar(this);
     }
     
     private String obtenerUsuarioActivo() {
@@ -533,6 +535,7 @@ private void mostrarDialogoCiclo(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

@@ -15,6 +15,7 @@ public class Tipo_Proveedor extends javax.swing.JPanel {
      */
     public Tipo_Proveedor() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

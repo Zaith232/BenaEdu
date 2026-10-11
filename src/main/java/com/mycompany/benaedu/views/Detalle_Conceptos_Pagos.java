@@ -31,6 +31,7 @@ public class Detalle_Conceptos_Pagos extends javax.swing.JPanel {
     public Detalle_Conceptos_Pagos() {
         initComponents();
         construirInterfazDetalleConceptos();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazDetalleConceptos() {
         this.removeAll();

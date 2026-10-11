@@ -41,6 +41,7 @@ public class FEL extends javax.swing.JPanel {
     public FEL() {
         initComponents();
         iniciarComponentesPropios();
+        EstiloContenido.aplicar(this);
     }
 
     private void iniciarComponentesPropios() {

@@ -36,6 +36,7 @@ public class Auxiliar_Movimientos extends javax.swing.JPanel {
     public Auxiliar_Movimientos() {
         initComponents();
         construirInterfazAuxiliar();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazAuxiliar() {
         this.removeAll();

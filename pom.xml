@@ -55,4 +55,13 @@
     <version>1.4</version>
 </dependency>
     </dependencies>
+    <profiles>
+        <profile>
+            <id>instalador-pruebas</id>
+            <build>
+                <directory>target/pruebas-build</directory>
+                <finalName>BenaEdu-Pruebas</finalName>
+            </build>
+        </profile>
+    </profiles>
 </project>

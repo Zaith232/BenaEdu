@@ -38,6 +38,7 @@ public class Estado_Resultados extends javax.swing.JPanel {
     public Estado_Resultados() {
         initComponents();
          construirInterfazEstadoResultados();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazEstadoResultados() {
         this.removeAll();

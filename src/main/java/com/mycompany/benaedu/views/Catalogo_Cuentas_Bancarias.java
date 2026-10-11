@@ -36,6 +36,7 @@ public class Catalogo_Cuentas_Bancarias extends javax.swing.JPanel {
     public Catalogo_Cuentas_Bancarias() {
         initComponents();
         cargarTablaCuentas();
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaCuentas() {
         DefaultTableModel modelo = (DefaultTableModel) tblCCBancarias.getModel();
@@ -610,6 +611,7 @@ private void mostrarDialogoCuentaBancaria(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

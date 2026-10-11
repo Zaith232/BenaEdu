@@ -15,6 +15,7 @@ public class Solicitud_Pago_Acreedores extends javax.swing.JPanel {
      */
     public Solicitud_Pago_Acreedores() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

@@ -49,7 +49,7 @@ public class GestionarUsuario extends javax.swing.JFrame {
                     fila[1] = rs.getString("nombre");
                     fila[2] = rs.getString("apellidos");
                     fila[3] = rs.getString("correo");
-                    fila[4] = rs.getString("rol");
+                    fila[4] = SesionUsuario.normalizarRol(rs.getString("rol"));
                     modelo.addRow(fila);
                 }
 
@@ -263,14 +263,14 @@ public class GestionarUsuario extends javax.swing.JFrame {
         String correo = tblUsers.getValueAt(filaSeleccionada, 3).toString();
         String rol = tblUsers.getValueAt(filaSeleccionada, 4).toString();
 
-        // Cerrar ventana actual y abrir EditarUsuario pasándole los datos
-        this.dispose();
-        FlatMTMaterialLighterIJTheme.setup();
-        
-        // Llamamos a un nuevo constructor que crearemos en el siguiente paso
-        EditarUsuario editar = new EditarUsuario(usuario, correo, rol); 
-        editar.setLocationRelativeTo(null);
-        editar.setVisible(true);
+        try {
+            EditarUsuario editar = new EditarUsuario(usuario, correo, rol);
+            editar.setLocationRelativeTo(null);
+            editar.setVisible(true);
+            this.dispose();
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), "Editar usuario", JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_btnEditUserActionPerformed
 
     /**

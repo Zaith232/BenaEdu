@@ -1,0 +1,1100 @@
+[
+  {
+    "tabla": "pasocargabeca",
+    "registros_indice_original": 56,
+    "archivos": {
+      "pasocargabeca.frm": {
+        "bytes": 8644,
+        "sha256": "bdd226e39c5504e53387d00511e6609231b6e72819711bbd4007bfae4a9df43d"
+      },
+      "pasocargabeca.MYD": {
+        "bytes": 2016,
+        "sha256": "803d13bb89ab502aaf953eefe81d677d198b0472c97ebcf1befef7bb4413cd3b"
+      },
+      "pasocargabeca.MYI": {
+        "bytes": 2048,
+        "sha256": "4b5abee7142575cadb5bb649281b3310df41e4059c3ea1567bd54d6aa4d46c88"
+      }
+    }
+  },
+  {
+    "tabla": "pasocargafalt",
+    "registros_indice_original": 155,
+    "archivos": {
+      "pasocargafalt.frm": {
+        "bytes": 8576,
+        "sha256": "bcc778223ed53d34fceac74865eca25df9542fe99421063a1774af39feff79d7"
+      },
+      "pasocargafalt.MYD": {
+        "bytes": 3100,
+        "sha256": "975248c77bc386a92c6818423081bc03feb0b8f114097b4c6055120bdcc6015e"
+      },
+      "pasocargafalt.MYI": {
+        "bytes": 1024,
+        "sha256": "6ea5c48af4c300e4c3cd0c690441c37ebed9ea7e53cd229a83a2ee6b3fe3e241"
+      }
+    }
+  },
+  {
+    "tabla": "pasocargagpo",
+    "registros_indice_original": 1304,
+    "archivos": {
+      "pasocargagpo.frm": {
+        "bytes": 8672,
+        "sha256": "8f77a45fe346a0f43aaed72d830d2d572c771a330635fdd60e7b3e3e73b43cac"
+      },
+      "pasocargagpo.MYD": {
+        "bytes": 42092,
+        "sha256": "ac18d93629a82b9381795cdaea2b56bc5e57977df3d0c3feaaa45e2273af3136"
+      },
+      "pasocargagpo.MYI": {
+        "bytes": 12288,
+        "sha256": "797f5daf681d6eb8322367bc199a29817b8d964c4330c3e20fb9e537660a66cd"
+      }
+    }
+  },
+  {
+    "tabla": "pasocargapol",
+    "registros_indice_original": 272,
+    "archivos": {
+      "pasocargapol.frm": {
+        "bytes": 8694,
+        "sha256": "5bc5b96ff798620b3752fc7c5c0df0ad0be4afc467d5f3edcb2e45f741990501"
+      },
+      "pasocargapol.MYD": {
+        "bytes": 14144,
+        "sha256": "eaf786e5de4d62b83c6e90abb1f15816d4a2362331b2d90724b60277f396f52a"
+      },
+      "pasocargapol.MYI": {
+        "bytes": 1024,
+        "sha256": "0a11cf734de224fdc5ac8991dbb5800ecdbb356b84accd4016e187c0d49192cf"
+      }
+    }
+  },
+  {
+    "tabla": "pasocargaref",
+    "registros_indice_original": 1733,
+    "archivos": {
+      "pasocargaref.frm": {
+        "bytes": 8578,
+        "sha256": "b1f5f2c5ca1f6e3b8a5085938bf4de684aa8746de0690910746737ed2a4174af"
+      },
+      "pasocargaref.MYD": {
+        "bytes": 34660,
+        "sha256": "c36fcde7897ce514152b18b6630d4e3fb976d6318686dfb7af34a4aa70a67e66"
+      },
+      "pasocargaref.MYI": {
+        "bytes": 1024,
+        "sha256": "099be6a279d50f5021f652449447a7c7905b6d280b206b55fff36e96374254ea"
+      }
+    }
+  },
+  {
+    "tabla": "pasocortecaja",
+    "registros_indice_original": 2746,
+    "archivos": {
+      "pasocortecaja.frm": {
+        "bytes": 9946,
+        "sha256": "e0138750cab2d2bf617c543818ce7b4975ca25aead4ccd645504479c4f1447d9"
+      },
+      "pasocortecaja.MYD": {
+        "bytes": 765656,
+        "sha256": "9f507b7db6dfaa1a94ded6283c1574e6774ba030e5a2d4887ea67a323b74891a"
+      },
+      "pasocortecaja.MYI": {
+        "bytes": 1024,
+        "sha256": "a0ec7ec31bed33804c0a211b886e7f66e327d3e326ff05aca8dbf505c3ea3931"
+      }
+    }
+  },
+  {
+    "tabla": "pasoedocta",
+    "registros_indice_original": 8421,
+    "archivos": {
+      "pasoedocta.frm": {
+        "bytes": 9984,
+        "sha256": "6f94b842cecd70f101c470b1ed4ec54ef9aaa0680b0794353dfe210649811360"
+      },
+      "pasoedocta.MYD": {
+        "bytes": 2543320,
+        "sha256": "c1deeda3d1f2f65c9306205dd5914db206c1f64b39a8df6caf5a802c4c3649bb"
+      },
+      "pasoedocta.MYI": {
+        "bytes": 1024,
+        "sha256": "4c4f0b8e0705f7f55b0f6a3e3e8b72d5394ad14a57256e59a661f23214db1f4a"
+      }
+    }
+  },
+  {
+    "tabla": "pasofacpro",
+    "registros_indice_original": 93536,
+    "archivos": {
+      "pasofacpro.frm": {
+        "bytes": 9410,
+        "sha256": "d3c814b4aa6ed883dac18a4f4fa455b742db1775ccc9cfe645db336cb5416899"
+      },
+      "pasofacpro.MYD": {
+        "bytes": 16122380,
+        "sha256": "4512585ac13f77050f95b89d3aec99403375ceee8297593ffbe5776e8c46dcc3"
+      },
+      "pasofacpro.MYI": {
+        "bytes": 489472,
+        "sha256": "4cdb7c8937a366b9ae693627c1d1eedb5622a1607dbd8286f87e0796ebe9bb8b"
+      }
+    }
+  },
+  {
+    "tabla": "pasoimppol",
+    "registros_indice_original": 16648,
+    "archivos": {
+      "pasoimppol.frm": {
+        "bytes": 8978,
+        "sha256": "e26fd20d856a5502ca75bf0472e6001a2fe123ddfbed06abb8e51c7d66acaf79"
+      },
+      "pasoimppol.MYD": {
+        "bytes": 3367284,
+        "sha256": "5600c31828134a40016073180d91ce7065c4cb1912589ec8c5df561b8c440844"
+      },
+      "pasoimppol.MYI": {
+        "bytes": 1024,
+        "sha256": "ed0d11f194b1c2269d11fb815265d477a8695ff2251b9c4d442465e6ddb6e95b"
+      }
+    }
+  },
+  {
+    "tabla": "pasoinfpro",
+    "registros_indice_original": 30866,
+    "archivos": {
+      "pasoinfpro.frm": {
+        "bytes": 9072,
+        "sha256": "2daeab1ece4f19f8385c10dea27aaff579552856ba2e791fd718061fa6041874"
+      },
+      "pasoinfpro.MYD": {
+        "bytes": 3089608,
+        "sha256": "542fd31001abd83824ebff680b5611bf90b40a3e77147cfa618e3270aa7fe772"
+      },
+      "pasoinfpro.MYI": {
+        "bytes": 1024,
+        "sha256": "05a7117112991cb50074f4533cf733c2308b3d477843dd5c20dc33111731ee69"
+      }
+    }
+  },
+  {
+    "tabla": "pasointban",
+    "registros_indice_original": 1362,
+    "archivos": {
+      "pasointban.frm": {
+        "bytes": 8894,
+        "sha256": "52ecc31b999e25827b501150f32c8b0a4b5b8d3a31bf3875a974beaabb55e202"
+      },
+      "pasointban.MYD": {
+        "bytes": 217384,
+        "sha256": "db93f21d6c244de36c6257c3b96fddd4be15cf14c5a0a3b978eedc2b43a91a7a"
+      },
+      "pasointban.MYI": {
+        "bytes": 1024,
+        "sha256": "5c9cf17751c715523fc9b25ee1be0811a9d08e894aa6f4e16384125d454c63b8"
+      }
+    }
+  },
+  {
+    "tabla": "pasomovcta",
+    "registros_indice_original": 12,
+    "archivos": {
+      "pasomovcta.frm": {
+        "bytes": 8894,
+        "sha256": "799ffc18e11b71630e6e49e6fb94e36d0bf40d54a0239b685f05036cbc9964dd"
+      },
+      "pasomovcta.MYD": {
+        "bytes": 1144,
+        "sha256": "f97df6c4e68fd6040b9cf5bdd997a39437bb4c16899dbdcbd8e4ac00173db586"
+      },
+      "pasomovcta.MYI": {
+        "bytes": 1024,
+        "sha256": "7c6e762889ed3ee86cfa9d1da1c01d5e37e26111144a8fcb042ea48df70b0fd5"
+      }
+    }
+  },
+  {
+    "tabla": "pasomovcta01",
+    "registros_indice_original": 77,
+    "archivos": {
+      "pasomovcta01.frm": {
+        "bytes": 8894,
+        "sha256": "799ffc18e11b71630e6e49e6fb94e36d0bf40d54a0239b685f05036cbc9964dd"
+      },
+      "pasomovcta01.MYD": {
+        "bytes": 12004,
+        "sha256": "502bb9de6552854043e98d3ed36a3077e76f605fde1b2b000ff0added6cc3293"
+      },
+      "pasomovcta01.MYI": {
+        "bytes": 1024,
+        "sha256": "a39acb3e64903460eaa5d47dfa37bdcc84fa3c1d05752f6a4d7c2a1e604fb2ba"
+      }
+    }
+  },
+  {
+    "tabla": "pasoprov",
+    "registros_indice_original": 695,
+    "archivos": {
+      "pasoprov.frm": {
+        "bytes": 9406,
+        "sha256": "c27b4815758bb25ddeef852cdff6c75bb5325b16a33383941e6741841e79789a"
+      },
+      "pasoprov.MYD": {
+        "bytes": 156920,
+        "sha256": "ff246f6a89268c141659037b0e3a06f7f35ef1ee192c3271a75ea3419d14f4fa"
+      },
+      "pasoprov.MYI": {
+        "bytes": 1024,
+        "sha256": "293e4414c2cae261d883d803246bda8c82c9b12281867d7346d12f20d63925ae"
+      }
+    }
+  },
+  {
+    "tabla": "pasorecesc1",
+    "registros_indice_original": 954,
+    "archivos": {
+      "pasorecesc1.frm": {
+        "bytes": 11510,
+        "sha256": "cc08ddc8bed79a84696cfe89239c46734e78b2c0a14bd492aa5f27a93ea285ee"
+      },
+      "pasorecesc1.MYD": {
+        "bytes": 770888,
+        "sha256": "8b2b9ff8a074cbcb65c0231d4778b487f767db8271a6912df3bffaefcd0f0c44"
+      },
+      "pasorecesc1.MYI": {
+        "bytes": 2048,
+        "sha256": "97daf4891aabd406d82cb27a5a6e188171196e3a35321a6c03eb014eb33be164"
+      }
+    }
+  },
+  {
+    "tabla": "pasorefban",
+    "registros_indice_original": 8905,
+    "archivos": {
+      "pasorefban.frm": {
+        "bytes": 9536,
+        "sha256": "ef04e3dbd52377a59e429a8b432856b1bd223bd939e0202340d12ca9a6beafbb"
+      },
+      "pasorefban.MYD": {
+        "bytes": 1791336,
+        "sha256": "35102525b09a0fc928c54bc54be305da7a12f194ebbc76cf287d0d7ed41345d7"
+      },
+      "pasorefban.MYI": {
+        "bytes": 1024,
+        "sha256": "99f7b30dcaf68c9e7413c703ff82ae506501cdc765d7ede89d83e65864416302"
+      }
+    }
+  },
+  {
+    "tabla": "pasorepcpto",
+    "registros_indice_original": 22231,
+    "archivos": {
+      "pasorepcpto.frm": {
+        "bytes": 9936,
+        "sha256": "d2591c6103cc04927d0e3c2138de32b41a9a8f28836aca3ce178ce32a0a0574c"
+      },
+      "pasorepcpto.MYD": {
+        "bytes": 8107024,
+        "sha256": "38c70a3c7e581bb581cb7615ab6693fd93ee591b14abf662c48471202bb15d32"
+      },
+      "pasorepcpto.MYI": {
+        "bytes": 1024,
+        "sha256": "82f32408a4d56cc9ffce04db2ecfa32e8d6b25b6731c2561b2cfc0ed7a4ddc64"
+      }
+    }
+  },
+  {
+    "tabla": "pasorepedocta",
+    "registros_indice_original": 41175,
+    "archivos": {
+      "pasorepedocta.frm": {
+        "bytes": 9958,
+        "sha256": "65f0281adf5f7a7549ba444ee28771e366d47ea9a68c5b07e19d3e4e57c41f2f"
+      },
+      "pasorepedocta.MYD": {
+        "bytes": 10744380,
+        "sha256": "304fb089eb30272730513dd4fb55f9ebd9d7746f25c07084b6ea28c583bd9176"
+      },
+      "pasorepedocta.MYI": {
+        "bytes": 1024,
+        "sha256": "4f07c4a67f858ba15aa9301a82990937f6317317aa815bfb3661715bf016660e"
+      }
+    }
+  },
+  {
+    "tabla": "tafdep",
+    "registros_indice_original": 82,
+    "archivos": {
+      "tafdep.frm": {
+        "bytes": 8912,
+        "sha256": "013c658981df8170b14113c7b446d3b7708c03c5b0115f56b635c88de8e00423"
+      },
+      "tafdep.MYD": {
+        "bytes": 7216,
+        "sha256": "801677865e65adaf7fe88824217ccc27306a75a586927b9ef29dbee7695d10a3"
+      },
+      "tafdep.MYI": {
+        "bytes": 1024,
+        "sha256": "06f9bdcbd40e079d455eb2e5647b8b656fd7f286d35a7249faf234324ec43412"
+      }
+    }
+  },
+  {
+    "tabla": "tafide",
+    "registros_indice_original": 82,
+    "archivos": {
+      "tafide.frm": {
+        "bytes": 8820,
+        "sha256": "0f78aea25087b728b543ebd6fe82eca64dcb495877aa2214be1009175ba1781b"
+      },
+      "tafide.MYD": {
+        "bytes": 5820,
+        "sha256": "704dca3ce2ae758cfd97dd83cfe6bae1cc54f834af76746428c7d45628154f4b"
+      },
+      "tafide.MYI": {
+        "bytes": 1024,
+        "sha256": "0a697f7e7019148d1c8c66002c30f0504c8ff900df4729d7ccbba72efb20c10d"
+      }
+    }
+  },
+  {
+    "tabla": "tafmac",
+    "registros_indice_original": 145,
+    "archivos": {
+      "tafmac.frm": {
+        "bytes": 9648,
+        "sha256": "792a3a2c1e0c418e3b298e0d555eeb243bb20f4c177d51d17820088e447c0d96"
+      },
+      "tafmac.MYD": {
+        "bytes": 30876,
+        "sha256": "8c05aa3e846f4336139c8aa68c0644da91e89e28ba909b93b5d0b43131605410"
+      },
+      "tafmac.MYI": {
+        "bytes": 1024,
+        "sha256": "7b45c4f818effb3b562d8f56aa02ac743d6b69e344dbb08fda4f948fc831ee2e"
+      }
+    }
+  },
+  {
+    "tabla": "tafsac",
+    "registros_indice_original": 168,
+    "archivos": {
+      "tafsac.frm": {
+        "bytes": 9126,
+        "sha256": "9c9958ae0038754b231bdfcd676d977626250dbeae7dc2e1588d14503a13d22e"
+      },
+      "tafsac.MYD": {
+        "bytes": 10640,
+        "sha256": "481d2849217474b9115b6da805359d2271c7a6d6f7f4977db2abfb2ffd0feb33"
+      },
+      "tafsac.MYI": {
+        "bytes": 1024,
+        "sha256": "415ebe4f7f1306a1f31680048cb59f5b430f1a6e65451f1bfccecc5b00467f6c"
+      }
+    }
+  },
+  {
+    "tabla": "taftac",
+    "registros_indice_original": 8,
+    "archivos": {
+      "taftac.frm": {
+        "bytes": 9210,
+        "sha256": "0c593ea53dc273e31476a5729d5e4443a7a57853acd6243731245491b81cb44e"
+      },
+      "taftac.MYD": {
+        "bytes": 1164,
+        "sha256": "4c040d3057cb6a977f2011f6910a7da90ec53fc71054956287db3513a8551941"
+      },
+      "taftac.MYI": {
+        "bytes": 2048,
+        "sha256": "0b6aaac1831b1dabbbe15b29c98e7ec9560f3f0724149e799aa8e5fdb27cc79f"
+      }
+    }
+  },
+  {
+    "tabla": "tafubi",
+    "registros_indice_original": 148,
+    "archivos": {
+      "tafubi.frm": {
+        "bytes": 8744,
+        "sha256": "ced4eb828e1b023f8cf71c23970caa782b4d33c84d500c1cb28552f60682bb01"
+      },
+      "tafubi.MYD": {
+        "bytes": 8548,
+        "sha256": "1b388eeff8e6f3361c2106ce3cda289487f985f49eaf16c1c8b206babe916e2e"
+      },
+      "tafubi.MYI": {
+        "bytes": 1024,
+        "sha256": "f399606e17156c478c2b409c95b4fbf6261d56244bf7bcb50d39bd98dc15c9c7"
+      }
+    }
+  },
+  {
+    "tabla": "tcoautde",
+    "registros_indice_original": 4,
+    "archivos": {
+      "tcoautde.frm": {
+        "bytes": 8724,
+        "sha256": "06d5d1249e5df7d27d0e8f0844a7059e09c43d5db0d5bffba991c0169910153b"
+      },
+      "tcoautde.MYD": {
+        "bytes": 192,
+        "sha256": "8bf7c27bc078af6c1acabf3fe7cd13e638df5713a7b4f054af8be7fc375164c6"
+      },
+      "tcoautde.MYI": {
+        "bytes": 1024,
+        "sha256": "79c3990982d7b02037ab449b5d02a358350c93d7fb39cf217f9b906c069592c1"
+      }
+    }
+  },
+  {
+    "tabla": "tcoautge",
+    "registros_indice_original": 2,
+    "archivos": {
+      "tcoautge.frm": {
+        "bytes": 8700,
+        "sha256": "3abdb7abfb33ddfa50bba5fa24c979419fdcd3537799a8d931a8d960378f47f4"
+      },
+      "tcoautge.MYD": {
+        "bytes": 112,
+        "sha256": "5e884aea89c70290cf048d83827df3bd008963218cf46a584e84c1457f4f225b"
+      },
+      "tcoautge.MYI": {
+        "bytes": 1024,
+        "sha256": "3eca10b294f3e846a56cc3492af8b1a83c341ab8d3a201997d1fe318dbc3f211"
+      }
+    }
+  },
+  {
+    "tabla": "tcorde",
+    "registros_indice_original": 3,
+    "archivos": {
+      "tcorde.frm": {
+        "bytes": 9266,
+        "sha256": "1035506a6a6b8e69fea013dc438f58d0a1b30c0ab1d8cccbf5bc142a7171ad9e"
+      },
+      "tcorde.MYD": {
+        "bytes": 384,
+        "sha256": "5c4aa84f9865de505ce33536d0876408f39014e078c348beed2e69252c1cfaca"
+      },
+      "tcorde.MYI": {
+        "bytes": 1024,
+        "sha256": "214b12af44ce0404ef15772035bdddfd8b7f73f1fe83b6ba5998bc3f8c6a6442"
+      }
+    }
+  },
+  {
+    "tabla": "tcorge",
+    "registros_indice_original": 3,
+    "archivos": {
+      "tcorge.frm": {
+        "bytes": 9134,
+        "sha256": "96d8d8390161c2548280f2b2b685fabe4eea3a0e80ff2494636be60c1de7a0f8"
+      },
+      "tcorge.MYD": {
+        "bytes": 252,
+        "sha256": "b96e47f2bad3d52306ea56e85d134f982ce1799ad9a230b738be7be8ba402d8a"
+      },
+      "tcorge.MYI": {
+        "bytes": 1024,
+        "sha256": "e2c67b18bfd4e043dbd17094acb2fcbd91769a6a1d8eb8948c791e9bd1127601"
+      }
+    }
+  },
+  {
+    "tabla": "tcosaut",
+    "registros_indice_original": 1,
+    "archivos": {
+      "tcosaut.frm": {
+        "bytes": 8764,
+        "sha256": "41dbcbdaf4fc5b60f39b695a7b9d88e86ac44e3297fa89a17e525b650df6158b"
+      },
+      "tcosaut.MYD": {
+        "bytes": 44,
+        "sha256": "fb4175c09d1c74ebf9666cfc4de12dd357b43979005ce4cd073fd92572fa71c9"
+      },
+      "tcosaut.MYI": {
+        "bytes": 1024,
+        "sha256": "0f68305d1d4dc6282065967a60fe3a5663c4e7fa2c52e4ce0ffc62a8b5003383"
+      }
+    }
+  },
+  {
+    "tabla": "tdcheq",
+    "registros_indice_original": 90,
+    "archivos": {
+      "tdcheq.frm": {
+        "bytes": 8846,
+        "sha256": "4c3a8d5d1d9646e751c953164d29c6da11cef4e2950d970dea22a7d444299d8e"
+      },
+      "tdcheq.MYD": {
+        "bytes": 14664,
+        "sha256": "fa07a53bd8c25b0948b757d5b94d90d72778d75e7a18ab44a0bf93649717a97a"
+      },
+      "tdcheq.MYI": {
+        "bytes": 1024,
+        "sha256": "d99f6be0f44c081a382cf3608cb674111c1c127bbd8b3e1e1cadebb114012bf5"
+      }
+    }
+  },
+  {
+    "tabla": "tdicdat",
+    "registros_indice_original": 24,
+    "archivos": {
+      "tdicdat.frm": {
+        "bytes": 8820,
+        "sha256": "16ebe9f3cba29c7266a21f124be0fcd0c96b2a7704713dad77058d02b05bbea3"
+      },
+      "tdicdat.MYD": {
+        "bytes": 2508,
+        "sha256": "3d233c69480b1e6732635103ac15c26118fda2b881e320350b8d098f221d2984"
+      },
+      "tdicdat.MYI": {
+        "bytes": 2048,
+        "sha256": "e299cc2b4be2cc8d6e45e3f11f0aae3f3dba3028ea4d5c7f586f9d2b4c50e984"
+      }
+    }
+  },
+  {
+    "tabla": "tdpol",
+    "registros_indice_original": 199546,
+    "archivos": {
+      "tdpol.frm": {
+        "bytes": 9048,
+        "sha256": "3ca8e07d430f1fc794c15128ba1579dddc5881614159cc9bd3945517faf5e0b8"
+      },
+      "tdpol.MYD": {
+        "bytes": 23566316,
+        "sha256": "e15a2897ffe9ed095cba9a4f43d5bc3f5c969b0e4be1bfed27e5c971646c7a2e"
+      },
+      "tdpol.MYI": {
+        "bytes": 8711168,
+        "sha256": "0c00657bcc202e8e20cb00b3eaca868a5ea2cb22547e13cc74a84b6bbaf127d5"
+      }
+    }
+  },
+  {
+    "tabla": "tesalum",
+    "registros_indice_original": 3601,
+    "archivos": {
+      "tesalum.frm": {
+        "bytes": 9644,
+        "sha256": "85fe39390d45c246c2fb6fbc724be1ced2d375b79954bd959f6d86509af6a17a"
+      },
+      "tesalum.MYD": {
+        "bytes": 741284,
+        "sha256": "46a2d94e04ac53740f9f4b2b7cdef5d7ab527505fe1ec74bb7bf129c0cd9ef40"
+      },
+      "tesalum.MYI": {
+        "bytes": 34816,
+        "sha256": "1927db6d69cca30eb972d2afb33a9dcbed6caf0789059dcfe1ea088c19f9b84e"
+      }
+    }
+  },
+  {
+    "tabla": "tesalutp",
+    "registros_indice_original": 8,
+    "archivos": {
+      "tesalutp.frm": {
+        "bytes": 8736,
+        "sha256": "5d5530e233ae4e19a19955f547bdb7e1c1cd48f6a4091ae25d8b5d2ee1cd95c8"
+      },
+      "tesalutp.MYD": {
+        "bytes": 664,
+        "sha256": "e1b268090ad70978a07e260b5b12c46035ccc79d452efb4a712f95ef66a0e934"
+      },
+      "tesalutp.MYI": {
+        "bytes": 2048,
+        "sha256": "0c3594c94fc91ffdff38dd76f6c6af11863e0c85526c8f0f7cbf43c8157c2adb"
+      }
+    }
+  },
+  {
+    "tabla": "tesaxce",
+    "registros_indice_original": 14205,
+    "archivos": {
+      "tesaxce.frm": {
+        "bytes": 9188,
+        "sha256": "9d229e33ae4f6f51363607f8bcd6eadfdaae5225e9d59f6d8d375f94823e7e2a"
+      },
+      "tesaxce.MYD": {
+        "bytes": 1414668,
+        "sha256": "872e638b4f2bfef77d15611ee65eb17a5a0c32cbe84f319e50000ee4f13cc214"
+      },
+      "tesaxce.MYI": {
+        "bytes": 111616,
+        "sha256": "81da7c7ed0eb4a11e39152db74b5aa834060c6754550803c83cdd637e78bd9d9"
+      }
+    }
+  },
+  {
+    "tabla": "tesbede",
+    "registros_indice_original": 277,
+    "archivos": {
+      "tesbede.frm": {
+        "bytes": 8752,
+        "sha256": "d689ec6f12c9ff436080346c0f865cc53611d6a8d8ead431152f9bad6a8c1aaf"
+      },
+      "tesbede.MYD": {
+        "bytes": 16460,
+        "sha256": "02cab586ff11036976e123b1fe43bdb839ccfb644b675a59189b788c8a1db7fb"
+      },
+      "tesbede.MYI": {
+        "bytes": 10240,
+        "sha256": "efeb4f91d74a152a31429de51b81ff53b6816c3e8ea76b3d4b53e06f3975985a"
+      }
+    }
+  },
+  {
+    "tabla": "tesbege",
+    "registros_indice_original": 253,
+    "archivos": {
+      "tesbege.frm": {
+        "bytes": 8756,
+        "sha256": "99ccfb322c91ae0964c623c46af432cdc5811c37e4d1901736749b0ba0248bf5"
+      },
+      "tesbege.MYD": {
+        "bytes": 18744,
+        "sha256": "bda328086ee90a8a5a2dbf52c4acd50d18921a4f0f077fe8a1ce1c9bff577446"
+      },
+      "tesbege.MYI": {
+        "bytes": 5120,
+        "sha256": "e58f427f373ab4c07080fb44bd00794d82f56e8fe90ce8fa0a89a44ee6e44ffa"
+      }
+    }
+  },
+  {
+    "tabla": "tescaj",
+    "registros_indice_original": 10,
+    "archivos": {
+      "tescaj.frm": {
+        "bytes": 8802,
+        "sha256": "99a48b82753fe4208cdaf1240cfa5d4cf7f6d7e178608ceb8e78b8eb8cc486b7"
+      },
+      "tescaj.MYD": {
+        "bytes": 948,
+        "sha256": "790c67f042ba62837900b0fe78d8cf87cab871f66aef40432dd0b13bd88de7f3"
+      },
+      "tescaj.MYI": {
+        "bytes": 2048,
+        "sha256": "fcf43a5c2b305c689310c9b6cddcfe6253e43270906d018a6c61b2c1440438e3"
+      }
+    }
+  },
+  {
+    "tabla": "tescalu",
+    "registros_indice_original": 213432,
+    "archivos": {
+      "tescalu.frm": {
+        "bytes": 10034,
+        "sha256": "5e2736990fee0783310233dea409cc5911cc9a7d1367d7db14f2baca95b04399"
+      },
+      "tescalu.MYD": {
+        "bytes": 43585440,
+        "sha256": "d73af6d2768801190e346392b0c62215bd7d0f0d261b195c8366b40ff68bcaf6"
+      },
+      "tescalu.MYI": {
+        "bytes": 9777152,
+        "sha256": "51075f7e89801fc55bd99e9cdd1417e7ddad695f6e7417da6c6ef22601fc1f9a"
+      }
+    }
+  },
+  {
+    "tabla": "tescesc",
+    "registros_indice_original": 76,
+    "archivos": {
+      "tescesc.frm": {
+        "bytes": 8844,
+        "sha256": "78616f0b6cb62fef9507c5b6c5d4e5873fe2c1cf0b1f8166da2ce4108ddd1cf5"
+      },
+      "tescesc.MYD": {
+        "bytes": 5504,
+        "sha256": "91fcebc3299504f68d7c78926dc5ab87d827e825e1071527f6d09afa8577e928"
+      },
+      "tescesc.MYI": {
+        "bytes": 5120,
+        "sha256": "17c5c07f92a3a57e5aa493edcab30337642d56cee0ba69d96fbfc0df697c4523"
+      }
+    }
+  },
+  {
+    "tabla": "tescpto",
+    "registros_indice_original": 391,
+    "archivos": {
+      "tescpto.frm": {
+        "bytes": 9240,
+        "sha256": "e0309e2625d86e3a50a29fb32bbd99d83e35e345a1385548436c2c444c5fdb59"
+      },
+      "tescpto.MYD": {
+        "bytes": 66276,
+        "sha256": "dba819073cd11283ac0295490623bea477f2e9c71bef275ba0e05847c2812531"
+      },
+      "tescpto.MYI": {
+        "bytes": 9216,
+        "sha256": "65fca28cc6f540e2a3c6352f3a3dfd63d27ddb3028fc4c9fa816c6fab4ca842b"
+      }
+    }
+  },
+  {
+    "tabla": "tesfalu",
+    "registros_indice_original": 36681,
+    "archivos": {
+      "tesfalu.frm": {
+        "bytes": 9894,
+        "sha256": "bf0e588c07a8dc6fbd0dfbdf9c39d3618c4fcef128ca845a23f1a4af0e36fc6a"
+      },
+      "tesfalu.MYD": {
+        "bytes": 9924372,
+        "sha256": "507ac0fc0ee082d75127c95e39f9cabaf2bdbdef87bc33179c73490d4287c069"
+      },
+      "tesfalu.MYI": {
+        "bytes": 1024,
+        "sha256": "b9eaff7eaf110afa43bb96af90c1ce0113ee24671b7db9a90f361c652ed8ceba"
+      }
+    }
+  },
+  {
+    "tabla": "tesgpde",
+    "registros_indice_original": 6997,
+    "archivos": {
+      "tesgpde.frm": {
+        "bytes": 8918,
+        "sha256": "59e6ecc29b7ae9c9bd0fbf782f26a962fa418ff6fe63524f5ab3ad26ef099c5a"
+      },
+      "tesgpde.MYD": {
+        "bytes": 739356,
+        "sha256": "7c1857b45611af207f8c27f13bc8a6ff6234a6c5b94ace9db73094ae5223e95b"
+      },
+      "tesgpde.MYI": {
+        "bytes": 125952,
+        "sha256": "8ae32713930abf65846f0992894b2ef262853bc42deddc6e0c477133df4cf4a7"
+      }
+    }
+  },
+  {
+    "tabla": "tesgpge",
+    "registros_indice_original": 476,
+    "archivos": {
+      "tesgpge.frm": {
+        "bytes": 8792,
+        "sha256": "460c810a7ecd0993f96da03a73e1af5e3b15d67797c77269854530de269a45bc"
+      },
+      "tesgpge.MYD": {
+        "bytes": 44868,
+        "sha256": "6379559ef7db51dd7ac6e100adc1c48463fcacff9e1b991a3cc0ed09006d52a2"
+      },
+      "tesgpge.MYI": {
+        "bytes": 13312,
+        "sha256": "565790db913a097639ed6484c47c981815db5651586fe81b0ca0b570089fc135"
+      }
+    }
+  },
+  {
+    "tabla": "tesgrad",
+    "registros_indice_original": 19,
+    "archivos": {
+      "tesgrad.frm": {
+        "bytes": 8818,
+        "sha256": "adf8907d75318e23d50b7bbb21e1f3b7293fd3cfff6833d56fb03b5453bf5298"
+      },
+      "tesgrad.MYD": {
+        "bytes": 1360,
+        "sha256": "5f73997c38812f1506136001e74d1b772638a756f78679ca80305f9c7d2b476b"
+      },
+      "tesgrad.MYI": {
+        "bytes": 2048,
+        "sha256": "4a255d0af057933b4c4886ff361e1964f1881a1adbc8e1b36ba3e25892d76916"
+      }
+    }
+  },
+  {
+    "tabla": "tespalu",
+    "registros_indice_original": 216982,
+    "archivos": {
+      "tespalu.frm": {
+        "bytes": 9400,
+        "sha256": "a4dab6c56e7ad46f9d51bd4e335191efebe17b8b09e9becf7942b517b81db72a"
+      },
+      "tespalu.MYD": {
+        "bytes": 32229780,
+        "sha256": "f4deaf46b5759d6f8d43287b14d2aa55dde49bfe13c44f56b1ccf28f9bb9a0b0"
+      },
+      "tespalu.MYI": {
+        "bytes": 3879936,
+        "sha256": "ad1be864807bce41e705cd97e94f405a5f3616693a20f3c10ed51d917013cc27"
+      }
+    }
+  },
+  {
+    "tabla": "tesralu",
+    "registros_indice_original": 194090,
+    "archivos": {
+      "tesralu.frm": {
+        "bytes": 10402,
+        "sha256": "e16efbdd188ef180d0d11a029c0f501cd1645df49fd337f2a72d2677f52edd96"
+      },
+      "tesralu.MYD": {
+        "bytes": 53241580,
+        "sha256": "ab89de479897762b87bc2cd52e93372af044521fc8a53c335e5c071f78f511ce"
+      },
+      "tesralu.MYI": {
+        "bytes": 24157184,
+        "sha256": "9e3c9addfff5636350e2d1c1003780964878e4756336c0b0bb59c24299c7dc7d"
+      }
+    }
+  },
+  {
+    "tabla": "tesrefb",
+    "registros_indice_original": 183110,
+    "archivos": {
+      "tesrefb.frm": {
+        "bytes": 9188,
+        "sha256": "dd1ea658b92a937ccb561458cb25a674e47adad357c7ba68ef21459fbcc5aa6c"
+      },
+      "tesrefb.MYD": {
+        "bytes": 25273916,
+        "sha256": "456ded82968fe262b21a2679b6ac2dff943250e64f2c5e878fd94fe97e061ecd"
+      },
+      "tesrefb.MYI": {
+        "bytes": 14190592,
+        "sha256": "6854f2aed004dc59e18587f603f474eb749322685b5becd614bd746d072564bb"
+      }
+    }
+  },
+  {
+    "tabla": "tgcc",
+    "registros_indice_original": 60,
+    "archivos": {
+      "tgcc.frm": {
+        "bytes": 9320,
+        "sha256": "19ab1e68f49e4e28c003bd102e3dadece9b0763bc4f24350b1e1b4c8af1fa2cb"
+      },
+      "tgcc.MYD": {
+        "bytes": 6180,
+        "sha256": "5a1d3b19bbed466d456fea51f040a4465a8dfd6450fb4354c2cfec491e0fa663"
+      },
+      "tgcc.MYI": {
+        "bytes": 2048,
+        "sha256": "e6fd63996108701892d7ff3dc99b3b06710f901e54607a80999b669d0f16eb27"
+      }
+    }
+  },
+  {
+    "tabla": "tgcpag",
+    "registros_indice_original": 9,
+    "archivos": {
+      "tgcpag.frm": {
+        "bytes": 8866,
+        "sha256": "750125d29a1f8f75e369f8c37c07c96e12be9f18ae56ca05984e65edc056f07d"
+      },
+      "tgcpag.MYD": {
+        "bytes": 388,
+        "sha256": "90092b7e2d282e30495ef438bcfd047d87b309d8f656a233acba9ced29e549a7"
+      },
+      "tgcpag.MYI": {
+        "bytes": 1024,
+        "sha256": "0642ed8c1623b532643f83c3a10775d0145c4effe272741e10f409ee04907d87"
+      }
+    }
+  },
+  {
+    "tabla": "tgcum",
+    "registros_indice_original": 22,
+    "archivos": {
+      "tgcum.frm": {
+        "bytes": 8696,
+        "sha256": "78f0ee2674da4908dcbb30f85cda410eefc65f4e3f442eb04f872d4a3c2f72d2"
+      },
+      "tgcum.MYD": {
+        "bytes": 1052,
+        "sha256": "3fcf516444be4dfec8bdeae8edeac5504b29cf61c6b4aeb8e6d0971505f23747"
+      },
+      "tgcum.MYI": {
+        "bytes": 1024,
+        "sha256": "636f1ce5e18512dd767c3265afc762a013abdda2a89807c304a5bb2529f4c633"
+      }
+    }
+  },
+  {
+    "tabla": "tgefi",
+    "registros_indice_original": 27,
+    "archivos": {
+      "tgefi.frm": {
+        "bytes": 9390,
+        "sha256": "75b200ae979d9af59e597a626c9ed993208f237d1e8172c9abe6cd945e82f9f5"
+      },
+      "tgefi.MYD": {
+        "bytes": 3348,
+        "sha256": "17f17317084c025360ba6a4ed4d530e0e29db55d8872e435a3dc8d8980d97e4e"
+      },
+      "tgefi.MYI": {
+        "bytes": 1024,
+        "sha256": "804d939de32b99252432bae8891fa74eb16d7876d61c668a4a7f75acee1619f7"
+      }
+    }
+  },
+  {
+    "tabla": "tgemp",
+    "registros_indice_original": 216,
+    "archivos": {
+      "tgemp.frm": {
+        "bytes": 9272,
+        "sha256": "3d4da733adc8034d6c2e251a528faa551f8e06f0426b0a62003b5652ca4105e6"
+      },
+      "tgemp.MYD": {
+        "bytes": 41784,
+        "sha256": "cdc81db191391cb5edc16061423e06e4e55cc7f82c8beb01e821d1f730e1406b"
+      },
+      "tgemp.MYI": {
+        "bytes": 1024,
+        "sha256": "0599d3516a814157e3fa04bfa06b3f34d7585d07870ac57130f463cbeb31ae67"
+      }
+    }
+  },
+  {
+    "tabla": "tgimp",
+    "registros_indice_original": 9,
+    "archivos": {
+      "tgimp.frm": {
+        "bytes": 9228,
+        "sha256": "4f80e3b59e410b39c4fc6fcd411b54de5ae2bf4014ba1a38db9e7fe60277f1d0"
+      },
+      "tgimp.MYD": {
+        "bytes": 1372,
+        "sha256": "b8d430846c0a738ea47c04f5a8a7241e5be436a83063a164648aa33dcbf53957"
+      },
+      "tgimp.MYI": {
+        "bytes": 1024,
+        "sha256": "13fffd0d9f3d7d5f999a8cedf5aedc133c83f5ca90085723bafd95891ca85582"
+      }
+    }
+  },
+  {
+    "tabla": "tgtcd",
+    "registros_indice_original": 3,
+    "archivos": {
+      "tgtcd.frm": {
+        "bytes": 8698,
+        "sha256": "8e81e37e483590f28928455ded19486f2f622020c8eca3ff0e5f2b59e68173c3"
+      },
+      "tgtcd.MYD": {
+        "bytes": 120,
+        "sha256": "dd12bb840822d074c959a516f6627fc268ee56301d22e8c36843612187ca603b"
+      },
+      "tgtcd.MYI": {
+        "bytes": 1024,
+        "sha256": "01727e99b600173a8f4fb77fa73ea7b17f3c83da77de90b5dc839d2530c726d7"
+      }
+    }
+  },
+  {
+    "tabla": "tgtcm",
+    "registros_indice_original": 2,
+    "archivos": {
+      "tgtcm.frm": {
+        "bytes": 8760,
+        "sha256": "fc91dd3c0ba8e1b86da67681f5a62d3f4840c8d45ac4535b9f3e55e36d881258"
+      },
+      "tgtcm.MYD": {
+        "bytes": 120,
+        "sha256": "b858fc1719b9e5ed6c6f111a825e0b18ad531ea6472f43a81b8c0eee102712fa"
+      },
+      "tgtcm.MYI": {
+        "bytes": 1024,
+        "sha256": "f05557e3efc2bcbb3e296cbec7da2a5c09c8f19168b2f01b6ea501856e267109"
+      }
+    }
+  },
+  {
+    "tabla": "tmcban",
+    "registros_indice_original": 5,
+    "archivos": {
+      "tmcban.frm": {
+        "bytes": 8792,
+        "sha256": "c66a7d20ed09061517403685bdb24c035e814bf75c6bf50ed227a1a6b76db80f"
+      },
+      "tmcban.MYD": {
+        "bytes": 412,
+        "sha256": "dd3f07611dcc44e29d72cf02611d00a6abef4b9ad7b9d71ac724c1aacd1cf004"
+      },
+      "tmcban.MYI": {
+        "bytes": 2048,
+        "sha256": "226f0769b4b3eb29cdf2054328167c849dbf2ba05eaad7eea17255e776a8e914"
+      }
+    }
+  },
+  {
+    "tabla": "tmcias",
+    "registros_indice_original": 3,
+    "archivos": {
+      "tmcias.frm": {
+        "bytes": 9054,
+        "sha256": "aead6f88c46ae25de84bc9fa9d35b0d1a86c5e56206f330cb4e1faf62f2e9003"
+      },
+      "tmcias.MYD": {
+        "bytes": 424,
+        "sha256": "457c563f4aaf506d66460ab57750c6595c64a29ad08c1989c164bd905fb83a5f"
+      },
+      "tmcias.MYI": {
+        "bytes": 2048,
+        "sha256": "d6bc207d6d4b9badb8e4676f3819c2713d26750c58d76f4fcd087d07ce88346e"
+      }
+    }
+  },
+  {
+    "tabla": "tmclas",
+    "registros_indice_original": 1351,
+    "archivos": {
+      "tmclas.frm": {
+        "bytes": 8714,
+        "sha256": "e6f42f34550a77e9babc38dc69c2c2bd699604bcc3d152b5437058fa2d0ad7d1"
+      },
+      "tmclas.MYD": {
+        "bytes": 76580,
+        "sha256": "8176ec6c1d60dbf8d35219d9beb0177d4709414b025b5682519412124dcc8a28"
+      },
+      "tmclas.MYI": {
+        "bytes": 20480,
+        "sha256": "7594eb11ef93827f49fd3a770ad2e052dceb14f40c0f149831b99d6397da2cc5"
+      }
+    }
+  },
+  {
+    "tabla": "tmclasge",
+    "registros_indice_original": 148,
+    "archivos": {
+      "tmclasge.frm": {
+        "bytes": 8646,
+        "sha256": "cc4e0c39b62ae2b20c896ea22da514a24671e1b2f599b88454bd3180df679392"
+      },
+      "tmclasge.MYD": {
+        "bytes": 5940,
+        "sha256": "5d52218fd9c4bf927bb4f575a33e56367dc19d69b61fcffea63ad94466fa02c9"
+      },
+      "tmclasge.MYI": {
+        "bytes": 1024,
+        "sha256": "8d648b8b1bd5ef79f461b3c5432b7f2277d2fc22fc471f375361cb041be45768"
+      }
+    }
+  },
+  {
+    "tabla": "tmctas",
+    "registros_indice_original": 14222,
+    "archivos": {
+      "tmctas.frm": {
+        "bytes": 9288,
+        "sha256": "b7032f9cbf7917bba40194ce224ac7d179bcebf4e64cc556a42082d978052de2"
+      },
+      "tmctas.MYD": {
+        "bytes": 2250104,
+        "sha256": "6787d669b234563715acd6bbee67483fceb1ce0da781f954c809b35530908580"
+      },
+      "tmctas.MYI": {
+        "bytes": 537600,
+        "sha256": "060884e60a779a6b7a6be346c6741d11249651df8afee422e1692508211c8ded"
+      }
+    }
+  }
+]

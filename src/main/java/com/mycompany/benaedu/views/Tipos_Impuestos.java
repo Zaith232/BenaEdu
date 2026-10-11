@@ -36,6 +36,7 @@ public class Tipos_Impuestos extends javax.swing.JPanel {
     public Tipos_Impuestos() {
         initComponents();
         cargarTablaImpuestos();
+        EstiloContenido.aplicar(this);
     }
     private void cargarTablaImpuestos() {
         DefaultTableModel modelo = (DefaultTableModel) tblTImpuestos.getModel();
@@ -719,6 +720,7 @@ private void mostrarDialogoImpuesto(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

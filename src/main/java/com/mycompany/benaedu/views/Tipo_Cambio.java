@@ -29,6 +29,7 @@ public class Tipo_Cambio extends javax.swing.JPanel {
      */
     public Tipo_Cambio() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
    private void cargarTablaTCMensual() {
@@ -394,6 +395,7 @@ private void mostrarDialogoTCMensual(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

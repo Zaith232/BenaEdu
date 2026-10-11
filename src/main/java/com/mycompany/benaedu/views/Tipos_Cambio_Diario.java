@@ -30,6 +30,7 @@ public class Tipos_Cambio_Diario extends javax.swing.JPanel {
     public Tipos_Cambio_Diario() {
         initComponents();
          cargarTablaCambioDiario();
+        EstiloContenido.aplicar(this);
     }
     
 private void cargarTablaCambioDiario() {
@@ -377,6 +378,7 @@ private void cargarTablaCambioDiario() {
 
         // --- 5. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

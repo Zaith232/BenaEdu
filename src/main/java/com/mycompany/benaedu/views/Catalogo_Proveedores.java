@@ -15,6 +15,7 @@ public class Catalogo_Proveedores extends javax.swing.JPanel {
      */
     public Catalogo_Proveedores() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

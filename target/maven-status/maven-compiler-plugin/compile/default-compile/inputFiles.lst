@@ -2,7 +2,10 @@ C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\my
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\BenaEdu.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\CrearUsuarios.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\Dashboard.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\db\Auditoria.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\db\ConDB.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\db\ConfiguracionPruebas.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\db\PermisosUsuario.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\EditarUsuario.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\GestionarUsuario.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\Login.java
@@ -13,6 +16,8 @@ C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\my
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\ImportesCargoEscolar.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\InterfaseBcm.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\ReferenciasBancarias.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\services\UsuariosCajeros.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\SesionUsuario.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Actualizacion_Saldo.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Alumnos_Becados.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Auxiliar_Movimientos.java
@@ -50,6 +55,7 @@ C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\my
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Estado_Cuenta_Alumno.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Estado_Cuenta_Detallado.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Estado_Resultados.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\EstiloContenido.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Factores_Convercion_Unidad.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Facturas_Proveedores.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\FEL.java
@@ -58,6 +64,7 @@ C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\my
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Generar_Referencias_Bancarias.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Grados_Escolares.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Grupos_Conceptos.java
+C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Historial_Cambios.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Impresion_Facturas.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Impresion_Poliza.java
 C:\Users\b17za\OneDrive\Documentos\NetBeansProjects\BenaEdu\src\main\java\com\mycompany\benaedu\views\Informacion_Cuentas.java

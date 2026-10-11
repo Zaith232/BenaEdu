@@ -27,7 +27,7 @@ public class ConDB {
         try {
             // Es buena práctica registrar el driver ANTES de la conexión
             Class.forName(JDBC_DRIVER);
-            conexion = DriverManager.getConnection(DB_URL, USER, PASSWORD);
+            conexion = abrirConexion(DB_URL, USER, PASSWORD);
             // Opcional: Mensaje de éxito en consola para depuración
             // System.out.println("Conexión exitosa a benaedu");
         } catch (ClassNotFoundException | SQLException ex) {
@@ -59,6 +59,31 @@ public class ConDB {
         String password = "lf]]rV]kyfsxnetD";
         
         Class.forName(driver);
-        return DriverManager.getConnection(dbUrl, user, password);
+        return abrirConexion(dbUrl, user, password);
+    }
+
+    /** La edición de pruebas nunca usa las credenciales de la instalación habitual. */
+    private static Connection abrirConexion(String url, String usuario, String clave) throws SQLException {
+        if (Boolean.getBoolean("benaedu.pruebas")) {
+            try {
+                String programData = System.getenv("ProgramData");
+                if (programData == null || programData.isBlank()) throw new java.io.IOException("ProgramData no disponible");
+                var datos = ConfiguracionPruebas.leer(java.nio.file.Path.of(programData, "BenaEduPruebas", "conexion.properties"));
+                return identificarConexion(DriverManager.getConnection(datos.getProperty("url"), datos.getProperty("user"), datos.getProperty("password")));
+            } catch (java.io.IOException ex) {
+                throw new SQLException("La base local de BenaEdu Pruebas no está configurada. Revise la instalación.", ex);
+            }
+        }
+        return identificarConexion(DriverManager.getConnection(url, usuario, clave));
+    }
+
+    private static Connection identificarConexion(Connection con) throws SQLException {
+        try {
+            Auditoria.asignarUsuario(con);
+            return con;
+        } catch (SQLException ex) {
+            con.close();
+            throw ex;
+        }
     }
 }

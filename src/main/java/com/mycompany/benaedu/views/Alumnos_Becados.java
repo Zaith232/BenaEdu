@@ -29,6 +29,7 @@ public class Alumnos_Becados extends javax.swing.JPanel {
     public Alumnos_Becados() {
         initComponents();
         construirInterfazAlumnosBecados();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazAlumnosBecados() {
         this.removeAll();

@@ -65,6 +65,7 @@ public class Planes_Pago extends javax.swing.JPanel {
                 ? "Admin" : usuarioLogueado.trim();
         initComponents();
         cargarTablaPlanes();
+        EstiloContenido.aplicar(this);
     }
 
     private void cargarTablaPlanes() {
@@ -982,6 +983,7 @@ private void mostrarDialogoPlanPagos(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

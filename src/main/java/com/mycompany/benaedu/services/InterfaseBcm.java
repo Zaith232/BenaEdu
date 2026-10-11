@@ -125,7 +125,11 @@ public final class InterfaseBcm {
 
     /** Aplica solamente el conjunto que se mostró LISTO, revalidándolo bajo bloqueo antes de escribir. */
     public static Aplicacion aplicar(Configuracion cfg, List<Movimiento> movimientos, List<Revision> previa) throws Exception {
-        try (var con = ConDB.getConnection()) { return aplicar(con, cfg, movimientos, previa); }
+        try (var con = ConDB.getConnection()) {
+            exigir(cfg.usuario().equals(com.mycompany.benaedu.SesionUsuario.usuario()), "El usuario del lote no coincide con la sesión.");
+            UsuariosCajeros.exigirParaCobrar(con, cfg.cia(), "Interfase Bancaria BCM");
+            return aplicar(con, cfg, movimientos, previa);
+        }
     }
 
     static Aplicacion aplicar(Connection con, Configuracion cfg, List<Movimiento> movimientos, List<Revision> previa) throws Exception {
@@ -137,7 +141,8 @@ public final class InterfaseBcm {
             exigir(candado.size() == 1 && candado.get(0).get("OK").equals("1"), "No se pudo reservar el folio de recibo."); folio = true;
             ejecutar(con, "SET SESSION sql_mode=CONCAT_WS(',',@@SESSION.sql_mode,'STRICT_ALL_TABLES')");
             ejecutar(con, "SET SESSION lock_wait_timeout=15");
-            ejecutar(con, "LOCK TABLES tesrefb WRITE,tescalu WRITE,tesralu WRITE,tespalu WRITE,tesalum READ,tescaj READ,tmclas READ"); tablas = true;
+            ejecutar(con, "LOCK TABLES tesrefb WRITE,tescalu WRITE,tesralu WRITE,tespalu WRITE,tesalum READ,tescaj READ,tmclas READ"
+                    + com.mycompany.benaedu.db.Auditoria.bloqueos(con)); tablas = true;
             var actuales = revisar(con, cfg, movimientos);
             exigir(actuales.equals(previa), "Los datos cambiaron desde la revisión; cargue y revise el archivo nuevamente.");
             var cajeros = filas(con, "SELECT NEMP FROM tescaj WHERE CIA=? AND USER=? AND ECAJ='A' ORDER BY NEMP", cfg.cia(), cfg.usuario());

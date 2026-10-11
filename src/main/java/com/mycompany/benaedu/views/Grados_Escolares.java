@@ -35,6 +35,7 @@ public class Grados_Escolares extends javax.swing.JPanel {
     public Grados_Escolares() {
         initComponents();
         cargarTablaGrados();
+        EstiloContenido.aplicar(this);
     }
 
     private void cargarTablaGrados() {
@@ -631,6 +632,7 @@ public class Grados_Escolares extends javax.swing.JPanel {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

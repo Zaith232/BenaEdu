@@ -89,11 +89,13 @@ private String usuarioLogueado = "Admin";
         }
         initComponents();
         construirInterfazCobranza();
+        EstiloContenido.aplicar(this);
     }
 
     public Cobranza_Escolar() {
         initComponents();
         construirInterfazCobranza();
+        EstiloContenido.aplicar(this);
     }
 
     private String obtenerUsuarioActivo() {
@@ -950,7 +952,7 @@ private String usuarioLogueado = "Admin";
                 String ciclo = txtCiclo.getText().trim();
                 String grado = txtGrado.getText().trim();
                 String grupo = txtGrupo.getText().trim();
-                String usuarioSesionActiva = obtenerUsuarioActivo();
+                String usuarioSesionActiva = com.mycompany.benaedu.SesionUsuario.usuario();
 
                 boolean contieneOficial = false;
                 boolean contieneParticular = false;
@@ -979,17 +981,7 @@ private String usuarioLogueado = "Admin";
                 con.setAutoCommit(false);
 
                 // 1. Obtener Cajero (NCAJ)
-                int ncajVal;
-                PreparedStatement psCaj = con.prepareStatement("SELECT NEMP FROM tescaj WHERE USER = ? AND CIA = ? AND ECAJ = 'A' ORDER BY CAST(NEMP AS UNSIGNED) LIMIT 1");
-                psCaj.setString(1, usuarioSesionActiva);
-                psCaj.setString(2, cia);
-                ResultSet rsCaj = psCaj.executeQuery();
-                if (!rsCaj.next()) {
-                    throw new SQLException("El usuario " + usuarioSesionActiva
-                            + " no tiene un cajero activo asignado.");
-                }
-                ncajVal = rsCaj.getInt("NEMP");
-                rsCaj.close(); psCaj.close();
+                int ncajVal = com.mycompany.benaedu.services.UsuariosCajeros.exigirParaCobrar(con, cia, "Cobranza Escolar");
 
                 // 2. Serializar la asignación del folio sin modificar el esquema de la base.
                 bloqueoFolio = "benaedu_recibo_" + cia;

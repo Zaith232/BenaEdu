@@ -35,6 +35,7 @@ public class Ejercicio_Fiscal extends javax.swing.JPanel {
     public Ejercicio_Fiscal() {
         initComponents();
         cargarTablaEjercicio(); 
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaEjercicio() {
         DefaultTableModel modelo = (DefaultTableModel) tblEjercicioFiscal.getModel();
@@ -519,6 +520,7 @@ private void mostrarDialogoFiscal(boolean modoEdicion) {
 
         // --- MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

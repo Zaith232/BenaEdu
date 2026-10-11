@@ -72,6 +72,7 @@ public class Reeimpresion_Recibos extends javax.swing.JPanel {
     public Reeimpresion_Recibos() {
         initComponents();
         construirInterfazReimpresion();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazReimpresion() {
         this.removeAll();

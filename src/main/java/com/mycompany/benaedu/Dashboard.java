@@ -31,6 +31,8 @@ public class Dashboard extends javax.swing.JFrame {
 private String usuarioCodigo = "Admin"; // Guarda el alias de login
 
     private int indiceSeleccionadoBusqueda = -1;
+    private final java.util.Map<javax.swing.JButton, javax.swing.JScrollPane> ramasMenu = new java.util.LinkedHashMap<>();
+    private java.util.Set<String> apartadosPermitidos = java.util.Set.of();
 
     public Dashboard(String nombreUsuario,String usuarioCodigo) {
        this.usuarioActual = nombreUsuario;
@@ -80,7 +82,164 @@ public String getUsuarioCodigo() {
 
     }
 
+    private void configurarMenuArbol(javax.swing.JButton boton, javax.swing.JPopupMenu menu) {
+        filtrarMenu(menu, apartadosPermitidos, this::ejecutarApartado);
+        boton.setEnabled(menu.getComponentCount() > 0);
+        if (ramasMenu.isEmpty()) {
+            jpMenu.addComponentListener(new java.awt.event.ComponentAdapter() {
+                @Override
+                public void componentResized(java.awt.event.ComponentEvent e) { actualizarLayoutMenu(); }
+            });
+        }
+        javax.swing.JTree arbol = crearArbolMenu(menu, boton);
+        javax.swing.JScrollPane rama = new javax.swing.JScrollPane(arbol);
+        rama.setBorder(javax.swing.BorderFactory.createEmptyBorder());
+        rama.setVisible(false);
+        ramasMenu.put(boton, rama);
+        boton.addActionListener(e -> {
+            boolean abrir = !rama.isVisible();
+            ramasMenu.values().forEach(otra -> otra.setVisible(false));
+            rama.setVisible(abrir);
+            actualizarLayoutMenu();
+        });
+        actualizarLayoutMenu();
+    }
+
+    /** Construye el árbol usando las mismas opciones y acciones del menú existente. */
+    static javax.swing.JTree crearArbolMenu(javax.swing.JPopupMenu menu, javax.swing.JButton boton) {
+        DefaultMutableTreeNode raiz = new DefaultMutableTreeNode();
+        for (java.awt.Component componente : menu.getComponents()) {
+            if (componente instanceof javax.swing.JMenu categoria) {
+                DefaultMutableTreeNode rama = new DefaultMutableTreeNode(categoria);
+                raiz.add(rama);
+                for (java.awt.Component opcion : categoria.getMenuComponents()) {
+                    if (opcion instanceof javax.swing.JMenuItem item) {
+                        rama.add(new DefaultMutableTreeNode(item, false));
+                    }
+                }
+            }
+        }
+        javax.swing.JTree arbol = new javax.swing.JTree(new DefaultTreeModel(raiz));
+        arbol.setRootVisible(false);
+        arbol.setShowsRootHandles(true);
+        arbol.setToggleClickCount(0);
+        arbol.setRowHeight(28);
+        arbol.setFont(boton.getFont());
+        arbol.setBackground(boton.getForeground());
+        arbol.setForeground(boton.getBackground());
+        arbol.setCellRenderer(new javax.swing.tree.DefaultTreeCellRenderer() {
+            @Override
+            public java.awt.Component getTreeCellRendererComponent(javax.swing.JTree tree, Object value,
+                    boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+                if (((DefaultMutableTreeNode) value).getUserObject() instanceof javax.swing.JMenuItem item) {
+                    setText(item.getText());
+                    setEnabled(item.isEnabled());
+                }
+                setBackgroundNonSelectionColor(boton.getForeground());
+                setTextNonSelectionColor(boton.getBackground());
+                setBackgroundSelectionColor(boton.getBackground());
+                setTextSelectionColor(boton.getForeground());
+                setOpenIcon(null);
+                setClosedIcon(null);
+                setLeafIcon(null);
+                return this;
+            }
+        });
+        for (int fila = arbol.getRowCount() - 1; fila >= 0; fila--) arbol.collapseRow(fila);
+        Runnable activar = () -> {
+            javax.swing.tree.TreePath ruta = arbol.getSelectionPath();
+            if (ruta == null) return;
+            DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) ruta.getLastPathComponent();
+            if (nodo.getUserObject() instanceof javax.swing.JMenu categoria) {
+                if (!categoria.isEnabled()) return;
+                if (arbol.isExpanded(ruta)) arbol.collapsePath(ruta);
+                else arbol.expandPath(ruta);
+            } else if (nodo.getUserObject() instanceof javax.swing.JMenuItem item && item.isEnabled()) {
+                item.doClick();
+            }
+        };
+        arbol.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (javax.swing.SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1
+                        && arbol.getPathForLocation(e.getX(), e.getY()) != null) activar.run();
+            }
+        });
+        arbol.getInputMap().put(javax.swing.KeyStroke.getKeyStroke("ENTER"), "activarOpcion");
+        arbol.getInputMap().put(javax.swing.KeyStroke.getKeyStroke("SPACE"), "activarOpcion");
+        arbol.getActionMap().put("activarOpcion", new javax.swing.AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) { activar.run(); }
+        });
+        return arbol;
+    }
+
+    private void actualizarLayoutMenu() {
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jpMenu);
+        jpMenu.setLayout(layout);
+        javax.swing.GroupLayout.ParallelGroup columnas = layout.createParallelGroup()
+                .addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE);
+        javax.swing.GroupLayout.SequentialGroup filas = layout.createSequentialGroup()
+                .addContainerGap().addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 142,
+                        javax.swing.GroupLayout.PREFERRED_SIZE).addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED);
+        javax.swing.JButton[] botones = {btnInfoMaestra, btnTransacciones, btnEscolar};
+        for (int i = 0; i < botones.length; i++) {
+            if (i > 0) filas.addGap(18);
+            columnas.addComponent(botones[i], 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+            filas.addComponent(botones[i], javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE);
+            javax.swing.JScrollPane rama = ramasMenu.get(botones[i]);
+            if (rama != null) {
+                columnas.addComponent(rama, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+                int alto = Math.max(56, Math.min(280, jpMenu.getHeight() - 354));
+                filas.addComponent(rama, javax.swing.GroupLayout.PREFERRED_SIZE, alto, javax.swing.GroupLayout.PREFERRED_SIZE);
+            }
+        }
+        filas.addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+        layout.setHorizontalGroup(layout.createSequentialGroup().addContainerGap().addGroup(columnas).addContainerGap());
+        layout.setVerticalGroup(filas);
+        jpMenu.revalidate();
+        jpMenu.repaint();
+    }
+
+    /** Filtra ramas vacías y protege sus acciones antes de construir las pantallas. */
+    static void filtrarMenu(javax.swing.JPopupMenu menu, java.util.Set<String> permitidos,
+            java.util.function.BiConsumer<String, Runnable> ejecutar) {
+        for (java.awt.Component componente : menu.getComponents()) {
+            if (componente instanceof javax.swing.JMenu categoria) {
+                filtrarMenu(categoria.getPopupMenu(), permitidos, ejecutar);
+                if (categoria.getItemCount() == 0) menu.remove(categoria);
+            } else if (componente instanceof javax.swing.JMenuItem item) {
+                if (!permitidos.contains(com.mycompany.benaedu.db.PermisosUsuario.identificador(item.getText()))) {
+                    menu.remove(item);
+                } else {
+                    java.awt.event.ActionListener[] acciones = item.getActionListeners();
+                    for (var accion : acciones) item.removeActionListener(accion);
+                    item.addActionListener(e -> ejecutar.accept(item.getText(), () -> {
+                        for (var accion : acciones) accion.actionPerformed(e);
+                    }));
+                }
+            }
+        }
+    }
+
+    private void ejecutarApartado(String nombre, Runnable accion) {
+        try (var con = com.mycompany.benaedu.db.ConDB.getConnection()) {
+            com.mycompany.benaedu.db.PermisosUsuario.exigirAcceso(con, nombre);
+            accion.run();
+        } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(this, ex.getMessage(), "Acceso al apartado", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private void configurarMenuGeneral() {
+        if (!SesionUsuario.usuario().isBlank()) {
+            try (var con = com.mycompany.benaedu.db.ConDB.getConnection()) {
+                apartadosPermitidos = com.mycompany.benaedu.db.PermisosUsuario.cargarSesion(con);
+            } catch (Exception ex) {
+                javax.swing.JOptionPane.showMessageDialog(this, ex.getMessage(), "Permisos", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
+        }
         btnInfoMaestra.setText("General"); // Cambiamos el nombre del botón
         javax.swing.JPopupMenu menuGeneral = new javax.swing.JPopupMenu();
 
@@ -123,19 +282,11 @@ public String getUsuarioCodigo() {
         menuGeneral.add(menuInfoMaestra);
         menuGeneral.add(menuTransacciones);
 
-        // Eventos y Hover
-        btnInfoMaestra.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                menuGeneral.show(btnInfoMaestra, 0, btnInfoMaestra.getHeight());
-            }
-        });
-
-        java.awt.event.MouseAdapter evtOcultar = crearEventoOcultar();
-        btnInfoMaestra.addMouseListener(evtOcultar);
-        menuGeneral.addMouseListener(evtOcultar);
-        menuInfoMaestra.addMouseListener(evtOcultar);
-        menuTransacciones.addMouseListener(evtOcultar);
+        if (SesionUsuario.esAdministrador()) {
+            javax.swing.JMenuItem historial = new javax.swing.JMenuItem("Historial de cambios");
+            menuInfoMaestra.add(historial);
+            historial.addActionListener(e -> abrirHistorialCambios());
+        }
 
         // Acciones
         iCompanias.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Companias(), "Catálogo de Compañías"));
@@ -152,6 +303,7 @@ public String getUsuarioCodigo() {
         iImpuestos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Impuestos(), "Clave de Impuestos"));
         iCambioM.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Tipo_Cambio(), "Tipo de Cambio Mensual"));
         iUnidad.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Factores_Convercion_Unidad(), "Convertir Unidad de Medida"));
+        configurarMenuArbol(btnInfoMaestra, menuGeneral);
     }
 
     private void configurarMenuContabilidad() {
@@ -212,23 +364,6 @@ public String getUsuarioCodigo() {
         menuContab.add(m70);
         menuContab.add(m80);
 
-        btnTransacciones.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                menuContab.show(btnTransacciones, 0, btnTransacciones.getHeight());
-            }
-        });
-
-        java.awt.event.MouseAdapter evtOcultar = crearEventoOcultar();
-        btnTransacciones.addMouseListener(evtOcultar);
-        menuContab.addMouseListener(evtOcultar);
-        m20.addMouseListener(evtOcultar);
-        m30.addMouseListener(evtOcultar);
-        m40.addMouseListener(evtOcultar);
-        m50.addMouseListener(evtOcultar);
-        m60.addMouseListener(evtOcultar);
-        m70.addMouseListener(evtOcultar);
-        m80.addMouseListener(evtOcultar);
-
         // Acciones
         iCtas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(), "Cátalogo de Cuentas"));
         iPolizas.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Captura_Polizas(), "Captura de Pólizas"));
@@ -246,6 +381,7 @@ public String getUsuarioCodigo() {
         iCAnual.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Cierre_Anual(), "Cierre Anual"));
         iAct.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Actualizacion_Saldo(), "Actualización de Saldos"));
         iFel.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Actualización de Saldos"));
+        configurarMenuArbol(btnTransacciones, menuContab);
     }
 
     private void configurarMenuEscolar() {
@@ -347,22 +483,6 @@ public String getUsuarioCodigo() {
         menuEscolar.add(m50);
         menuEscolar.add(m80);
 
-        btnEscolar.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                menuEscolar.show(btnEscolar, 0, btnEscolar.getHeight());
-            }
-        });
-
-        java.awt.event.MouseAdapter evtOcultar = crearEventoOcultar();
-        btnEscolar.addMouseListener(evtOcultar);
-        menuEscolar.addMouseListener(evtOcultar);
-        m10.addMouseListener(evtOcultar);
-        m20.addMouseListener(evtOcultar);
-        m30.addMouseListener(evtOcultar);
-        m40.addMouseListener(evtOcultar);
-        m50.addMouseListener(evtOcultar);
-        m80.addMouseListener(evtOcultar);
-
         // Acciones de Reportes
         iCiclos.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Ciclos_Escolares(), "Ciclos Escolares"));
         iGrados.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Grados_Escolares(), "Grados Escolares"));
@@ -402,6 +522,7 @@ public String getUsuarioCodigo() {
         iIntBcm.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(getUsuarioCodigo()), "Interfase Bancaria BCM"));
         iIntFel.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Interfase Factura FEL"));
         iIntFelGlobal.addActionListener(e -> mostrarPanel(new com.mycompany.benaedu.views.FEL_Global(), "Interfase Factura Global FEL"));
+        configurarMenuArbol(btnEscolar, menuEscolar);
     }
 
     private void configurarFechaYHora() {
@@ -488,9 +609,11 @@ public String getUsuarioCodigo() {
     }
 
     private void configurarBuscador() {
-
         menuResultadosBusqueda.setFocusable(false);
         opcionesSistema.clear(); // Limpiar por si acaso
+        if (SesionUsuario.esAdministrador()) {
+            opcionesSistema.put("Historial de cambios", this::abrirHistorialCambios);
+        }
 
         // --- GENERAL ---
         opcionesSistema.put("Catálogo de Compañías", () -> mostrarPanel(new com.mycompany.benaedu.views.Companias(), "Catálogo de Compañías"));
@@ -561,6 +684,10 @@ public String getUsuarioCodigo() {
         opcionesSistema.put("Interfase Bancaria BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(getUsuarioCodigo()), "Interfase Bancaria BCM"));
         opcionesSistema.put("Interfase Factura FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Interfase Factura FEL"));
         opcionesSistema.put("Interfase Factura Global FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL_Global(), "Interfase Factura Global FEL"));
+
+        opcionesSistema.entrySet().removeIf(entrada -> !apartadosPermitidos.contains(
+                com.mycompany.benaedu.db.PermisosUsuario.identificador(entrada.getKey())));
+        opcionesSistema.replaceAll((nombre, accion) -> () -> ejecutarApartado(nombre, accion));
 
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
@@ -707,6 +834,15 @@ public String getUsuarioCodigo() {
 
         } else {
             menuResultadosBusqueda.setVisible(false);
+        }
+    }
+
+    private void abrirHistorialCambios() {
+        try (var con = com.mycompany.benaedu.db.ConDB.getConnection()) {
+            com.mycompany.benaedu.db.Auditoria.exigirAdministrador(con);
+            mostrarPanel(new com.mycompany.benaedu.views.Historial_Cambios(), "Historial de cambios");
+        } catch (Exception ex) {
+            javax.swing.JOptionPane.showMessageDialog(this, ex.getMessage(), "Historial", javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -952,54 +1088,6 @@ public String getUsuarioCodigo() {
     private void btnInfoMaestraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnInfoMaestraActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_btnInfoMaestraActionPerformed
-
-    // Método 1: Verifica de forma global dónde está el cursor
-    private boolean isMouseOverAnyMenuOrButton() {
-        java.awt.Point cursorLoc = java.awt.MouseInfo.getPointerInfo().getLocation();
-
-        // 1. Revisar si el mouse está sobre alguno de los botones principales
-        javax.swing.JButton[] botones = {btnInfoMaestra, btnTransacciones, btnEscolar};
-        for (javax.swing.JButton btn : botones) {
-            if (btn != null && btn.isShowing()) {
-                java.awt.Rectangle bounds = new java.awt.Rectangle(btn.getLocationOnScreen(), btn.getSize());
-                if (bounds.contains(cursorLoc)) {
-                    return true; // Está sobre un botón principal, no cerrar
-                }
-            }
-        }
-
-        // 2. Revisar si el mouse está sobre CUALQUIER menú o submenú abierto actualmente
-        javax.swing.MenuElement[] path = javax.swing.MenuSelectionManager.defaultManager().getSelectedPath();
-        for (javax.swing.MenuElement element : path) {
-            java.awt.Component comp = element.getComponent();
-            if (comp != null && comp.isShowing()) {
-                java.awt.Rectangle bounds = new java.awt.Rectangle(comp.getLocationOnScreen(), comp.getSize());
-                if (bounds.contains(cursorLoc)) {
-                    return true; // Está adentro de un menú o submenú, no cerrar
-                }
-            }
-        }
-
-        return false; // El mouse está afuera de todo
-    }
-
-    // Método 2: Crea el temporizador inteligente
-    private java.awt.event.MouseAdapter crearEventoOcultar() {
-        return new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                // Le damos 250ms (un cuarto de segundo) para que el movimiento se sienta fluido
-                javax.swing.Timer timer = new javax.swing.Timer(250, e -> {
-                    // Si el mouse NO está en ningún botón ni submenú válido, limpiamos la pantalla
-                    if (!isMouseOverAnyMenuOrButton()) {
-                        javax.swing.MenuSelectionManager.defaultManager().clearSelectedPath();
-                    }
-                });
-                timer.setRepeats(false);
-                timer.start();
-            }
-        };
-    }
 
     /**
      * @param args the command line arguments

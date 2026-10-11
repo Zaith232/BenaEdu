@@ -15,6 +15,7 @@ public class Estado_Cuenta_Alumno extends javax.swing.JPanel {
      */
     public Estado_Cuenta_Alumno() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

@@ -32,6 +32,7 @@ public class Parametros_Compañia extends javax.swing.JPanel {
     public Parametros_Compañia() {
    initComponents();
         cargarTablaParametros();
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaParametros() {
         DefaultTableModel modelo = new DefaultTableModel(
@@ -531,6 +532,7 @@ private void cargarTablaParametros() {
 
         // --- MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

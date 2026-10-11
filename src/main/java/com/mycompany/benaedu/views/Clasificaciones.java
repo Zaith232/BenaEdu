@@ -33,6 +33,7 @@ public class Clasificaciones extends javax.swing.JPanel {
     public Clasificaciones() {
         initComponents();
         cargarTablaClasificaciones();
+        EstiloContenido.aplicar(this);
     }
     
    private void cargarTablaClasificaciones() {
@@ -335,6 +336,8 @@ private void mostrarDialogoClasificacion(boolean modoEdicion) {
                 JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+
+        EstiloContenido.aplicar(dialogo);
 
         dialogo.setVisible(true);
     }

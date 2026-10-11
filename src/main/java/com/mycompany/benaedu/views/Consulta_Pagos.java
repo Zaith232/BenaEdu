@@ -33,6 +33,7 @@ public class Consulta_Pagos extends javax.swing.JPanel {
     public Consulta_Pagos() {
         initComponents();
          construirInterfazConsultaPagos();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazConsultaPagos() {
         this.removeAll();

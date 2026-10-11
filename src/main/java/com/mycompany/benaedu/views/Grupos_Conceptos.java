@@ -39,11 +39,13 @@ private String usuarioLogueado = "Admin";
         }
         initComponents();
         cargarTablaGrupos();
+        EstiloContenido.aplicar(this);
     }
     
     public Grupos_Conceptos() {
         initComponents();
         cargarTablaGrupos();
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaGrupos() {
         DefaultTableModel modelo = (DefaultTableModel) tblGrupos.getModel();
@@ -151,6 +153,7 @@ private void cargarTablaGrupos() {
         }
 
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     /**

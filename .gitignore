@@ -1,0 +1,7 @@
+# Artefactos privados: pueden contener datos escolares y herramientas descargadas.
+/target/installer-tools/
+/target/pruebas-build/
+/target/paquete-pruebas-*/
+/target/validacion-pruebas-*/
+/dist-pruebas-*/
+/instaladores-pruebas/

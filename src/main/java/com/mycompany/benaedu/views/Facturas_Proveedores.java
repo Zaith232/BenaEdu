@@ -15,6 +15,7 @@ public class Facturas_Proveedores extends javax.swing.JPanel {
      */
     public Facturas_Proveedores() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

@@ -57,6 +57,7 @@ private DefaultTableModel modResumen;
     public Resumen_Conceptos_Pagados() {
         initComponents();
         construirInterfazResumenConceptos();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazResumenConceptos() {
         this.removeAll();

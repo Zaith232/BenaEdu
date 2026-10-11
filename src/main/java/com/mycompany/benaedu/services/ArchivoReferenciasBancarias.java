@@ -34,7 +34,8 @@ public final class ArchivoReferenciasBancarias {
             st.execute("SET SESSION sql_mode = CONCAT_WS(',', @@SESSION.sql_mode, 'STRICT_ALL_TABLES')");
             st.execute("SET SESSION lock_wait_timeout=15");
             // MyISAM no revierte lotes. Bloqueo de tablas también protege frente al programa antiguo.
-            st.execute("LOCK TABLES tesrefb WRITE, tescalu READ, tescalu AS c READ, tescpto READ, tesalum READ");
+            st.execute("LOCK TABLES tesrefb WRITE, tescalu READ, tescalu AS c READ, tescpto READ, tesalum READ"
+                    + com.mycompany.benaedu.db.Auditoria.bloqueos(con));
             bloqueadas = true;
             Resultado actual = ReferenciasBancarias.generar(con, filtro);
             if (!actual.referencias().equals(propuestas))

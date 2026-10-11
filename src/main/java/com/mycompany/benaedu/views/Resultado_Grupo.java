@@ -40,6 +40,7 @@ private JComboBox<String> cmbCia;
     public Resultado_Grupo() {
         initComponents();
         construirInterfazEstadoResultadosGrupo();
+        EstiloContenido.aplicar(this);
     }
     
     private void construirInterfazEstadoResultadosGrupo() {

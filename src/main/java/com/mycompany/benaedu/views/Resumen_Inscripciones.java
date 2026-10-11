@@ -38,6 +38,7 @@ public class Resumen_Inscripciones extends javax.swing.JPanel {
         btnAddRInscripciones.setText("Generar reporte");
         btnEditRInscripciones.setVisible(false);
         btnDeleteRInscripciones.setVisible(false);
+        EstiloContenido.aplicar(this);
     }
 
     private void configurarTablaBitacora() {
@@ -524,6 +525,7 @@ private void mostrarDialogoResumen() {
     });
 
     dialogo.setLocationRelativeTo(this);
+    EstiloContenido.aplicar(dialogo);
     dialogo.setVisible(true);
 }
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -30,6 +30,7 @@ public class Factores_Convercion_Unidad extends javax.swing.JPanel {
     public Factores_Convercion_Unidad() {
         initComponents();
         cargarTablaFactores();
+        EstiloContenido.aplicar(this);
     }
     
    private void cargarTablaFactores() {
@@ -440,6 +441,7 @@ private void mostrarDialogoFactor(boolean modoEdicion) {
 
         // --- 5. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

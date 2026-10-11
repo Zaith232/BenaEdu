@@ -33,6 +33,7 @@ public class Balance_Compañia extends javax.swing.JPanel {
      */
     public Balance_Compañia() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 private void configurarTablaBitacora() {
         DefaultTableModel modelo = new DefaultTableModel(
@@ -247,6 +248,7 @@ private void mostrarDialogoBalance() {
 
         // --- 5. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

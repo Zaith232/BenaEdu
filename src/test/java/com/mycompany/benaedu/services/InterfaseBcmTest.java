@@ -99,6 +99,7 @@ public final class InterfaseBcmTest {
             });
         }
         List<Map<String,String>> consultar(String sql, Map<Integer,Object> p) {
+            if(sql.contains("information_schema.TABLES")) return List.of(mapa("COUNT", "0"));
             if(sql.contains("GET_LOCK")) { folio=true; return List.of(mapa("OK","1")); }
             if(sql.contains("RELEASE_LOCK")) { folio=false; return List.of(mapa("OK","1")); }
             if(sql.startsWith("SHOW FULL")) return List.of(mapa("FIELD","REFPAG","TYPE","varchar(25)"));
@@ -134,6 +135,7 @@ public final class InterfaseBcmTest {
             case "next" -> ++i[0]<filas.size();
             case "close" -> null;
             case "getString" -> filas.get(i[0]).get(a[0] instanceof Integer n?columnas.get(n-1):a[0].toString());
+            case "getInt" -> Integer.parseInt(filas.get(i[0]).get(a[0] instanceof Integer n?columnas.get(n-1):a[0].toString()));
             case "getMetaData" -> proxy(ResultSetMetaData.class,(o2,m2,a2) -> switch(m2.getName()) {
                 case "getColumnCount" -> columnas.size(); case "getColumnLabel" -> columnas.get((Integer)a2[0]-1);
                 default -> throw new UnsupportedOperationException(m2.getName());

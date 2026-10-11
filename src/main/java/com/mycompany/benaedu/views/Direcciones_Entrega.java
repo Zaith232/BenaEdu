@@ -15,6 +15,7 @@ public class Direcciones_Entrega extends javax.swing.JPanel {
      */
     public Direcciones_Entrega() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

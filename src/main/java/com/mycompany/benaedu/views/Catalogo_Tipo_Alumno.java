@@ -30,6 +30,7 @@ public class Catalogo_Tipo_Alumno extends javax.swing.JPanel {
     public Catalogo_Tipo_Alumno() {
         initComponents();
         cargarTablaTiposAlumno();
+        EstiloContenido.aplicar(this);
     }
 private void cargarTablaTiposAlumno() {
         // 1. Arreglamos las columnas de la tabla por código para coincidir con la BD
@@ -490,6 +491,7 @@ if (tblCTAlumno.getSelectedRow() == -1) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

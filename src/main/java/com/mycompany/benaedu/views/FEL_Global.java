@@ -34,6 +34,7 @@ private JTable tblRecibos;
     public FEL_Global() {
         initComponents();
         construirInterfazFELGlobal();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazFELGlobal() {
         this.removeAll();

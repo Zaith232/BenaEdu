@@ -4,8 +4,6 @@
  */
 package com.mycompany.benaedu;
 import com.mycompany.benaedu.db.ConDB;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import javax.swing.JOptionPane;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLighterIJTheme;
 /**
@@ -14,6 +12,11 @@ import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMTMaterialLigh
  */
 public class EditarUsuario extends javax.swing.JFrame {
     private String usuarioOriginal;
+    private final java.util.Map<String, javax.swing.JCheckBox> casillasPermisos = new java.util.LinkedHashMap<>();
+    private java.util.Set<String> seleccionCajero = java.util.Set.of();
+    private boolean modoAdministrador;
+    private final javax.swing.JButton marcarTodos = new javax.swing.JButton("Marcar todos");
+    private final javax.swing.JButton quitarTodos = new javax.swing.JButton("Quitar todos");
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(EditarUsuario.class.getName());
 // Modifica tu constructor para que reciba los parámetros
@@ -25,7 +28,8 @@ public class EditarUsuario extends javax.swing.JFrame {
         // Llenar los campos con los datos recibidos
         txtUser.setText(usuario);
         txtEmail.setText(correo); // Asegúrate de haber cambiado el txtPassword por txtCorreo
-        cmbRol.setSelectedItem(rol);
+        cmbRol.setSelectedItem(SesionUsuario.normalizarRol(rol));
+        configurarPermisos();
         
      
     }
@@ -34,6 +38,95 @@ public class EditarUsuario extends javax.swing.JFrame {
      */
     public EditarUsuario() {
         initComponents();
+        btnSave.setEnabled(false);
+    }
+
+    private void configurarPermisos() {
+        btnSave.setEnabled(false);
+        try (var con = ConDB.getConnection()) {
+            seleccionCajero = com.mycompany.benaedu.db.PermisosUsuario.cargarParaEditar(con, usuarioOriginal);
+        } catch (Exception ex) {
+            throw new IllegalStateException("No se pueden editar los permisos: " + ex.getMessage(), ex);
+        }
+        javax.swing.JPanel datos = new javax.swing.JPanel(new java.awt.GridBagLayout());
+        datos.setBackground(pnlBg.getBackground());
+        java.awt.GridBagConstraints posicion = new java.awt.GridBagConstraints();
+        posicion.insets = new java.awt.Insets(8, 8, 8, 8);
+        posicion.anchor = java.awt.GridBagConstraints.WEST;
+        javax.swing.JLabel[] etiquetas = {lblUser, lblCorreo, lblRol};
+        javax.swing.JComponent[] campos = {txtUser, txtEmail, cmbRol};
+        for (int i = 0; i < campos.length; i++) {
+            posicion.gridy = i; posicion.gridx = 0; posicion.weightx = 0;
+            datos.add(etiquetas[i], posicion);
+            posicion.gridx = 1; posicion.weightx = 1; posicion.fill = java.awt.GridBagConstraints.HORIZONTAL;
+            datos.add(campos[i], posicion);
+            posicion.fill = java.awt.GridBagConstraints.NONE;
+        }
+        javax.swing.JPanel permisos = new javax.swing.JPanel();
+        permisos.setBackground(pnlBg.getBackground());
+        permisos.setLayout(new javax.swing.BoxLayout(permisos, javax.swing.BoxLayout.Y_AXIS));
+        String grupoAnterior = "";
+        for (var apartado : com.mycompany.benaedu.db.PermisosUsuario.APARTADOS) {
+            if (!grupoAnterior.equals(apartado.grupo())) {
+                javax.swing.JLabel grupo = new javax.swing.JLabel(apartado.grupo());
+                grupo.setFont(grupo.getFont().deriveFont(java.awt.Font.BOLD));
+                grupo.setBorder(javax.swing.BorderFactory.createEmptyBorder(12, 4, 5, 4));
+                permisos.add(grupo);
+                grupoAnterior = apartado.grupo();
+            }
+            javax.swing.JCheckBox casilla = new javax.swing.JCheckBox(apartado.nombre(), seleccionCajero.contains(apartado.id()));
+            casilla.setOpaque(false);
+            if (apartado.soloAdministrador()) casilla.setToolTipText("Exclusivo de administradores");
+            permisos.add(casilla);
+            casillasPermisos.put(apartado.id(), casilla);
+        }
+        javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(permisos);
+        scroll.setBorder(javax.swing.BorderFactory.createTitledBorder("Apartados permitidos (marcado = puede entrar)"));
+        scroll.getVerticalScrollBar().setUnitIncrement(24);
+        javax.swing.JPanel contenido = new javax.swing.JPanel(new java.awt.BorderLayout(10, 10));
+        contenido.setOpaque(false); contenido.add(datos, java.awt.BorderLayout.NORTH);
+        javax.swing.JPanel accionesPermisos = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        accionesPermisos.setOpaque(false); accionesPermisos.add(marcarTodos); accionesPermisos.add(quitarTodos);
+        javax.swing.JPanel listaPermisos = new javax.swing.JPanel(new java.awt.BorderLayout());
+        listaPermisos.setOpaque(false); listaPermisos.add(accionesPermisos, java.awt.BorderLayout.NORTH);
+        listaPermisos.add(scroll, java.awt.BorderLayout.CENTER);
+        contenido.add(listaPermisos, java.awt.BorderLayout.CENTER);
+        marcarTodos.addActionListener(e -> casillasPermisos.values().forEach(c -> { if (c.isEnabled()) c.setSelected(true); }));
+        quitarTodos.addActionListener(e -> casillasPermisos.values().forEach(c -> { if (c.isEnabled()) c.setSelected(false); }));
+        javax.swing.JPanel cabecera = new javax.swing.JPanel(new java.awt.BorderLayout());
+        cabecera.setOpaque(false); cabecera.add(lblTitulo, java.awt.BorderLayout.WEST); cabecera.add(btnBack, java.awt.BorderLayout.EAST);
+        javax.swing.JPanel pie = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        pie.setOpaque(false); pie.add(new javax.swing.JLabel("Los administradores tienen acceso completo.")); pie.add(btnSave);
+        pnlBg.removeAll();
+        pnlBg.setLayout(new java.awt.BorderLayout(12, 12));
+        pnlBg.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 16, 24));
+        pnlBg.add(cabecera, java.awt.BorderLayout.NORTH); pnlBg.add(contenido, java.awt.BorderLayout.CENTER);
+        pnlBg.add(pie, java.awt.BorderLayout.SOUTH);
+        cmbRol.addActionListener(e -> actualizarCasillasPorRol());
+        actualizarCasillasPorRol();
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(720, 540));
+        setSize(893, 640);
+        btnSave.setEnabled(true);
+    }
+
+    private java.util.Set<String> seleccionActual() {
+        java.util.Set<String> seleccion = new java.util.LinkedHashSet<>();
+        casillasPermisos.forEach((id, casilla) -> { if (casilla.isSelected()) seleccion.add(id); });
+        return seleccion;
+    }
+
+    private void actualizarCasillasPorRol() {
+        boolean administrador = "Administrador".equals(cmbRol.getSelectedItem());
+        if (administrador && !modoAdministrador) seleccionCajero = seleccionActual();
+        for (var apartado : com.mycompany.benaedu.db.PermisosUsuario.APARTADOS) {
+            javax.swing.JCheckBox casilla = casillasPermisos.get(apartado.id());
+            casilla.setSelected(administrador || (!apartado.soloAdministrador() && seleccionCajero.contains(apartado.id())));
+            casilla.setEnabled(!administrador && !apartado.soloAdministrador());
+        }
+        modoAdministrador = administrador;
+        marcarTodos.setEnabled(!administrador);
+        quitarTodos.setEnabled(!administrador);
     }
 
     /**
@@ -68,7 +161,7 @@ public class EditarUsuario extends javax.swing.JFrame {
 
         lblRol.setText("ROL:");
 
-        cmbRol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Empleado" }));
+        cmbRol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Cajero" }));
 
         btnSave.setText("Guardar");
         btnSave.addActionListener(this::btnSaveActionPerformed);
@@ -159,27 +252,10 @@ public class EditarUsuario extends javax.swing.JFrame {
             return;
         }
 
-        try {
-            ConDB db = new ConDB();
-            Connection con = db.Conectar();
-
-            if (con == null) {
-                JOptionPane.showMessageDialog(this, "Error de conexión a la base de datos.");
-                return;
-            }
-
-            // Actualizamos la tabla clients. Usamos el usuarioOriginal en el WHERE.
-            String sql = "UPDATE users SET nombre_usuario=?, correo=?, rol=? WHERE nombre_usuario=?";
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setString(1, nuevoUsuario);
-            ps.setString(2, nuevoCorreo);
-            ps.setString(3, nuevoRol);
-            ps.setString(4, usuarioOriginal); // Buscamos por el nombre antes de modificarlo
-
-            int resultado = ps.executeUpdate();
-
-            if (resultado > 0) {
-                JOptionPane.showMessageDialog(this, "Usuario actualizado correctamente.");
+        btnSave.setEnabled(false);
+        try (var con = ConDB.getConnection()) {
+            com.mycompany.benaedu.db.PermisosUsuario.guardar(con, usuarioOriginal, nuevoUsuario, nuevoCorreo, nuevoRol, seleccionActual());
+                JOptionPane.showMessageDialog(this, "Usuario y permisos actualizados correctamente.");
                 
                 // Si todo sale bien, regresamos a la pantalla de gestión
                 this.dispose();
@@ -187,15 +263,10 @@ public class EditarUsuario extends javax.swing.JFrame {
                 GestionarUsuario gestionar = new GestionarUsuario();
                 gestionar.setLocationRelativeTo(null);
                 gestionar.setVisible(true);
-            } else {
-                JOptionPane.showMessageDialog(this, "No se pudo actualizar el usuario.");
-            }
-
-            ps.close();
-            db.Cerrar();
-
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Error en la base de datos: " + e.getMessage());
+        } finally {
+            btnSave.setEnabled(true);
         }
     }//GEN-LAST:event_btnSaveActionPerformed
 

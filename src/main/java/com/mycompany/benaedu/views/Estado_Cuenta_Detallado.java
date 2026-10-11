@@ -43,6 +43,7 @@ public class Estado_Cuenta_Detallado extends javax.swing.JPanel {
         }
         initComponents();
         construirInterfazEstadoCuenta();
+        EstiloContenido.aplicar(this);
     }
     /**
      * Crea el estado de cuenta usando el usuario predeterminado.
@@ -50,6 +51,7 @@ public class Estado_Cuenta_Detallado extends javax.swing.JPanel {
     public Estado_Cuenta_Detallado() {
         initComponents();
         construirInterfazEstadoCuenta();
+        EstiloContenido.aplicar(this);
     }
 
     /**

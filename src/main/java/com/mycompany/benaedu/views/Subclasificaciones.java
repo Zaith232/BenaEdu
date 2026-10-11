@@ -43,6 +43,7 @@ private JComboBox<String> cmbTablaFiltro;
     public Subclasificaciones() {
         initComponents();
         construirInterfaz();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfaz() {
         this.removeAll();
@@ -366,6 +367,8 @@ private void construirInterfaz() {
                 JOptionPane.showMessageDialog(dialogo, "Error SQL: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+
+        EstiloContenido.aplicar(dialogo);
 
         dialogo.setVisible(true);
     }

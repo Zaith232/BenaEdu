@@ -50,6 +50,7 @@ private JComboBox<String> cmbCia;
     public Reeimpresion_Facturas() {
         initComponents();
         construirInterfazReeimpresion();
+        EstiloContenido.aplicar(this);
     }
 private void construirInterfazReeimpresion() {
         this.removeAll();

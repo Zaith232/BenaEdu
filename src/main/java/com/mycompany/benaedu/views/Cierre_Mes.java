@@ -23,6 +23,7 @@ public class Cierre_Mes extends javax.swing.JPanel {
     public Cierre_Mes() {
         initComponents();
         diseñarPanelCierre();
+        EstiloContenido.aplicar(this);
     }
 
     /**

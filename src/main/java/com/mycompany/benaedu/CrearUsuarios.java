@@ -18,12 +18,82 @@ import javax.swing.SwingUtilities;
 public class CrearUsuarios extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(CrearUsuarios.class.getName());
+    private final javax.swing.JComboBox<Compania> compania = new javax.swing.JComboBox<>();
+    private final java.util.Map<String, javax.swing.JCheckBox> permisos = new java.util.LinkedHashMap<>();
+    private final javax.swing.JButton marcarTodos = new javax.swing.JButton("Marcar todos");
+    private final javax.swing.JButton quitarTodos = new javax.swing.JButton("Quitar todos");
+
+    private record Compania(String codigo, String nombre) {
+        @Override public String toString() { return codigo + " · " + nombre; }
+    }
 
     /**
      * Creates new form CrearUsuarios
      */
     public CrearUsuarios() {
         initComponents();
+        configurarAlta();
+    }
+
+    private void configurarAlta() {
+        btnRegister.setEnabled(false);
+        try (var con = ConDB.getConnection()) {
+            com.mycompany.benaedu.db.Auditoria.exigirAdministrador(con);
+            try (var st = con.createStatement(); var rs = st.executeQuery("SELECT DISTINCT CIA,NCIA FROM tmcias ORDER BY CIA")) {
+                while (rs.next()) compania.addItem(new Compania(rs.getString(1), rs.getString(2)));
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException("No se puede abrir el alta de usuarios: " + ex.getMessage(), ex);
+        }
+        javax.swing.JPanel campos = new javax.swing.JPanel(new java.awt.GridLayout(0, 2, 10, 8));
+        campos.setOpaque(false);
+        javax.swing.JLabel[] etiquetas = {lblUser, lblName, lblLastName, lblPassword, lblCorreo, lblRol, new javax.swing.JLabel("COMPAÑÍA:")};
+        javax.swing.JComponent[] entradas = {txtUser, txtName, txtLastNames, txtPassword, txtEmail, cmbRol, compania};
+        for (int i = 0; i < etiquetas.length; i++) { campos.add(etiquetas[i]); campos.add(entradas[i]); }
+        javax.swing.JPanel lista = new javax.swing.JPanel();
+        lista.setBackground(pnlBg.getBackground());
+        lista.setLayout(new javax.swing.BoxLayout(lista, javax.swing.BoxLayout.Y_AXIS));
+        String grupoAnterior = "";
+        for (var apartado : com.mycompany.benaedu.db.PermisosUsuario.APARTADOS) {
+            if (!grupoAnterior.equals(apartado.grupo())) {
+                javax.swing.JLabel grupo = new javax.swing.JLabel(apartado.grupo());
+                grupo.setFont(grupo.getFont().deriveFont(java.awt.Font.BOLD));
+                grupo.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 4, 4, 4));
+                lista.add(grupo); grupoAnterior = apartado.grupo();
+            }
+            javax.swing.JCheckBox casilla = new javax.swing.JCheckBox(apartado.nombre());
+            casilla.setOpaque(false); lista.add(casilla); permisos.put(apartado.id(), casilla);
+        }
+        javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(lista);
+        scroll.setBorder(javax.swing.BorderFactory.createTitledBorder("Apartados permitidos"));
+        scroll.getVerticalScrollBar().setUnitIncrement(24);
+        javax.swing.JPanel acciones = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
+        acciones.setOpaque(false); acciones.add(marcarTodos); acciones.add(quitarTodos);
+        javax.swing.JPanel seleccion = new javax.swing.JPanel(new java.awt.BorderLayout());
+        seleccion.setOpaque(false); seleccion.add(acciones, java.awt.BorderLayout.NORTH); seleccion.add(scroll, java.awt.BorderLayout.CENTER);
+        marcarTodos.addActionListener(e -> permisos.values().forEach(c -> { if (c.isEnabled()) c.setSelected(true); }));
+        quitarTodos.addActionListener(e -> permisos.values().forEach(c -> { if (c.isEnabled()) c.setSelected(false); }));
+        javax.swing.JPanel superior = new javax.swing.JPanel(new java.awt.BorderLayout(8, 12));
+        superior.setOpaque(false); superior.add(lblTitulo, java.awt.BorderLayout.NORTH); superior.add(campos, java.awt.BorderLayout.CENTER);
+        javax.swing.JPanel inferior = new javax.swing.JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        inferior.setOpaque(false); inferior.add(btnExisitngUsers); inferior.add(btnLogin); inferior.add(btnRegister);
+        pnlBg.removeAll(); pnlBg.setLayout(new java.awt.BorderLayout(12, 12));
+        pnlBg.setBorder(javax.swing.BorderFactory.createEmptyBorder(16, 24, 16, 24));
+        pnlBg.add(superior, java.awt.BorderLayout.NORTH); pnlBg.add(seleccion, java.awt.BorderLayout.CENTER);
+        pnlBg.add(inferior, java.awt.BorderLayout.SOUTH);
+        cmbRol.addActionListener(e -> actualizarRolAlta());
+        cmbRol.setSelectedItem("Cajero"); actualizarRolAlta();
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setMinimumSize(new java.awt.Dimension(760, 640)); setSize(893, 720);
+    }
+
+    private void actualizarRolAlta() {
+        boolean cajero = "Cajero".equals(cmbRol.getSelectedItem());
+        compania.setEnabled(cajero); marcarTodos.setEnabled(cajero); quitarTodos.setEnabled(cajero);
+        for (var apartado : com.mycompany.benaedu.db.PermisosUsuario.APARTADOS) {
+            permisos.get(apartado.id()).setEnabled(cajero && !apartado.soloAdministrador());
+        }
+        btnRegister.setEnabled(!cajero || compania.getItemCount() > 0);
     }
 
     /**
@@ -67,7 +137,7 @@ public class CrearUsuarios extends javax.swing.JFrame {
 
         lblRol.setText("ROL:");
 
-        cmbRol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Empleado" }));
+        cmbRol.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Administrador", "Cajero" }));
 
         btnRegister.setText("REGISTRAR");
         btnRegister.addActionListener(this::btnRegisterActionPerformed);
@@ -223,55 +293,23 @@ public class CrearUsuarios extends javax.swing.JFrame {
             return;
         }
 
-        try {
-            // 3. Conectar a la base de datos
-            ConDB db = new ConDB();
-            Connection con = db.Conectar();
-
-            if (con == null) {
-                JOptionPane.showMessageDialog(this, "No se pudo conectar a la base de datos.");
-                return;
-            }
-
-            // 4. Encriptar la contraseña antes de guardarla
-            String hashParaGuardar = BCrypt.hashpw(clave, BCrypt.gensalt());
-
-            // 5. Preparar la consulta SQL incluyendo 'nombre' y 'apellidos'
-            // Ahora necesitamos 6 signos de interrogación (?)
-            String sql = "INSERT INTO users (nombre_usuario, nombre, apellidos, contrasena, rol, correo) VALUES (?, ?, ?, ?, ?, ?)";
-            PreparedStatement ps = con.prepareStatement(sql);
-            
-            // Asignar los valores en el mismo orden que en el INSERT
-            ps.setString(1, usuario);
-            ps.setString(2, nombre);
-            ps.setString(3, apellidos);
-            ps.setString(4, hashParaGuardar);
-            ps.setString(5, rol);
-            ps.setString(6, correo);
-
-            // 6. Ejecutar la inserción
-            int resultado = ps.executeUpdate();
-
-            if (resultado > 0) {
-                JOptionPane.showMessageDialog(this, "Usuario registrado correctamente.");
-                
-                // Limpiar todos los campos después de un registro exitoso
-                txtUser.setText("");
-                txtName.setText("");
-                txtLastNames.setText("");
-                txtPassword.setText("");
-                txtEmail.setText("");
-                cmbRol.setSelectedIndex(0);
-            } else {
-                JOptionPane.showMessageDialog(this, "Error al registrar el usuario.");
-            }
-
-            // 7. Cerrar conexiones
-            ps.close();
-            db.Cerrar();
-
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error en la base de datos: " + e.getMessage());
+        java.util.Set<String> seleccion = new java.util.LinkedHashSet<>();
+        permisos.forEach((id, casilla) -> { if (casilla.isEnabled() && casilla.isSelected()) seleccion.add(id); });
+        Compania seleccionada = (Compania) compania.getSelectedItem();
+        btnRegister.setEnabled(false);
+        try (var con = ConDB.getConnection()) {
+            var alta = com.mycompany.benaedu.services.UsuariosCajeros.crear(con, usuario, nombre, apellidos,
+                    clave, correo, rol, seleccionada == null ? null : seleccionada.codigo(), seleccion);
+            JOptionPane.showMessageDialog(this, "Usuario registrado correctamente."
+                    + (alta.numeroCajero() == null ? "" : "\nCajero número: " + alta.numeroCajero()
+                            + "\nCompañía: " + seleccionada));
+            txtUser.setText(""); txtName.setText(""); txtLastNames.setText("");
+            txtPassword.setText(""); txtEmail.setText("");
+            permisos.values().forEach(c -> c.setSelected(false));
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "No se pudo registrar el usuario: " + ex.getMessage(), "Alta de usuario", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            actualizarRolAlta();
         }
     }//GEN-LAST:event_btnRegisterActionPerformed
 

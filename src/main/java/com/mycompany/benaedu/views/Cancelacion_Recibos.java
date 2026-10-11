@@ -38,6 +38,7 @@ public class Cancelacion_Recibos extends javax.swing.JPanel {
     public Cancelacion_Recibos() {
         initComponents();
         configurarModulo();
+        EstiloContenido.aplicar(this);
     }
 
     /**
@@ -51,6 +52,7 @@ public class Cancelacion_Recibos extends javax.swing.JPanel {
         }
         initComponents();
         configurarModulo();
+        EstiloContenido.aplicar(this);
     }
 
     private void configurarModulo() {
@@ -499,7 +501,8 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
                 try {
                     con = ConDB.getConnection();
                     try (PreparedStatement ps = con.prepareStatement(
-                            "LOCK TABLES tescalu WRITE,tesralu WRITE,tespalu WRITE")) {
+                            "LOCK TABLES tescalu WRITE,tesralu WRITE,tespalu WRITE"
+                                    + com.mycompany.benaedu.db.Auditoria.bloqueos(con))) {
                         ps.execute();
                         tablasBloqueadas = true;
                     }
@@ -634,6 +637,7 @@ private void mostrarDialogoCancelacionRecibos(boolean modoEdicion) {
         });
 
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables

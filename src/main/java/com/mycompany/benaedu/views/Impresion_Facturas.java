@@ -40,9 +40,11 @@ public Impresion_Facturas(String usuarioLogueado) {
         }
         initComponents();
         cargarTablaFacturas();
+        EstiloContenido.aplicar(this);
     }
     public Impresion_Facturas() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
     
     private String obtenerUsuarioActivo() {
@@ -700,6 +702,7 @@ public Impresion_Facturas(String usuarioLogueado) {
         });
 
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

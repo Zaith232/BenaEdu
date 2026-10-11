@@ -39,6 +39,7 @@ public class Resumen_Alumnos_No_Inscritos extends javax.swing.JPanel {
         btnAddRAInscritos.setText("Generar reporte");
         btnEditRInscritos.setVisible(false);
         btnDeleteRAInscritos.setVisible(false);
+        EstiloContenido.aplicar(this);
     }
 
     private void configurarTablaBitacora() {
@@ -554,6 +555,7 @@ btnImprimir.addActionListener(e -> {
         }
     });
     dialogo.setLocationRelativeTo(this);
+    EstiloContenido.aplicar(dialogo);
     dialogo.setVisible(true);
 }
 

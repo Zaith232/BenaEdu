@@ -32,6 +32,7 @@ public class Cancelacion_Conceptos extends javax.swing.JPanel {
     public Cancelacion_Conceptos() {
         initComponents();
         construirInterfazCancelacionConceptos();
+        EstiloContenido.aplicar(this);
     }
     private void construirInterfazCancelacionConceptos() {
         this.removeAll();

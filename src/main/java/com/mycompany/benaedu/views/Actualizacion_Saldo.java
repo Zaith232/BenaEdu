@@ -25,6 +25,7 @@ public class Actualizacion_Saldo extends javax.swing.JPanel {
     public Actualizacion_Saldo() {
         initComponents();
         diseñarPanelActualizacion();
+        EstiloContenido.aplicar(this);
     }
 private void diseñarPanelActualizacion() {
         // 1. Limpiamos el panel principal (pnlBg o jPanel1 según cómo lo llamó NetBeans)
@@ -43,21 +44,22 @@ private void diseñarPanelActualizacion() {
 
         // Signos de exclamación
         JLabel lblExclamacionIzq = new JLabel("!", SwingUtilities.CENTER);
-        lblExclamacionIzq.setFont(new Font("Arial", Font.BOLD, 70));
+        lblExclamacionIzq.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblExclamacionIzq.setBounds(10, 10, 50, 80);
         pnlAdver.add(lblExclamacionIzq);
 
         JLabel lblExclamacionDer = new JLabel("!", SwingUtilities.CENTER);
-        lblExclamacionDer.setFont(new Font("Arial", Font.BOLD, 70));
+        lblExclamacionDer.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblExclamacionDer.setBounds(460, 10, 50, 80);
         pnlAdver.add(lblExclamacionDer);
 
         // Texto centrado multilínea usando HTML
-        String textoAdvertencia = "<html><div style='text-align: center; font-family: Segoe UI; font-size: 13px; font-weight: bold;'>"
+        String textoAdvertencia = "<html><div style='text-align: center;'>"
                 + "Este proceso actualiza los saldos de las cuentas a<br>"
                 + "partir de los movimientos contables.</div></html>";
         
         JLabel lblTexto = new JLabel(textoAdvertencia, SwingUtilities.CENTER);
+        lblTexto.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         lblTexto.setBounds(70, 15, 380, 70);
         pnlAdver.add(lblTexto);
 

@@ -26,11 +26,18 @@ import javax.mail.internet.MimeMessage;
 public class RecuperarContraseña extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RecuperarContraseña.class.getName());
+    private final String correoAdministrador;
 
     /**
      * Creates new form RecuperarContrasenia
      */
     public RecuperarContraseña() {
+        this(null);
+    }
+
+    /** Conserva el correo del administrador que autorizó la recuperación en el login. */
+    public RecuperarContraseña(String correoAdministrador) {
+        this.correoAdministrador = correoAdministrador;
         initComponents();
     }
 
@@ -135,6 +142,14 @@ public class RecuperarContraseña extends javax.swing.JFrame {
         }
 
         try {
+            validarCorreoAdministrador(correoAdministrador);
+        } catch (MessagingException ex) {
+            JOptionPane.showMessageDialog(this, "El administrador debe tener un correo válido registrado. "
+                    + "Abra la recuperación desde el inicio de sesión después de actualizar su correo.");
+            return;
+        }
+
+        try {
             ConDB db = new ConDB();
             Connection con = db.Conectar();
 
@@ -170,7 +185,8 @@ public class RecuperarContraseña extends javax.swing.JFrame {
                         // Llamamos al método que envía el correo
                         enviarCorreoReal(correo, claveTemporal);
                         
-                        JOptionPane.showMessageDialog(this, "¡Correo enviado con éxito a " + correo + "!");
+                        JOptionPane.showMessageDialog(this, "¡Correo enviado con éxito a " + correo
+                                + " y al administrador " + correoAdministrador.trim() + "!");
                         txtEmail.setText(""); // Limpiar el campo
                         
                     } catch (MessagingException ex) {
@@ -196,6 +212,25 @@ public class RecuperarContraseña extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnSendActionPerformed
 
+    /** Valida el correo antes de modificar la contraseña del usuario. */
+    static InternetAddress validarCorreoAdministrador(String correo) throws MessagingException {
+        if (correo == null || correo.isBlank()) {
+            throw new javax.mail.internet.AddressException("El administrador no tiene correo registrado.");
+        }
+        InternetAddress direccion = new InternetAddress(correo.trim(), true);
+        direccion.validate();
+        return direccion;
+    }
+
+    /** Agrega la copia sin duplicar al destinatario cuando el administrador recupera su propia clave. */
+    static void agregarCopiaAdministrador(Message mensaje, String correoAdministrador, String correoDestino)
+            throws MessagingException {
+        InternetAddress administrador = validarCorreoAdministrador(correoAdministrador);
+        if (!administrador.getAddress().equalsIgnoreCase(correoDestino.trim())) {
+            mensaje.addRecipient(Message.RecipientType.CC, administrador);
+        }
+    }
+
     private void enviarCorreoReal(String correoDestino, String claveTemporal) throws MessagingException {
         // Tu correo de Gmail y la contraseña de aplicación de 16 dígitos que generaste
         String miCorreo = "b17zaithlc@gmail.com"; 
@@ -220,6 +255,7 @@ public class RecuperarContraseña extends javax.swing.JFrame {
         Message message = new MimeMessage(session);
         message.setFrom(new InternetAddress(miCorreo));
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(correoDestino));
+        agregarCopiaAdministrador(message, correoAdministrador, correoDestino);
         message.setSubject("Recuperación de Contraseña - Sistema BenaEdu");
         
         // Cuerpo del correo

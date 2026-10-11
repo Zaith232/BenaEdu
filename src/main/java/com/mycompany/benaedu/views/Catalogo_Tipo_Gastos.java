@@ -15,6 +15,7 @@ public class Catalogo_Tipo_Gastos extends javax.swing.JPanel {
      */
     public Catalogo_Tipo_Gastos() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 
     /**

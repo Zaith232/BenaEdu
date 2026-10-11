@@ -33,6 +33,7 @@ public class Poliza_Diario extends javax.swing.JPanel {
      */
     public Poliza_Diario() {
         initComponents();
+        EstiloContenido.aplicar(this);
     }
 private void configurarTablaBitacora() {
         DefaultTableModel modelo = new DefaultTableModel(
@@ -234,6 +235,7 @@ private void mostrarDialogoPolizaDiario() {
 
         // --- 5. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

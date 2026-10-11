@@ -31,6 +31,7 @@ public class Catalogo_Empleados extends javax.swing.JPanel {
     public Catalogo_Empleados() {
         initComponents();
         cargarTablaEmpleados();
+        EstiloContenido.aplicar(this);
     }
     
   private void cargarTablaEmpleados() {
@@ -716,6 +717,7 @@ private void mostrarDialogoEmpleado(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 

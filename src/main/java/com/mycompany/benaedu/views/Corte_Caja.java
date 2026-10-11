@@ -108,12 +108,14 @@ private String usuarioLogueado = "Admin";
         }
         initComponents();
         construirInterfazCorteCaja();
+        EstiloContenido.aplicar(this);
     }
     
     public Corte_Caja() {
         initComponents();
          construirInterfazCorteCaja();
       
+        EstiloContenido.aplicar(this);
     }
  private String obtenerUsuarioActivo() {
         if (this.usuarioLogueado != null && !this.usuarioLogueado.equals("Admin")) {

@@ -35,6 +35,7 @@ public class Becas_Convenio extends javax.swing.JPanel {
     public Becas_Convenio() {
         initComponents();
         cargarTablaBecas();
+        EstiloContenido.aplicar(this);
     }
    private void cargarTablaBecas() {
         // 1. Arreglamos las columnas por código para que coincidan con la DB
@@ -618,6 +619,7 @@ private void mostrarDialogoBeca(boolean modoEdicion) {
 
         // --- 6. MOSTRAR ---
         dialogo.setLocationRelativeTo(this);
+        EstiloContenido.aplicar(dialogo);
         dialogo.setVisible(true);
     }
 
