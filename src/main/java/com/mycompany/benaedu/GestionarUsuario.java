@@ -78,21 +78,34 @@ public class GestionarUsuario extends javax.swing.JFrame {
         btnDeleteUser = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblUsers = new javax.swing.JTable();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         pnlBg.setBackground(new java.awt.Color(255, 255, 255));
+        pnlBg.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        btnBack.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnBack.setIcon(new javax.swing.ImageIcon(getClass().getResource("/RegresarN.png"))); // NOI18N
         btnBack.setText("Regresar");
         btnBack.addActionListener(this::btnBackActionPerformed);
+        pnlBg.add(btnBack, new org.netbeans.lib.awtextra.AbsoluteConstraints(210, 570, 130, 40));
 
+        btnEditUser.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnEditUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/edit.png"))); // NOI18N
         btnEditUser.setText("Editar");
         btnEditUser.addActionListener(this::btnEditUserActionPerformed);
+        pnlBg.add(btnEditUser, new org.netbeans.lib.awtextra.AbsoluteConstraints(740, 570, 120, 40));
 
+        lblTitulo.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         lblTitulo.setText("Gestionar Usuarios");
+        pnlBg.add(lblTitulo, new org.netbeans.lib.awtextra.AbsoluteConstraints(410, 40, -1, -1));
 
+        btnDeleteUser.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        btnDeleteUser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/delete.png"))); // NOI18N
         btnDeleteUser.setText("Eliminar");
         btnDeleteUser.addActionListener(this::btnDeleteUserActionPerformed);
+        pnlBg.add(btnDeleteUser, new org.netbeans.lib.awtextra.AbsoluteConstraints(480, 570, 130, 40));
 
         tblUsers.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -107,45 +120,10 @@ public class GestionarUsuario extends javax.swing.JFrame {
         ));
         jScrollPane1.setViewportView(tblUsers);
 
-        javax.swing.GroupLayout pnlBgLayout = new javax.swing.GroupLayout(pnlBg);
-        pnlBg.setLayout(pnlBgLayout);
-        pnlBgLayout.setHorizontalGroup(
-            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnlBgLayout.createSequentialGroup()
-                .addGap(96, 96, 96)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 699, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(99, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(lblTitulo)
-                .addGap(290, 290, 290)
-                .addComponent(btnBack)
-                .addGap(25, 25, 25))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pnlBgLayout.createSequentialGroup()
-                .addGap(215, 215, 215)
-                .addComponent(btnDeleteUser)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnEditUser)
-                .addGap(222, 222, 222))
-        );
-        pnlBgLayout.setVerticalGroup(
-            pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(pnlBgLayout.createSequentialGroup()
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pnlBgLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(lblTitulo))
-                    .addGroup(pnlBgLayout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(btnBack)))
-                .addGap(26, 26, 26)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 301, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(pnlBgLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnEditUser)
-                    .addComponent(btnDeleteUser))
-                .addContainerGap(141, Short.MAX_VALUE))
-        );
+        pnlBg.add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 130, 800, 400));
+
+        jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/FondoTest6.png"))); // NOI18N
+        pnlBg.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(-570, -20, -1, -1));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -282,6 +260,7 @@ public class GestionarUsuario extends javax.swing.JFrame {
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnDeleteUser;
     private javax.swing.JButton btnEditUser;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblTitulo;
     private javax.swing.JPanel pnlBg;
