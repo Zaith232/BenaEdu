@@ -35,10 +35,14 @@ private String usuarioCodigo = "Admin"; // Guarda el alias de login
     private java.util.Set<String> apartadosPermitidos = java.util.Set.of();
 
     public Dashboard(String nombreUsuario,String usuarioCodigo) {
+       if (SesionUsuario.usuario().isBlank()) {
+           throw new IllegalStateException("Inicia sesión antes de abrir el menú.");
+       }
        this.usuarioActual = nombreUsuario;
     this.usuarioCodigo = usuarioCodigo;
     initComponents();
     InitStyles();
+    AplicarDiseñoPersonalizado();
     configurarFechaYHora();
     configurarMensajeBienvenida();
     initContent();
@@ -56,18 +60,7 @@ public String getUsuarioCodigo() {
      * Creates new form Dashboard
      */
     public Dashboard() {
-      initComponents();
-      InitStyles();
-      AplicarDiseñoPersonalizado();
-        configurarFechaYHora();
-        configurarMensajeBienvenida();
-        initContent();
-        // Configuramos los 3 módulos principales
-        configurarMenuGeneral();
-        configurarMenuContabilidad();
-        configurarMenuEscolar();
-
-        configurarBuscador();
+        this(SesionUsuario.usuario(), SesionUsuario.usuario());
     }
 
     private void InitStyles() {
@@ -84,7 +77,10 @@ public String getUsuarioCodigo() {
 
     private void configurarMenuArbol(javax.swing.JButton boton, javax.swing.JPopupMenu menu) {
         filtrarMenu(menu, apartadosPermitidos, this::ejecutarApartado);
+        indexarOpciones(menu, opcionesSistema);
         boton.setEnabled(menu.getComponentCount() > 0);
+        boton.setToolTipText(boton.isEnabled() ? "Mostrar u ocultar opciones de " + boton.getText()
+                : "Sin apartados autorizados en este módulo");
         if (ramasMenu.isEmpty()) {
             jpMenu.addComponentListener(new java.awt.event.ComponentAdapter() {
                 @Override
@@ -100,6 +96,10 @@ public String getUsuarioCodigo() {
             boolean abrir = !rama.isVisible();
             ramasMenu.values().forEach(otra -> otra.setVisible(false));
             rama.setVisible(abrir);
+            ramasMenu.forEach((otroBoton, otraRama) -> {
+                otroBoton.putClientProperty("menuAbierto", otraRama.isVisible());
+                otroBoton.repaint();
+            });
             actualizarLayoutMenu();
         });
         actualizarLayoutMenu();
@@ -125,8 +125,8 @@ public String getUsuarioCodigo() {
         arbol.setToggleClickCount(0);
         arbol.setRowHeight(28);
         arbol.setFont(boton.getFont());
-        arbol.setBackground(boton.getForeground());
-        arbol.setForeground(boton.getBackground());
+        arbol.setBackground(boton.getBackground());
+        arbol.setForeground(boton.getForeground());
         arbol.setCellRenderer(new javax.swing.tree.DefaultTreeCellRenderer() {
             @Override
             public java.awt.Component getTreeCellRendererComponent(javax.swing.JTree tree, Object value,
@@ -136,10 +136,10 @@ public String getUsuarioCodigo() {
                     setText(item.getText());
                     setEnabled(item.isEnabled());
                 }
-                setBackgroundNonSelectionColor(boton.getForeground());
-                setTextNonSelectionColor(boton.getBackground());
-                setBackgroundSelectionColor(boton.getBackground());
-                setTextSelectionColor(boton.getForeground());
+                setBackgroundNonSelectionColor(boton.getBackground());
+                setTextNonSelectionColor(boton.getForeground());
+                setBackgroundSelectionColor(new Color(25, 73, 120));
+                setTextSelectionColor(Color.WHITE);
                 setOpenIcon(null);
                 setClosedIcon(null);
                 setLeafIcon(null);
@@ -162,8 +162,12 @@ public String getUsuarioCodigo() {
         arbol.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
+                var ruta = arbol.getPathForLocation(e.getX(), e.getY());
                 if (javax.swing.SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1
-                        && arbol.getPathForLocation(e.getX(), e.getY()) != null) activar.run();
+                        && ruta != null && e.getX() >= arbol.getPathBounds(ruta).x) {
+                    arbol.setSelectionPath(ruta);
+                    activar.run();
+                }
             }
         });
         arbol.getInputMap().put(javax.swing.KeyStroke.getKeyStroke("ENTER"), "activarOpcion");
@@ -176,22 +180,33 @@ public String getUsuarioCodigo() {
     }
 
     private void actualizarLayoutMenu() {
+        configurarLayoutMenu(jpMenu, new javax.swing.JLabel[]{lblLogo, jLabel1, jLabel2, jLabel3},
+                new javax.swing.JButton[]{btnInfoMaestra, btnTransacciones, btnEscolar}, ramasMenu);
+    }
+
+    /** Distribuye encabezado, botones y rama abierta sin superponer componentes. */
+    static void configurarLayoutMenu(javax.swing.JPanel jpMenu, javax.swing.JLabel[] encabezado,
+            javax.swing.JButton[] botones, java.util.Map<javax.swing.JButton, javax.swing.JScrollPane> ramasMenu) {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(jpMenu);
         jpMenu.setLayout(layout);
-        javax.swing.GroupLayout.ParallelGroup columnas = layout.createParallelGroup()
-                .addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE);
-        javax.swing.GroupLayout.SequentialGroup filas = layout.createSequentialGroup()
-                .addContainerGap().addComponent(lblLogo, javax.swing.GroupLayout.PREFERRED_SIZE, 142,
-                        javax.swing.GroupLayout.PREFERRED_SIZE).addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED);
-        javax.swing.JButton[] botones = {btnInfoMaestra, btnTransacciones, btnEscolar};
+        javax.swing.GroupLayout.ParallelGroup columnas = layout.createParallelGroup();
+        javax.swing.GroupLayout.SequentialGroup filas = layout.createSequentialGroup().addContainerGap();
+        int[] alturas = {157, 32, 20, 20};
+        for (int i = 0; i < encabezado.length; i++) {
+            encabezado[i].setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+            columnas.addComponent(encabezado[i], 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
+            filas.addComponent(encabezado[i], javax.swing.GroupLayout.PREFERRED_SIZE, alturas[i],
+                    javax.swing.GroupLayout.PREFERRED_SIZE);
+        }
+        filas.addGap(16);
         for (int i = 0; i < botones.length; i++) {
-            if (i > 0) filas.addGap(18);
+            if (i > 0) filas.addGap(8);
             columnas.addComponent(botones[i], 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
             filas.addComponent(botones[i], javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE);
             javax.swing.JScrollPane rama = ramasMenu.get(botones[i]);
             if (rama != null) {
                 columnas.addComponent(rama, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE);
-                int alto = Math.max(56, Math.min(280, jpMenu.getHeight() - 354));
+                int alto = Math.max(56, Math.min(360, jpMenu.getHeight() - 437));
                 filas.addComponent(rama, javax.swing.GroupLayout.PREFERRED_SIZE, alto, javax.swing.GroupLayout.PREFERRED_SIZE);
             }
         }
@@ -610,84 +625,18 @@ public String getUsuarioCodigo() {
 
     private void configurarBuscador() {
         menuResultadosBusqueda.setFocusable(false);
-        opcionesSistema.clear(); // Limpiar por si acaso
-        if (SesionUsuario.esAdministrador()) {
-            opcionesSistema.put("Historial de cambios", this::abrirHistorialCambios);
-        }
-
-        // --- GENERAL ---
-        opcionesSistema.put("Catálogo de Compañías", () -> mostrarPanel(new com.mycompany.benaedu.views.Companias(), "Catálogo de Compañías"));
-        opcionesSistema.put("Catálogo de Centros de Costo", () -> mostrarPanel(new com.mycompany.benaedu.views.Centros_costos(), "Catálogo de Centros de Costo"));
-        opcionesSistema.put("Parámetros por Compañía", () -> mostrarPanel(new com.mycompany.benaedu.views.Parametros_Compañia(), "Parametros por Compañia"));
-        opcionesSistema.put("Ejercicio Fiscal", () -> mostrarPanel(new com.mycompany.benaedu.views.Ejercicio_Fiscal(), "Ejercicio Fiscal"));
-        opcionesSistema.put("Catálogo de Empleados", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Empleados(), "Catálogo de Empleados"));
-        opcionesSistema.put("Direcciones de Entrega", () -> mostrarPanel(new com.mycompany.benaedu.views.Direcciones_Entrega(), "Direcciones de Entrega"));
-        opcionesSistema.put("Tabla de Clasificaciones", () -> mostrarPanel(new com.mycompany.benaedu.views.Clasificaciones(), "Tabla de Clasificaciones"));
-        opcionesSistema.put("Catálogo de Contactos", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Contactos(), "Catálogo de Contactos"));
-        opcionesSistema.put("Tipos de Cambio Diario", () -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Cambio_Diario(), "Tipos de Cambio Diario"));
-        opcionesSistema.put("Condiciones de Pago", () -> mostrarPanel(new com.mycompany.benaedu.views.Condiciones_Pago(), "Condiciones de Pago"));
-        opcionesSistema.put("Clave de Impuestos", () -> mostrarPanel(new com.mycompany.benaedu.views.Tipos_Impuestos(), "Clave de Impuestos"));
-        opcionesSistema.put("Tipo de Cambio Mensual", () -> mostrarPanel(new com.mycompany.benaedu.views.Tipo_Cambio(), "Tipo de Cambio Mensual"));
-        opcionesSistema.put("Convertir Unidad de Medida", () -> mostrarPanel(new com.mycompany.benaedu.views.Factores_Convercion_Unidad(), "Convertir Unidad de Medida"));
-        opcionesSistema.put("Subclasificaciones", () ->  mostrarPanel(new com.mycompany.benaedu.views.Subclasificaciones(), "Subclasificaciones"));
-
-
-        // --- CONTABILIDAD ---
-        opcionesSistema.put("Catálogo de Cuentas", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas(), "Catálogo de Cuentas"));
-        opcionesSistema.put("Captura de Pólizas", () -> mostrarPanel(new com.mycompany.benaedu.views.Captura_Polizas(), "Captura de Pólizas"));
-        opcionesSistema.put("Auxiliar de Movimientos", () -> mostrarPanel(new com.mycompany.benaedu.views.Auxiliar_Movimientos(), "Auxiliar de Movimientos"));
-        opcionesSistema.put("Póliza de Diario", () -> mostrarPanel(new com.mycompany.benaedu.views.Poliza_Diario(), "Póliza de Diario"));
-        opcionesSistema.put("Balanza de Comprobación", () -> mostrarPanel(new com.mycompany.benaedu.views.Balanza_Comprobacion(), "Balanza de Comprobación"));
-        opcionesSistema.put("Balanza de Comprobación Ssc", () -> javax.swing.JOptionPane.showMessageDialog(this, "Módulo en construcción..."));
-        opcionesSistema.put("Balance por Compañía", () -> mostrarPanel(new com.mycompany.benaedu.views.Balance_Compañia(), "Balance por Compañía"));
-        opcionesSistema.put("Estado de Resultados x Grupo", () -> mostrarPanel(new com.mycompany.benaedu.views.Resultado_Grupo(), "Estado de Resultados x Grupo"));
-        opcionesSistema.put("Estado de Resultados", () -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Resultados(), "Estado de Resultados"));
-        opcionesSistema.put("Libro de Diario", () -> mostrarPanel(new com.mycompany.benaedu.views.Libro_Diario(), "Libro de Diario"));
-        opcionesSistema.put("Libro Mayor", () -> mostrarPanel(new com.mycompany.benaedu.views.Libro_Mayor(), "Libro Mayor"));
-        opcionesSistema.put("Impresión de Póliza", () -> mostrarPanel(new com.mycompany.benaedu.views.Impresion_Poliza(), "Impresión de Póliza"));
-        opcionesSistema.put("Cierre de Mes", () -> mostrarPanel(new com.mycompany.benaedu.views.Cierre_Mes(), "Cierre de Mes"));
-        opcionesSistema.put("Cierre Anual", () -> mostrarPanel(new com.mycompany.benaedu.views.Cierre_Anual(), "Cierre Anual"));
-        opcionesSistema.put("Actualización de Saldos", () -> mostrarPanel(new com.mycompany.benaedu.views.Actualizacion_Saldo(), "Actualización de Saldos"));
-        opcionesSistema.put("FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "FEL"));
-
-        // --- ESCOLAR ---
-        opcionesSistema.put("Ciclos Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Ciclos_Escolares(), "Ciclos Escolares"));
-        opcionesSistema.put("Grados Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Grados_Escolares(), "Grados Escolares"));
-        opcionesSistema.put("Registro de Becas y Convenios", () -> mostrarPanel(new com.mycompany.benaedu.views.Becas_Convenio(), "Registro de Becas y Convenios"));
-        opcionesSistema.put("Conceptos Escolares", () -> mostrarPanel(new com.mycompany.benaedu.views.Conceptos_Escolares(), "Conceptos Escolares"));
-        opcionesSistema.put("Planes de Pago", () -> mostrarPanel(new com.mycompany.benaedu.views.Planes_Pago(getUsuarioCodigo()), "Planes de Pago"));
-        opcionesSistema.put("Cuentas Bancarias", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cuentas_Bancarias(), "Cuentas Bancarias"));
-        opcionesSistema.put("Catalogo Tipos de Alumno", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Tipo_Alumno(), "Catalogo Tipos de Alumno"));
-        opcionesSistema.put("Catalogo de Cajeros", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Cajeros(), "Catalogo de Cajeros"));
-        opcionesSistema.put("Catalogo de Alumnos", () -> mostrarPanel(new com.mycompany.benaedu.views.Catalogo_Alumnos(getUsuarioCodigo()), "Catalogo de Alumnos"));
-        opcionesSistema.put("Cobranza Escolar", () -> mostrarPanel(new com.mycompany.benaedu.views.Cobranza_Escolar(getUsuarioCodigo()), "Cobranza Escolar"));
-        opcionesSistema.put("Corte de Caja", () -> mostrarPanel(new com.mycompany.benaedu.views.Corte_Caja(), "Corte de Caja"));
-        opcionesSistema.put("Impresión de Facturas", () -> mostrarPanel(new com.mycompany.benaedu.views.Impresion_Facturas(), "Impresión de Facturas"));
-        opcionesSistema.put("Registro de Depositos", () -> mostrarPanel(new com.mycompany.benaedu.views.Registro_Depositos(), "Registro de Depositos"));
-        opcionesSistema.put("Cancelación de Conceptos", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Conceptos(), "Cancelación de Conceptos"));
-        opcionesSistema.put("Cancelación de Recibos", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancelacion_Recibos(getUsuarioCodigo()), "Cancelación de Recibos"));
-        opcionesSistema.put("Cancela Contabilizacion de Corte de Caja", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Corte(), "Cancela Contabilizacion de Corte de Caja"));
-        opcionesSistema.put("Cancela Contabilizacion de Reg Deposito", () -> mostrarPanel(new com.mycompany.benaedu.views.Cancela_Contabilizacion_Deposito(), "Cancela Contabilizacion de Reg Deposito"));
-        opcionesSistema.put("Estado de Cuenta Alumnos", () -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(getUsuarioCodigo()), "Estado de Cuenta Alumnos"));
-        opcionesSistema.put("Consulta de Pagos", () -> mostrarPanel(new com.mycompany.benaedu.views.Consulta_Pagos(), "Consulta de Pagos"));
-        opcionesSistema.put("Estado de Cuenta Detallado", () -> mostrarPanel(new com.mycompany.benaedu.views.Estado_Cuenta_Detallado(getUsuarioCodigo()), "Estado de Cuenta Detallado"));
-        opcionesSistema.put("Resumen de Inscripciones", () -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Inscripciones(), "Resumen de Inscripciones"));
-        opcionesSistema.put("Resumen de Alumnos No Inscritos", () -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Alumnos_No_Inscritos(), "Resumen de Alumnos No Inscritos"));
-        opcionesSistema.put("Reimpresión de Recibos", () -> mostrarPanel(new com.mycompany.benaedu.views.Reeimpresion_Recibos(), "Reimpresión de Recibos"));
-        opcionesSistema.put("Reimpresión de Facturas", () -> mostrarPanel(new com.mycompany.benaedu.views.Reeimpresion_Facturas(), "Reimpresión de Facturas"));
-        opcionesSistema.put("Resumen de Conceptos Pagados", () -> mostrarPanel(new com.mycompany.benaedu.views.Resumen_Conceptos_Pagados(), "Resumen de Conceptos Pagados"));
-        opcionesSistema.put("Detalle de Conceptos Pagados", () -> mostrarPanel(new com.mycompany.benaedu.views.Detalle_Conceptos_Pagos(), "Detalle de Conceptos Pagados"));
-        opcionesSistema.put("Ingresos por Periodo", () -> mostrarPanel(new com.mycompany.benaedu.views.Ingresos_Periodo(), "Ingresos por Periodo"));
-        opcionesSistema.put("Imprime Alumnos Becados", () -> mostrarPanel(new com.mycompany.benaedu.views.Alumnos_Becados(), "Imprime Alumnos Becados"));
-        opcionesSistema.put("Procesa Referencias Bancarias BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Procesa_Referencias_Bancarias(), "Procesa Referencias Bancarias BCM"));
-        opcionesSistema.put("Generar Referencias Bancarias", () -> mostrarPanel(new com.mycompany.benaedu.views.Generar_Referencias_Bancarias(getUsuarioCodigo()), "Generar Referencias Bancarias"));
-        opcionesSistema.put("Interfase Bancaria BCM", () -> mostrarPanel(new com.mycompany.benaedu.views.Interfase_Bancaria_BCM(getUsuarioCodigo()), "Interfase Bancaria BCM"));
-        opcionesSistema.put("Interfase Factura FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL(), "Interfase Factura FEL"));
-        opcionesSistema.put("Interfase Factura Global FEL", () -> mostrarPanel(new com.mycompany.benaedu.views.FEL_Global(), "Interfase Factura Global FEL"));
-
-        opcionesSistema.entrySet().removeIf(entrada -> !apartadosPermitidos.contains(
-                com.mycompany.benaedu.db.PermisosUsuario.identificador(entrada.getKey())));
-        opcionesSistema.replaceAll((nombre, accion) -> () -> ejecutarApartado(nombre, accion));
+        txtSearch.putClientProperty("JTextField.placeholderText", "Buscar una opción...");
+        imgSearch.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+        imgSearch.setToolTipText("Buscar opciones");
+        imgSearch.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                if (javax.swing.SwingUtilities.isLeftMouseButton(e)) {
+                    txtSearch.requestFocusInWindow();
+                    buscarOpciones(txtSearch.getText());
+                }
+            }
+        });
 
         txtSearch.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             @Override
@@ -782,13 +731,13 @@ public String getUsuarioCodigo() {
             return; // Si no hay texto, se queda oculto
         }
 
-        String textoBusqueda = texto.toLowerCase();
+        String textoBusqueda = texto;
         int coincidencias = 0;
 
         for (java.util.Map.Entry<String, Runnable> opcion : opcionesSistema.entrySet()) {
             String nombreOpcion = opcion.getKey();
 
-            if (nombreOpcion.toLowerCase().contains(textoBusqueda)) {
+            if (coincideBusqueda(nombreOpcion, textoBusqueda)) {
                 javax.swing.JMenuItem itemResultado = new javax.swing.JMenuItem(nombreOpcion);
                 itemResultado.setFocusable(false);
 
@@ -826,14 +775,35 @@ public String getUsuarioCodigo() {
             menuResultadosBusqueda.setPopupSize(txtSearch.getWidth(), menuResultadosBusqueda.getPreferredSize().height);
 
             // Mostramos el menú 2 pixeles por debajo del buscador para que no lo tape
-            menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight() + 2);
+            if (txtSearch.isShowing()) menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight() + 2);
 
             javax.swing.SwingUtilities.invokeLater(() -> {
                 txtSearch.requestFocusInWindow();
             });
 
         } else {
-            menuResultadosBusqueda.setVisible(false);
+            javax.swing.JMenuItem sinResultados = new javax.swing.JMenuItem("Sin opciones disponibles");
+            sinResultados.setEnabled(false);
+            menuResultadosBusqueda.add(sinResultados);
+            menuResultadosBusqueda.setPopupSize(txtSearch.getWidth(), menuResultadosBusqueda.getPreferredSize().height);
+            if (txtSearch.isShowing()) menuResultadosBusqueda.show(txtSearch, 0, txtSearch.getHeight() + 2);
+        }
+    }
+
+    /** Busca sin distinguir acentos, mayúsculas ni espacios repetidos. */
+    static boolean coincideBusqueda(String nombre, String texto) {
+        return com.mycompany.benaedu.db.PermisosUsuario.identificador(nombre)
+                .contains(com.mycompany.benaedu.db.PermisosUsuario.identificador(texto));
+    }
+
+    /** Comparte con el buscador las acciones ya filtradas y protegidas del menú. */
+    static void indexarOpciones(javax.swing.JPopupMenu menu, java.util.Map<String, Runnable> opciones) {
+        for (java.awt.Component componente : menu.getComponents()) {
+            if (componente instanceof javax.swing.JMenu categoria) {
+                indexarOpciones(categoria.getPopupMenu(), opciones);
+            } else if (componente instanceof javax.swing.JMenuItem item && item.isEnabled()) {
+                opciones.put(item.getText(), item::doClick);
+            }
         }
     }
 
@@ -948,15 +918,14 @@ public String getUsuarioCodigo() {
         );
        
     //
-        estilizarBotonMenu(btnInfoMaestra, true);
-        estilizarBotonMenu(btnTransacciones, false);
-        estilizarBotonMenu(btnEscolar, false);
+        estilizarBotonMenu(btnInfoMaestra);
+        estilizarBotonMenu(btnTransacciones);
+        estilizarBotonMenu(btnEscolar);
     }
     
     //
-    private void estilizarBotonMenu(
-        javax.swing.JButton boton,
-        boolean activo) {
+    static void estilizarBotonMenu(
+        javax.swing.JButton boton) {
 
     java.awt.Color colorNormal =
             new java.awt.Color(11, 49, 91);
@@ -970,6 +939,7 @@ public String getUsuarioCodigo() {
     java.awt.Color colorActivoHover =
             new java.awt.Color(195, 24, 35);
 
+    boton.setBackground(colorNormal);
     boton.setForeground(java.awt.Color.WHITE);
     boton.setFont(
             new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14)
@@ -1009,7 +979,7 @@ public String getUsuarioCodigo() {
 
             java.awt.Color colorActual;
 
-            if (activo) {
+            if (Boolean.TRUE.equals(botonActual.getClientProperty("menuAbierto"))) {
                 colorActual = botonActual.getModel().isRollover()
                         ? colorActivoHover
                         : colorActivo;
@@ -1280,7 +1250,10 @@ public String getUsuarioCodigo() {
         FlatMTMaterialLighterIJTheme.setup();
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(() -> new Dashboard().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> {
+            if (SesionUsuario.usuario().isBlank()) new Login().setVisible(true);
+            else new Dashboard().setVisible(true);
+        });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -48,6 +48,8 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
     private javax.swing.table.TableRowSorter<DefaultTableModel> sorter;
     private JTextField txtBuscarMatricula;
+    private final ButtonGroup grupoSecciones = new ButtonGroup();
+    private final java.util.Map<String, JRadioButton> filtrosSeccion = new java.util.LinkedHashMap<>();
 
     private String usuarioLogueado = "Admin";
 
@@ -110,31 +112,27 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         }
     }
 
-    private void calcularTotalPaginas(Connection con, String filtroBusqueda) throws Exception {
-        StringBuilder sqlCount = new StringBuilder("SELECT COUNT(*) FROM tesalum a ");
-        if (!filtroBusqueda.isEmpty()) {
-            sqlCount.append(" WHERE a.MAT LIKE ? OR a.NOMA LIKE ? OR a.APATE LIKE ? OR a.AMATE LIKE ? ");
+    private int contarRegistros(Connection con, String filtroBusqueda, String seccion) throws Exception {
+        // Sin filtros, el total de alumnos sale directamente de tesalum. Evitamos
+        // unir todas las inscripciones y buscar el ciclo máximo por cada alumno.
+        if ((filtroBusqueda == null || filtroBusqueda.trim().isEmpty())
+                && (seccion == null || seccion.trim().isEmpty())) {
+            try (PreparedStatement psCount = con.prepareStatement("SELECT COUNT(*) FROM tesalum");
+                    ResultSet rsCount = psCount.executeQuery()) {
+                return rsCount.next() ? rsCount.getInt(1) : 0;
+            }
         }
 
-        PreparedStatement psCount = con.prepareStatement(sqlCount.toString());
-        if (!filtroBusqueda.isEmpty()) {
-            String term = "%" + filtroBusqueda + "%";
-            psCount.setString(1, term);
-            psCount.setString(2, term);
-            psCount.setString(3, term);
-            psCount.setString(4, term);
-        }
+        StringBuilder sqlCount = new StringBuilder("SELECT COUNT(DISTINCT a.MAT) FROM tesalum a "
+                + "LEFT JOIN tesaxce x ON a.MAT = x.MAT "
+                + "AND x.CESC = (SELECT MAX(actual.CESC) FROM tesaxce actual WHERE actual.MAT = a.MAT) ");
+        agregarFiltros(sqlCount, filtroBusqueda, seccion);
 
-        ResultSet rsCount = psCount.executeQuery();
-        if (rsCount.next()) {
-            totalRegistros = rsCount.getInt(1);
-        }
-        rsCount.close();
-        psCount.close();
-
-        totalPaginas = (int) Math.ceil((double) totalRegistros / registrosPorPagina);
-        if (totalPaginas == 0) {
-            totalPaginas = 1;
+        try (PreparedStatement psCount = con.prepareStatement(sqlCount.toString())) {
+            enlazarFiltros(psCount, filtroBusqueda, seccion);
+            try (ResultSet rsCount = psCount.executeQuery()) {
+                return rsCount.next() ? rsCount.getInt(1) : 0;
+            }
         }
     }
 
@@ -146,6 +144,11 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         }
 
         String textoBusqueda = (txtBuscarMatricula != null) ? txtBuscarMatricula.getText().trim() : "";
+        String seccionSeleccionada = obtenerSeccionSeleccionada();
+        int paginaSolicitada = paginaActual;
+        if (lblPaginacionInfo != null) lblPaginacionInfo.setText("Cargando página " + paginaSolicitada + "...");
+        if (btnAnterior != null) btnAnterior.setEnabled(false);
+        if (btnSiguiente != null) btnSiguiente.setEnabled(false);
 
         // Estructuras para pasar datos del hilo de fondo al hilo de UI
         final java.util.List<Object[]> filasCargadas = new java.util.ArrayList<>();
@@ -162,16 +165,11 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                     Connection con = db.Conectar();
 
                     if (con != null) {
-                        calcularTotalPaginas(con, textoBusqueda);
-
-                        if (paginaActual > totalPaginas) {
-                            paginaActual = totalPaginas;
-                        }
-                        if (paginaActual < 1) {
-                            paginaActual = 1;
-                        }
-
-                        int offset = (paginaActual - 1) * registrosPorPagina;
+                        int totalRegistrosCarga = contarRegistros(con, textoBusqueda, seccionSeleccionada);
+                        int totalPaginasCarga = Math.max(1,
+                                (int) Math.ceil((double) totalRegistrosCarga / registrosPorPagina));
+                        int paginaCarga = Math.max(1, Math.min(paginaSolicitada, totalPaginasCarga));
+                        int offset = (paginaCarga - 1) * registrosPorPagina;
 
                         StringBuilder sql = new StringBuilder(
                                 "SELECT "
@@ -190,22 +188,14 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                                 + "LEFT JOIN tesaxce x ON a.MAT = x.MAT AND x.CESC = (SELECT MAX(CESC) FROM tesaxce WHERE MAT = a.MAT) "
                         );
 
-                        if (!textoBusqueda.isEmpty()) {
-                            sql.append(" WHERE a.MAT LIKE ? OR a.NOMA LIKE ? OR a.APATE LIKE ? OR a.AMATE LIKE ? ");
-                        }
+                        agregarFiltros(sql, textoBusqueda, seccionSeleccionada);
 
                         sql.append(" ORDER BY a.MAT ASC LIMIT ? OFFSET ?");
 
                         PreparedStatement ps = con.prepareStatement(sql.toString());
                         int paramIdx = 1;
 
-                        if (!textoBusqueda.isEmpty()) {
-                            String term = "%" + textoBusqueda + "%";
-                            ps.setString(paramIdx++, term);
-                            ps.setString(paramIdx++, term);
-                            ps.setString(paramIdx++, term);
-                            ps.setString(paramIdx++, term);
-                        }
+                        paramIdx = enlazarFiltros(ps, textoBusqueda, seccionSeleccionada, paramIdx);
 
                         ps.setInt(paramIdx++, registrosPorPagina);
                         ps.setInt(paramIdx++, offset);
@@ -248,9 +238,11 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                         ps.close();
                         db.Cerrar();
 
-                        paginaFinal[0] = paginaActual;
-                        totalPagFinal[0] = totalPaginas;
-                        totalRegFinal[0] = totalRegistros;
+                        paginaFinal[0] = paginaCarga;
+                        totalPagFinal[0] = totalPaginasCarga;
+                        totalRegFinal[0] = totalRegistrosCarga;
+                    } else {
+                        throw new SQLException("No se pudo conectar con la base de datos.");
                     }
                 } catch (Exception e) {
                     errorCarga[0] = e;
@@ -261,11 +253,12 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
             @Override
             protected void done() {
                 // Si este worker fue cancelado (llegó una búsqueda más nueva), no toques la UI
-                if (isCancelled()) {
+                if (isCancelled() || workerCargaActual != this) {
                     return;
                 }
 
                 if (errorCarga[0] != null) {
+                    actualizarEstadoPaginacion();
                     JOptionPane.showMessageDialog(Catalogo_Alumnos.this,
                             "Error al cargar la tabla de alumnos: " + errorCarga[0].getMessage());
                     return;
@@ -300,12 +293,46 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
                 totalPaginas = totalPagFinal[0];
                 totalRegistros = totalRegFinal[0];
 
+                sorter.setRowFilter(null);
                 adaptarTamañoColumnas();
                 actualizarEstadoPaginacion();
             }
         };
 
         workerCargaActual.execute();
+    }
+
+    /** Añade el texto y la sección como filtros compartidos por el total y la página. */
+    private static void agregarFiltros(StringBuilder sql, String texto, String seccion) {
+        if (!texto.isEmpty()) {
+            sql.append(" WHERE (a.MAT LIKE ? OR a.NOMA LIKE ? OR a.APATE LIKE ? OR a.AMATE LIKE ? "
+                    + "OR CONCAT_WS(' ', a.APATE, a.AMATE) LIKE ?)");
+        }
+        if (!seccion.isEmpty()) {
+            sql.append(texto.isEmpty() ? " WHERE " : " AND ")
+                    .append("x.SECC = ?");
+        }
+    }
+
+    /** Enlaza los parámetros del texto y la sección en el mismo orden del filtro SQL. */
+    private static int enlazarFiltros(PreparedStatement ps, String texto, String seccion, int indice) throws SQLException {
+        if (!texto.isEmpty()) {
+            String term = "%" + texto.replaceAll("\\s+", " ") + "%";
+            for (int i = 0; i < 5; i++) ps.setString(indice++, term);
+        }
+        if (!seccion.isEmpty()) ps.setString(indice++, seccion);
+        return indice;
+    }
+
+    private static void enlazarFiltros(PreparedStatement ps, String texto, String seccion) throws SQLException {
+        enlazarFiltros(ps, texto, seccion, 1);
+    }
+
+    private String obtenerSeccionSeleccionada() {
+        for (var filtro : filtrosSeccion.entrySet()) {
+            if (filtro.getValue().isSelected()) return filtro.getKey();
+        }
+        return "";
     }
 
     private void configurarBuscadorUI() {
@@ -318,12 +345,25 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
         txtBuscarMatricula = new JTextField(20);
         JButton btnBuscarBD = new JButton("Buscar en BD");
 
+        JPanel pnlSecciones = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 4, 0));
+        pnlSecciones.setOpaque(false);
+        for (String seccion : new String[]{"Todas", "JDN", "PRI", "SEC", "BAC"}) {
+            JRadioButton filtro = new JRadioButton(seccion);
+            filtro.setOpaque(false);
+            filtro.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));
+            grupoSecciones.add(filtro);
+            filtrosSeccion.put("Todas".equals(seccion) ? "" : seccion, filtro);
+            pnlSecciones.add(filtro);
+            filtro.addActionListener(e -> {
+                paginaActual = 1;
+                cargarTablaAlumnos();
+            });
+            if ("Todas".equals(seccion)) filtro.setSelected(true);
+        }
+
         txtBuscarMatricula.addKeyListener(new java.awt.event.KeyAdapter() {
             @Override
             public void keyReleased(java.awt.event.KeyEvent e) {
-                // Filtro local instantáneo (barato, sin BD)
-                filtrarLocal();
-
                 // Si el usuario presiona Enter, buscar ya en BD sin esperar
                 if (e.getKeyCode() == java.awt.event.KeyEvent.VK_ENTER) {
                     if (debounceTimer != null) {
@@ -350,6 +390,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
         pnlBusqueda.add(lblBuscar);
         pnlBusqueda.add(txtBuscarMatricula);
+        pnlBusqueda.add(pnlSecciones);
         pnlBusqueda.add(btnBuscarBD);
 
         JPanel pnlPaginacion = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 5));
@@ -406,18 +447,6 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
         paginaActual = 1;
         cargarTablaAlumnos(); // ya es thread-safe internamente, se llama directo desde el EDT
-    }
-
-    private void filtrarLocal() {
-        if (sorter == null) {
-            return;
-        }
-        String texto = txtBuscarMatricula.getText().trim();
-        if (texto.isEmpty()) {
-            sorter.setRowFilter(null);
-        } else {
-            sorter.setRowFilter(javax.swing.RowFilter.regexFilter("(?i)" + texto));
-        }
     }
 
     private void actualizarEstadoPaginacion() {

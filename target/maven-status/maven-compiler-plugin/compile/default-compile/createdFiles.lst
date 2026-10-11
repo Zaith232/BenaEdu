@@ -212,6 +212,7 @@ com\mycompany\benaedu\views\Cobranza_Escolar$PagoImpresion.class
 com\mycompany\benaedu\views\Catalogo_Empleados$1BuscadorFlotante$1.class
 com\mycompany\benaedu\views\Generar_Referencias_Bancarias$6.class
 com\mycompany\benaedu\views\Historial_Cambios$2.class
+com\mycompany\benaedu\db\ConfiguracionPruebas.class
 com\mycompany\benaedu\views\Catalogo_Alumnos$1$1.class
 com\mycompany\benaedu\views\Resumen_Inscripciones$1BuscadorFlotante$2.class
 com\mycompany\benaedu\views\Cancelacion_Recibos$1BuscadorFlotante.class
@@ -378,6 +379,7 @@ com\mycompany\benaedu\views\Parametros_Compañia$1.class
 com\mycompany\benaedu\views\Cierre_Mes.class
 com\mycompany\benaedu\views\Generar_Referencias_Bancarias$8.class
 com\mycompany\benaedu\views\Cobranza_Escolar$1.class
+com\mycompany\benaedu\Dashboard$8.class
 com\mycompany\benaedu\views\Grados_Escolares$1BuscadorFlotante.class
 com\mycompany\benaedu\views\Factores_Convercion_Unidad.class
 com\mycompany\benaedu\views\Captura_Polizas$1BuscadorFlotante$1.class
