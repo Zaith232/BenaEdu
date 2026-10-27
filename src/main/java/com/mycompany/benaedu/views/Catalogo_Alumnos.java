@@ -347,7 +347,7 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
 
         JPanel pnlSecciones = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 4, 0));
         pnlSecciones.setOpaque(false);
-        for (String seccion : new String[]{"Todas", "JDN", "PRI", "SEC", "BAC"}) {
+        for (String seccion : new String[]{"Todas", "PRESC", "PRIM", "SEC", "BACH"}) {
             JRadioButton filtro = new JRadioButton(seccion);
             filtro.setOpaque(false);
             filtro.setFont(new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 12));

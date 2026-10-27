@@ -84,18 +84,21 @@ private String usuarioLogueado = "Admin";
     private final List<ConceptoImpresion> listaConceptosCobrados = new ArrayList<>();
     private final List<PagoImpresion> listaPagosCobrados = new ArrayList<>();
     public Cobranza_Escolar(String usuarioLogueado) {
+        this(usuarioLogueado, true);
+    }
+
+    /** Permite verificar la pantalla sin consultar datos escolares. */
+    Cobranza_Escolar(String usuarioLogueado, boolean consultarDatos) {
         if (usuarioLogueado != null && !usuarioLogueado.trim().isEmpty()) {
             this.usuarioLogueado = usuarioLogueado.trim();
         }
         initComponents();
-        construirInterfazCobranza();
+        construirInterfazCobranza(consultarDatos);
         EstiloContenido.aplicar(this);
     }
 
     public Cobranza_Escolar() {
-        initComponents();
-        construirInterfazCobranza();
-        EstiloContenido.aplicar(this);
+        this("Admin");
     }
 
     private String obtenerUsuarioActivo() {
@@ -127,7 +130,18 @@ private String usuarioLogueado = "Admin";
         return total;
     }
 
-    private void construirInterfazCobranza() {
+    /** Etiqueta visible de las cuatro secciones escolares admitidas. */
+    static String formatoSeccion(String cc) {
+        return switch (cc == null ? "" : cc) {
+            case "12100" -> "PRES";
+            case "12200" -> "PRIM";
+            case "12300" -> "SEC";
+            case "12400" -> "BACH";
+            default -> "";
+        };
+    }
+
+    private void construirInterfazCobranza(boolean consultarDatos) {
         this.removeAll();
         this.setLayout(null);
         this.setBackground(new Color(255, 255, 255));
@@ -203,6 +217,7 @@ private String usuarioLogueado = "Admin";
         BuscadorFlotante buscador = new BuscadorFlotante();
 
         java.util.function.BiFunction<String, Integer, Object[][]> cargarDatosMultiple = (query, numCols) -> {
+            if (!consultarDatos) return new Object[0][0];
             List<Object[]> lista = new ArrayList<>();
             try (Connection con = new ConDB().Conectar()) {
                 if (con != null) {
@@ -220,9 +235,6 @@ private String usuarioLogueado = "Admin";
         };
 
         Object[][] dCia = cargarDatosMultiple.apply("SELECT CIA,NCIA FROM tmcias ORDER BY CIA", 2);
-        Object[][] dCC = cargarDatosMultiple.apply(
-                "SELECT CVE,MAX(DES1) AS DES1 FROM tgcc WHERE COALESCE(CVE,'')<>'' " +
-                "GROUP BY CVE ORDER BY CVE", 2);
         Object[][] dMatricula = cargarDatosMultiple.apply(
                 "SELECT MAT,MAX(APATE),MAX(AMATE),MAX(NOMA) FROM tesalum " +
                 "GROUP BY MAT ORDER BY MAT", 4);
@@ -245,9 +257,18 @@ private String usuarioLogueado = "Admin";
         pnlTop.add(cmbCia);
 
         pnlTop.add(new JLabel("C. Costos")).setBounds(160, 15, 70, 25);
-        JComboBox<String> cmbCC = new JComboBox<>();
-        for (Object[] r : dCC) cmbCC.addItem(r[0] != null ? r[0].toString() : "");
-        cmbCC.setBounds(230, 15, 80, 25);
+        JComboBox<String> cmbCC = new JComboBox<>(new String[]{"12100", "12200", "12300", "12400"});
+        cmbCC.setRenderer(new javax.swing.DefaultListCellRenderer() {
+            @Override
+            public java.awt.Component getListCellRendererComponent(javax.swing.JList<?> list,
+                    Object value, int index, boolean selected, boolean focus) {
+                return super.getListCellRendererComponent(list,
+                        value == null ? "" : value + " - " + formatoSeccion(value.toString()),
+                        index, selected, focus);
+            }
+        });
+        cmbCC.setToolTipText("12100 PRES · 12200 PRIM · 12300 SEC · 12400 BACH");
+        cmbCC.setBounds(220, 15, 110, 25);
         pnlTop.add(cmbCC);
 
         pnlTop.add(new JLabel("Ciclo Escolar")).setBounds(330, 15, 80, 25);
@@ -320,12 +341,12 @@ private String usuarioLogueado = "Admin";
         JTable tblAPagar = new JTable(modAPagar);
 
         JTextField txtTotalAdeudo = new JTextField("0.00");
-        txtTotalAdeudo.setBounds(740, 300, 100, 25);
+        txtTotalAdeudo.setBounds(740, 365, 100, 25);
         txtTotalAdeudo.setEditable(false);
         txtTotalAdeudo.setHorizontalAlignment(JTextField.RIGHT);
 
         JTextField txtTotalPagarTab1 = new JTextField("0.00");
-        txtTotalPagarTab1.setBounds(740, 300, 100, 25);
+        txtTotalPagarTab1.setBounds(740, 365, 100, 25);
         txtTotalPagarTab1.setEditable(false);
         txtTotalPagarTab1.setHorizontalAlignment(JTextField.RIGHT);
 
@@ -395,7 +416,10 @@ private String usuarioLogueado = "Admin";
                     } else {
                         txtGrado.setText(rs.getString("GRADO"));
                         txtGrupo.setText(rs.getString("GRUPO"));
-                        seccionAlumno = rs.getString("SECC") != null ? rs.getString("SECC") : "SEC";
+                        if (formatoSeccion(rs.getString("CC")).isEmpty()) {
+                            throw new SQLException("La inscripción no pertenece a una sección escolar permitida.");
+                        }
+                        seccionAlumno = rs.getString("SECC") != null ? rs.getString("SECC") : formatoSeccion(rs.getString("CC"));
                         descripcionSeccion = rs.getString("DESC_CC") != null ? rs.getString("DESC_CC") : "SECUNDARIA";
 
                         if (rs.getString("CC") != null) cmbCC.setSelectedItem(rs.getString("CC"));
@@ -543,15 +567,26 @@ private String usuarioLogueado = "Admin";
 
         JPanel pnlTotalPagar = new JPanel(null);
         pnlTotalPagar.setBackground(Color.WHITE);
-        pnlTotalPagar.setBorder(BorderFactory.createTitledBorder("Total a Liquidar"));
-        pnlTotalPagar.setBounds(10, 10, 860, 60);
+        pnlTotalPagar.setBorder(BorderFactory.createTitledBorder("Conceptos a pagar en este recibo"));
+        pnlTotalPagar.setBounds(10, 10, 860, 150);
+        JTable tblResumenPago = new JTable(modAPagar);
+        tblResumenPago.setName("resumenConceptosPago");
+        // El resumen comparte importes; las claves internas siguen en el modelo del cobro.
+        for (int i = 8; i >= 5; i--) tblResumenPago.removeColumn(tblResumenPago.getColumnModel().getColumn(i));
+        tblResumenPago.getColumnModel().getColumn(1).setPreferredWidth(300);
+        JScrollPane scrollResumenPago = new JScrollPane(tblResumenPago);
+        scrollResumenPago.setColumnHeaderView(tblResumenPago.getTableHeader());
+        scrollResumenPago.setBounds(15, 25, 825, 75);
+        pnlTotalPagar.add(scrollResumenPago);
+        pnlTotalPagar.add(new JLabel("Total a Pagar:")).setBounds(650, 110, 80, 25);
+        txtTotalPagarTab2.setBounds(740, 110, 100, 25);
         pnlTotalPagar.add(txtTotalPagarTab2);
         pnlPagos.add(pnlTotalPagar);
 
         JPanel pnlRegPagos = new JPanel(null);
         pnlRegPagos.setBackground(Color.WHITE);
         pnlRegPagos.setBorder(BorderFactory.createTitledBorder("Instrumentos de Pago"));
-        pnlRegPagos.setBounds(10, 80, 860, 380);
+        pnlRegPagos.setBounds(10, 170, 860, 290);
 
         pnlRegPagos.add(new JLabel("Forma Pago")).setBounds(15, 20, 90, 20);
         JTextField txtFpago = new JTextField("EF");
@@ -608,17 +643,19 @@ private String usuarioLogueado = "Admin";
         pnlRegPagos.add(btnOkPago);
 
         JScrollPane scrollInstr = new JScrollPane(tblInstr);
-        scrollInstr.setBounds(15, 80, 825, 210);
+        scrollInstr.setBounds(15, 80, 825, 120);
         pnlRegPagos.add(scrollInstr);
 
-        pnlRegPagos.add(new JLabel("Total Cubierto:")).setBounds(460, 300, 90, 25);
+        pnlRegPagos.add(new JLabel("Total Cubierto:")).setBounds(460, 210, 90, 25);
+        txtTotalInstr.setBounds(550, 210, 100, 25);
         pnlRegPagos.add(txtTotalInstr);
-        pnlRegPagos.add(new JLabel("Saldo Pendiente:")).setBounds(460, 330, 90, 25);
+        pnlRegPagos.add(new JLabel("Saldo Pendiente:")).setBounds(430, 240, 120, 25);
+        txtSaldoInstr.setBounds(550, 240, 100, 25);
         pnlRegPagos.add(txtSaldoInstr);
 
         JButton btnAceptarCobro = new JButton("Aceptar y Cobrar");
         btnAceptarCobro.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnAceptarCobro.setBounds(680, 300, 150, 55);
+        btnAceptarCobro.setBounds(680, 210, 150, 55);
         pnlRegPagos.add(btnAceptarCobro);
 
         pestanas.addChangeListener(e -> {
@@ -841,7 +878,7 @@ private String usuarioLogueado = "Admin";
                 g2d.drawString("Matrícula: " + matricula, 35, y);
                 g2d.drawString("Nombre: " + alumno, 180, y);
                 y += 11;
-                g2d.drawString("Cia: " + cia + "   C. Costo: " + cc + "   Sección: " + seccionAlumno + "   Ciclo: " + ciclo + "   Grado: " + grado + "   Grupo: " + grupo, 35, y);
+                g2d.drawString("Cia: " + cia + "   C. Costo: " + cc + "   Sección: " + formatoSeccion(cc) + "   Ciclo: " + ciclo + "   Grado: " + grado + "   Grupo: " + grupo, 35, y);
                 y += 8;
                 g2d.drawLine(35, y, 540, y);
                 y += 12;

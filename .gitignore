@@ -2,6 +2,8 @@
 /target/installer-tools/
 /target/pruebas-build/
 /target/paquete-pruebas-*/
+/target/jpackage-input-pruebas/
+/target/jpackage-pruebas/
 /target/validacion-pruebas-*/
 /dist-pruebas-*/
 /instaladores-pruebas/

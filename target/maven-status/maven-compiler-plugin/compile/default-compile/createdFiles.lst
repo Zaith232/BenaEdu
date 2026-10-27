@@ -250,6 +250,7 @@ com\mycompany\benaedu\Dashboard$5.class
 com\mycompany\benaedu\views\FEL.class
 com\mycompany\benaedu\db\Auditoria$Columna.class
 com\mycompany\benaedu\views\Reeimpresion_Recibos.class
+com\mycompany\benaedu\views\Cobranza_Escolar$6.class
 com\mycompany\benaedu\views\Consulta_Pagos.class
 com\mycompany\benaedu\views\Clasificaciones.class
 com\mycompany\benaedu\views\Libro_Diario$1BuscadorFlotante$2.class
