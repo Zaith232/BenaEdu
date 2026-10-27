@@ -1,6 +1,6 @@
 param(
-    [string]$Version = '1.0.9',
-    [string]$DumpFile = 'C:\Users\b17za\Downloads\benaedu (1).sql',
+    [string]$Version = '1.0.11',
+    [string]$DumpFile = 'C:\Users\b17za\Downloads\benaedu.sql',
     [string]$MariaDbZip = 'target\installer-tools\mariadb-10.11.16-winx64.zip',
     [string]$InnoCompiler = 'target\installer-tools\InnoSetup\ISCC.exe'
 )
@@ -10,7 +10,7 @@ Set-StrictMode -Version Latest
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 Set-Location $root
 
-if ($Version -ne '1.0.9') { throw 'Actualiza también el número de versión en BenaEduPruebas.iss antes de cambiar -Version.' }
+if ($Version -ne '1.0.11') { throw 'Actualiza también el número de versión en BenaEduPruebas.iss antes de cambiar -Version.' }
 foreach ($path in @($DumpFile, $MariaDbZip, $InnoCompiler)) {
     if (!(Test-Path -LiteralPath $path)) { throw "Falta el archivo requerido: $path" }
 }

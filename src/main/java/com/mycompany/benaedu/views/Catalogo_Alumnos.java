@@ -320,7 +320,15 @@ public class Catalogo_Alumnos extends javax.swing.JPanel {
             String term = "%" + texto.replaceAll("\\s+", " ") + "%";
             for (int i = 0; i < 5; i++) ps.setString(indice++, term);
         }
-        if (!seccion.isEmpty()) ps.setString(indice++, seccion);
+        if (!seccion.isEmpty()) {
+            // Los nombres visibles conservan las claves de las inscripciones existentes.
+            ps.setString(indice++, switch (seccion) {
+                case "PRESC" -> "JDN";
+                case "PRIM" -> "PRI";
+                case "BACH" -> "BAC";
+                default -> seccion;
+            });
+        }
         return indice;
     }
 

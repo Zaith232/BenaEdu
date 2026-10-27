@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)][string]$DumpFile,
     [string]$DataRoot = "$env:ProgramData\BenaEduPruebas",
     [string]$ServiceName = 'BenaEduPruebasDB',
-    [int]$Port = 3307
+    [int]$Port = 3307,
+    [switch]$UsarRespaldoIncluido
 )
 
 $ErrorActionPreference = 'Stop'
@@ -38,6 +39,29 @@ function Invoke-MariaDb([string[]]$Arguments, [string]$InputFile = $null) {
     if ($process.ExitCode -ne 0) { throw "MariaDB terminó con código $($process.ExitCode)." }
 }
 
+function Resguardar-BaseActual([string]$Ruta, [string]$Servicio, [string]$Bin) {
+    $origen = (Resolve-Path -LiteralPath $Ruta).Path
+    $carpeta = Get-Item -LiteralPath $origen -Force
+    $padre = Split-Path -Parent $origen
+    if (!$padre -or !$carpeta.PSIsContainer -or ($carpeta.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "Ruta de datos insegura para respaldar: $origen"
+    }
+    $destino = Join-Path $padre ($carpeta.Name + '-respaldo-' + (Get-Date -Format 'yyyyMMdd-HHmmss') + '-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+    $service = Get-Service -Name $Servicio -ErrorAction SilentlyContinue
+    if ($service) {
+        if ($service.Status -ne 'Stopped') { Stop-Service -Name $Servicio -Force -ErrorAction Stop }
+        & (Join-Path $Bin 'mysqld.exe') --remove $Servicio
+        if ($LASTEXITCODE -ne 0) { throw 'No se pudo retirar el servicio anterior; se conserva la base original.' }
+        $deadline = (Get-Date).AddSeconds(30)
+        while (Get-Service -Name $Servicio -ErrorAction SilentlyContinue) {
+            if ((Get-Date) -ge $deadline) { throw 'El servicio anterior sigue registrado; cierre BenaEdu y vuelva a intentar.' }
+            Start-Sleep -Milliseconds 500
+        }
+    }
+    Move-Item -LiteralPath $origen -Destination $destino -ErrorAction Stop
+    Write-Output "Base anterior guardada en: $destino"
+}
+
 $configFile = Join-Path $DataRoot 'conexion.properties'
 $dbBin = (Resolve-Path -LiteralPath $MariaDbBin).Path
 $mariaHome = Split-Path -Parent $dbBin
@@ -45,6 +69,9 @@ if (!(Test-Path -LiteralPath $DumpFile)) { throw "No se encontró el respaldo in
 if (Test-Path -LiteralPath $DataRoot) {
     $existingRoot = Get-Item -LiteralPath $DataRoot -Force
     if (!$existingRoot.PSIsContainer -or ($existingRoot.Attributes -band [System.IO.FileAttributes]::ReparsePoint)) { throw "La ruta de datos no es una carpeta normal: $DataRoot" }
+}
+if ($UsarRespaldoIncluido -and (Test-Path -LiteralPath $DataRoot)) {
+    Resguardar-BaseActual $DataRoot $ServiceName $dbBin
 }
 New-Item -ItemType Directory -Path $DataRoot -Force | Out-Null
 
@@ -70,11 +97,12 @@ collation-server=utf8mb4_unicode_ci
     if ($LASTEXITCODE -ne 0) { throw "No se pudo inicializar MariaDB (código $LASTEXITCODE)" }
     Start-Service -Name $ServiceName
     $deadline = (Get-Date).AddMinutes(2)
+    $ready = $false
     do {
-        try { Invoke-MariaDb @('--protocol=tcp', "--host=127.0.0.1", "--port=$Port", '-uroot', "-p$rootPassword", '-e', 'SELECT 1'); break }
+        try { Invoke-MariaDb @('--protocol=tcp', "--host=127.0.0.1", "--port=$Port", '-uroot', "-p$rootPassword", '-e', 'SELECT 1'); $ready = $true; break }
         catch { Start-Sleep -Seconds 2 }
     } while ((Get-Date) -lt $deadline)
-    if ((Get-Service -Name $ServiceName).Status -ne 'Running') { throw 'MariaDB no inició correctamente.' }
+    if (!$ready) { throw 'MariaDB no aceptó conexiones; no se importó el respaldo.' }
     Invoke-MariaDb @('--protocol=tcp', '--host=127.0.0.1', "--port=$Port", '-uroot', "-p$rootPassword", '-e', 'CREATE DATABASE benaedu CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci')
     Invoke-MariaDb @('--protocol=tcp', '--host=127.0.0.1', "--port=$Port", '-uroot', "-p$rootPassword", 'benaedu') $DumpFile
     $sql = "CREATE USER IF NOT EXISTS 'benaedu_pruebas'@'127.0.0.1' IDENTIFIED BY '$appPassword';`n" +
